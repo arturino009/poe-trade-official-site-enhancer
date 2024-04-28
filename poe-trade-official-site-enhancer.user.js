@@ -1675,10 +1675,7 @@ var itemsLoaded = $.debounce( 250, function(mutation) {
 var searchLoaded = $.debounce( 250, function(mutation) {
   if (currencies && currencies.map) {
     debug("DEBOUNCED STATE CHANGE: " + mutation.type, mutation.payload);
-    if (fullyLoaded[mutation.payload.localId] && fullyLoaded[mutation.payload.localId].needRender) {
-      fullyLoaded[mutation.payload.localId].needRender = false;
-      enhanceAllItems(mutation.payload.localId, mutation.payload.resultId);
-    }
+    enhanceAllItems(mutation.payload.localId, mutation.payload.resultId);
     if (getSetting('useSaveManager')) initSaveManager();
   } else {
     debug("DEBOUNCED STATE CHANGE NEED CURRENCIES: " + mutation.type, mutation.payload);
@@ -1881,29 +1878,40 @@ var renderMaxQt = function(item, data, localId, resultId) {
 };
 
 function addChaosEquivToItem(data) {
-  if (data.listing && data.listing.price) {
-    if (data.listing.price.amount) {
+  if (data.listing && (data.listing.price || data.listing.offers)) {
+    if (data.listing.price && data.listing.price.amount) {
       data.buyout = data.listing.price.amount + " " + data.listing.price.currency;
       data.chaosEquivalent = convertBuyout(data.buyout);
-    } else if (data.listing.price.amount == null || data.listing.price.amount == undefined) {
-      // TIP: data.listing.price.item => sellcurrency and sellvalue => what you pay
-      // TIP: data.listing.price.exchange => buycurrency and buyvalue => what you get
-      var buyout = convertBuyout(data.listing.price.exchange.amount + " " + data.listing.price.exchange.currency);
-      var cada = buyout / Number(data.listing.price.item.amount);
-      var tot = convertBuyout(data.listing.price.item.amount + " " + data.listing.price.item.currency) - buyout;
-      var chaosEquivalent = tot;
-      if (buyout !== 0) {
-        data.chaosEquivalentTotal = chaosEquivalent;
-        data.chaosEquivalent = cada;
-      }
+    } else if (data.listing.price != undefined && (data.listing.price.amount == null || data.listing.price.amount == undefined)) {
+        // TIP: data.listing.price.item => sellcurrency and sellvalue => what you pay
+        // TIP: data.listing.price.exchange => buycurrency and buyvalue => what you get
+        var buyout = convertBuyout(data.listing.price.exchange.amount + " " + data.listing.price.exchange.currency);
+        var cada = buyout / Number(data.listing.price.item.amount);
+        var tot = convertBuyout(data.listing.price.item.amount + " " + data.listing.price.item.currency) - buyout;
+        var chaosEquivalent = tot;
+        if (buyout !== 0) {
+            data.chaosEquivalentTotal = chaosEquivalent;
+            data.chaosEquivalent = cada;
+        }
+    } else if (data.listing.offers) {
+        // TIP: data.listing.price.item => sellcurrency and sellvalue => what you pay
+        // TIP: data.listing.price.exchange => buycurrency and buyvalue => what you get
+        var buyout = convertBuyout(data.listing.offers[0].exchange.amount + " " + data.listing.offers[0].exchange.currency);
+        var cada = buyout / Number(data.listing.offers[0].item.amount);
+        var tot = convertBuyout(data.listing.offers[0].item.amount + " " + data.listing.offers[0].item.currency) - buyout;
+        var chaosEquivalent = tot;
+        if (buyout !== 0) {
+            data.chaosEquivalentTotal = chaosEquivalent;
+            data.chaosEquivalent = cada;
+        }
     }
   }
 }
 
 var renderChaosEquiv = function(item, data, localId, resultId) {
-  if (item.find('.chaosEquiv').length == 0 && data.chaosEquivalent && data.listing.price) {
+  if (item.find('.chaosEquiv').length == 0 && data.chaosEquivalent && (data.listing.price || data.listing.offers)) {
     var sortHandle, tip;
-    if (data.listing.price.amount) {
+    if (data.listing.price && data.listing.price.amount) {
       //TIP: SINGLE ITEM
       sortHandle = $(`<span class="chaosEquiv"><span class="currency currency-chaos"><b>Chaos Equiv: </b>${(Math.round(data.chaosEquivalent*100)/100)}×</span><span class="currency-text currency-image"><img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos"></span></span>`);
       tip = getChaosEquivTip(data.buyout, data.listing.price.currency, (_.has(data, "listing.account.lastCharacterName") ? data.listing.account.lastCharacterName : null));
@@ -1915,7 +1923,7 @@ var renderChaosEquiv = function(item, data, localId, resultId) {
     } else {
       //TIP: BULK CURRENCY
       sortHandle = $(`<span class="chaosEquiv"><span>${(Math.round(data.chaosEquivalent*100)/100)}</span><span>&nbsp;×&nbsp;</span><img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos"></span>`);
-      tip = getCurrencyChaosEquivTip(data.chaosEquivalentTotal, data.chaosEquivalent, data.listing.price.item.currency, data.listing.price.exchange.currency);
+      tip = getCurrencyChaosEquivTip(data.chaosEquivalentTotal, data.chaosEquivalent, data.listing.offers[0].item.currency, data.listing.offers[0].exchange.currency);
       item.find('div.price').first().append(sortHandle);
       sortHandle.wrap(`<div class="gs-wrapper"></div>`);
       if (_.has(data, "listing.price.item.amount") && _.has(data, "listing.price.exchange.amount") && _.has(data, "listing.price.item.currency") && _.has(data, "listing.whisper")) {
@@ -4691,8 +4699,9 @@ var mapSelectorContent = /* html */ `
     { matcher: /^[^\.]*www\.pathofexile\.com\/trade.*$/, callback: enhanceItemSearch } // Item search
   ]
 
-  waitFor([`if (!app.$data.loaded) { throw "app not loaded yet"; }`, "jQuery", "$('.loader:not(:visible)')[0].attributes"], function() {
+  waitFor([`if (!app.$data.loaded) { throw "app not loaded yet"; }`, "jQuery", "$('.loader:not(:visible)')[0].attributes", "$('.row.exchange')[0].attributes"], function() {
     jQuery( document ).ready(function() {
+      console.log("Page loaded")
       debug("doc ready!");
       $.each( matchers, function( i, m ) {
         if (m.matcher.test(window.location)) {
@@ -4700,6 +4709,7 @@ var mapSelectorContent = /* html */ `
             debug(`delay: ${DELAY}`)
             setTimeout(function(){ m.callback(window.location); }, DELAY);
           } else {
+            console.log("Making callback")
             m.callback(window.location);
           }
         }
