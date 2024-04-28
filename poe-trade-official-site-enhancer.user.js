@@ -2114,7 +2114,7 @@ var sortFullPage = function(sortKey, localId, resultId, message) {
             deferred.reject(error);
           }
         };
-        itemResultsPanel.fetchNext(search.id, ids, (search.type == "exchange"), (new $.Deferred)
+        itemResultsPanel.fetchNext(search.id, ids, (new $.Deferred)
         .done(success)
         .fail(failure)
         .always(function() {
