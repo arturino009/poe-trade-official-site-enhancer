@@ -1,10 +1,14 @@
 // ==UserScript==
 // @name         poe-trade-official-site-enhancer
 // @namespace    https://github.com/ghostscript3r/poe-trade-enhancer
-// @version      1.5.7
+// @version      1.5.10
 // @description  Enhance your Path of Exile and Path of Exile 2 trading experience with powerful QoL features! An intuitive search save manager to save and load full searches or individual filter groups effortlessly. A new affix selector that dynamically displays only the mods available for the selected item type. Automatic sorting by real currency values (via poe.ninja) for better price comparisons. Quickly check gem max-quality costs and other useful enhancements. More features are on the way—if players find this useful, I'll keep expanding it!
-// @author       ghostscript3r@gmail.com | https://www.patreon.com/ghostscripter
+// @author       arturino009 (fork maintainer) | original by ghostscript3r - https://github.com/ghostscript3r/poe-trade-official-site-enhancer
 // @license      MIT
+// @homepageURL  https://github.com/arturino009/poe-trade-official-site-enhancer
+// @supportURL   https://github.com/arturino009/poe-trade-official-site-enhancer/issues
+// @updateURL    https://raw.githubusercontent.com/arturino009/poe-trade-official-site-enhancer/master/poe-trade-official-site-enhancer.user.js
+// @downloadURL  https://raw.githubusercontent.com/arturino009/poe-trade-official-site-enhancer/master/poe-trade-official-site-enhancer.user.js
 // @match        https://www.pathofexile.com/trade*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js
 // @require      https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js
@@ -522,7 +526,7 @@ var addSettingsIconAndCommonInit = function(loc) {
 var shortDescriptionParagraph = /* html */`
 <p class="lead">
   <strong>Enhance your Path of Exile and Path of Exile 2 trading experience with powerful QoL features! An intuitive search save manager to save and load full searches or individual filter groups effortlessly. A new affix selector that dynamically displays only the mods available for the selected item type. Automatic sorting by real currency values (via poe.ninja) for better price comparisons. Quickly check gem max-quality costs and other useful enhancements. More features are on the way—if players find this useful, I'll keep expanding it!</strong>
-  <br /><em><a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">github page</a></em>
+  <br /><em><a href="https://github.com/arturino009/poe-trade-official-site-enhancer" target="_blank">github page</a> &middot; fork of <a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">ghostscript3r's original</a></em>
 </p>
 `
 
@@ -543,8 +547,8 @@ var issueTrackingParagraph = /* html */`
 <div class="">
   <h3 class="">Issue tracking</h3>
   <p class="lead">
-    <a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer/issues" target="_blank">Issue tracking page</a><br />
-    <em>Use only GitHub please. The other repositories section will be monitored occasionally at best. Also avoid sending bug report directly to my mail, there's a very high probability they'll just be ignored that way.</em>
+    <a href="https://github.com/arturino009/poe-trade-official-site-enhancer/issues" target="_blank">Issue tracking page</a><br />
+    <em>Please report problems with this fork on its GitHub page, not to the original author.</em>
   </p>
 </div>
 `
@@ -552,7 +556,7 @@ var issueTrackingParagraph = /* html */`
 var changeLogParagraph = /* html */`
 <div class="">
   <h3 class="">Changelog & Releases</h3>
-  <p><a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer/releases" target="_blank">GitHub Changelog</a></p>
+  <p><a href="https://github.com/arturino009/poe-trade-official-site-enhancer/commits/master" target="_blank">Fork changes</a><br /><a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer/releases" target="_blank">Original changelog</a></p>
 </div>
 `
 var licenseParagraph = /* html */`
@@ -566,7 +570,8 @@ var repositoriesParagraph = /* html */`
 <div class="">
   <h3 class="">Repositories</h3>
   <p>
-    <a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">GitHub</a><br />
+    <a href="https://github.com/arturino009/poe-trade-official-site-enhancer" target="_blank">GitHub (this fork)</a><br />
+    <a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">GitHub (original by ghostscript3r)</a><br />
     <a href="https://greasyfork.org/scripts/389702-poe-trade-official-site-enhancer" target="_blank">GreasyFork</a><br />
     <a href="https://openuserjs.org/scripts/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">OpenUserJS</a>
   </p>
@@ -1671,8 +1676,8 @@ var frameContent = /* html */ `
           <a class="nav-link disabled" id="leagues-tab" data-toggle="tab" href="#leagues-pane" role="tab" aria-controls="leagues-pane" aria-selected="false">Leagues</a>
         </li>
       </ul>
-      <p class="preloaded-info">Using preloaded values corresponding to Standard league values at the moment of the last major release. You can change these values manually or reset them. It is highly reccomended to enable currency load from <b><a target="_blank" href="https://${poe2 ? 'orbwatch.trade' : 'poe.ninja'}/">${poe2 ? 'orbwatch.trade' : 'poe.ninja'}</a></b> in settings tab or disable any currency reordering so that the original poe.trade order is untouched.</p>
-      <p class="loaded-info d-none">Currency values loaded from <b><a target="_blank" href="https://${poe2 ? 'orbwatch.trade' : 'poe.ninja'}/">${poe2 ? 'orbwatch.trade' : 'poe.ninja'}</a></b>. You can change them manually but they will be overwritten again the next time they are refreshed.</p>
+      <p class="preloaded-info">Using preloaded values corresponding to Standard league values at the moment of the last major release. You can change these values manually or reset them. It is highly reccomended to enable currency load from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b> in settings tab or disable any currency reordering so that the original poe.trade order is untouched.</p>
+      <p class="loaded-info d-none">Currency values loaded from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>. You can change them manually but they will be overwritten again the next time they are refreshed.</p>
       <div class="tab-content" id="myCurrTabContent">
         <div class="tab-pane fade show active" id="preloaded-pane" role="tabpanel" aria-labelledby="preloaded-tab">
         </div>
@@ -1728,16 +1733,16 @@ var settings = {
   enableChaosEquiv: {
     type: 'Boolean', default: true, paragraph: 'parag1', class: '',
     label:`Convert all prices to <span class="poe1only">chaos</span><span class="poe2only">exalted</span> equivalent`, info:`If you disable this all PTE conversion related features will be disabled.`,
-    featureForReadMe: `Sort item and currency searches by current chaos/exalted equivalent using <b class="poe1only">poe.ninja</b> for PoE1 and <b class="poe2only">orbwatch.trade</b> values for PoE2.`,
-    feature:`Sort item and currency searches on <b class="poe1only">pathofexile.com/trade</b><b class="poe2only">pathofexile.com/trade2</b> by current chaos equivalent using <b class="poe1only">poe.ninja</b><b class="poe2only">orbwatch.trade</b> values.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/sort-real-curr-off.gif'
+    featureForReadMe: `Sort item and currency searches by current chaos/exalted equivalent using <b>poe.ninja</b> values.`,
+    feature:`Sort item and currency searches on <b class="poe1only">pathofexile.com/trade</b><b class="poe2only">pathofexile.com/trade2</b> by current chaos equivalent using <b>poe.ninja</b> values.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/sort-real-curr-off.gif'
   },
   enableCurrencyLoad: {
     type: 'Boolean', default: true, paragraph: '', parent: 'enableChaosEquiv',
-    label:`Load currency values from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>`, info:`If you disable this PTE will use preloaded values corresponding to Standard league values at the moment of the last major release.`
+    label:`Load currency values from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>`, info:`If you disable this PTE will use preloaded values corresponding to Standard league values at the moment of the last major release.`
   },
   currencyMaxAge: {
     type: 'Number', min: 0, max: 12, default: 6, parent: 'enableCurrencyLoad', paragraph: '', renderer: 'bar',
-    label:`Max age for currency values: <b><span id="currencyMaxAge-val"></span> hr</b>`, info:`Maximum hours for which consider valide the currency values from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>. After that time they will be loaded again at first load. If set to zero they will never be loaded again and must be refreshed manually from Currency tab.`
+    label:`Max age for currency values: <b><span id="currencyMaxAge-val"></span> hr</b>`, info:`Maximum hours for which consider valide the currency values from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>. After that time they will be loaded again at first load. If set to zero they will never be loaded again and must be refreshed manually from Currency tab.`
   },
   secondarySortByStockSize: {
     type: 'Boolean', default: true, paragraph: '', class: 'enableChaosEquiv',
@@ -1745,7 +1750,7 @@ var settings = {
   },
   autoSortByRealCurrency: {
     type: 'Boolean', default: false, paragraph: '', parent: 'enableCurrencyLoad',
-    label:`Auto sort by real currency value`, info:`If you enable this both item and currency searches will be sorted automatically after load by real currency values, from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b> or manually modified.`
+    label:`Auto sort by real currency value`, info:`If you enable this both item and currency searches will be sorted automatically after load by real currency values, from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b> or manually modified.`
   },
   useSaveManager: {
     type: 'Boolean', default: true, paragraph: 'parag1', class: '',
@@ -1779,7 +1784,7 @@ var settings = {
   },
   autoGroupSameUser: {
     type: 'Boolean', default: false, paragraph: 'parag1', parent: 'enableGroupedResults', class: '',
-    label:`Auto group results from the same user`, info:`If you enable this item search results will automatically be grouped by user and also sorted by average real currency value (from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>) and quantity of items beeing sold. Usefull for maps and other "consumables", not for equipment search (but you can always ungoup results when needed).`
+    label:`Auto group results from the same user`, info:`If you enable this item search results will automatically be grouped by user and also sorted by average real currency value (from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>) and quantity of items beeing sold. Usefull for maps and other "consumables", not for equipment search (but you can always ungoup results when needed).`
   },
   showGroupButtonOnZeroMoreFromSameUser: {
     type: 'Boolean', default: false, paragraph: 'parag1', parent: 'enableGroupedResults', class: '',
@@ -3442,6 +3447,8 @@ var renderChaosEquiv = function(item, data, localId, resultId) {
     var sortHandle, tip;
     if (data.listing.price && data.listing.price.amount) {
       //TIP: SINGLE ITEM
+      // Skip the badge when the asking price is already in the base currency (chaos / exalted for PoE2): it would just repeat the price.
+      if (data.listing.price.currency === (poe2 ? "exalted" : "chaos")) return;
       sortHandle = $(`<span class="chaosEquiv">
         <span class="currency currency-chaos"><b>${poe2?'Ex':'Chaos'} Equiv: </b>${(Math.round(data.chaosEquivalent*100)/100)}×</span>
         <span class="currency-text currency-image">
@@ -4103,7 +4110,7 @@ var getDeferred = function(url, options) {
         deferred.resolve(response);
       },
       onerror: function (error) {
-        deferred.fail(error);
+        deferred.reject(error);
         debug(error);
       }
     });
@@ -4197,44 +4204,41 @@ function getCurrencies(league, cb) {
       debug('currencies from poe.ninja not found in session or older then '+maxAge+' hours');
       if (poe2) {
         $.when(
-          getDeferred("https://orbwatch.trade/api/currency/market-data?mode=buy&realm="+league, {headers: {Referer: "https://orbwatch.trade/"}})
+          getDeferred("https://poe.ninja/poe2/api/economy/exchange/current/overview?league="+encodeURIComponent(league)+"&type=Currency"),
+          getDeferred("https://poe.ninja/poe2/api/economy/exchange/current/overview?league="+encodeURIComponent(league)+"&type=Fragments")
         ).then(function () {
           curr = {map: {}, lines: [], currencyDetails: []};
           $.each( arguments, function( i, response ) {
             debug("GM_xmlhttpRequest response", response);
-            if (response.responseText) {
-              var c = JSON.parse(response.responseText);
+            var c = null;
+            if (response && response.status == 200 && response.responseText) {
+              try { c = JSON.parse(response.responseText); } catch (ex) { c = null; }
+            }
+            if (c && c.core && c.items && c.lines) {
+              // poe.ninja exchange API: primaryValue is in core.primary units (divine), core.rates converts to other currencies
               curr.updated = moment().valueOf();
-              debug("orbwatch", c);
-              curr.currencyDetails = [];
-              curr.lines = [];
-              curr.map = {};
-              if (c.data && c.data.currencies) {
-                var ex = c.data.currencies.find(function (x) { return x.id == "exalted"; });
-                debug("orbwatch", ex);
-                $.each(c.data.currencies, function( ii, c ) {
-                  curr.currencyDetails.push({
-                    icon: c.icon,
-                    id: ii,
-                    name: c.name,
-                    tradeId: c.id
-                  });
-                  curr.lines.push({
-                    chaosEquivalent: 1 / c.median_price,
-                    exEquivalent: (1 / c.median_price) * ex.median_price,
-                    currencyTypeName: c.name,
-                    detailsId: _.kebabCase(c.name)
-                  });
-                  curr.map[_.kebabCase(c.name)] = {
-                    chaosEquivalent: 1 / c.median_price,
-                    exEquivalent: (1 / c.median_price) * ex.median_price,
-                    currencyTypeName: c.name,
-                    detailsId: _.kebabCase(c.name)
-                  };
-                });
-              }
+              var rates = c.core.rates || {};
+              var primary = c.core.primary;
+              var toEx = (primary == "exalted") ? 1 : rates.exalted;
+              var itemsById = _.keyBy(c.items, 'id');
+              $.each(c.lines, function( ii, line ) {
+                var it = itemsById[line.id];
+                if (!it || !line.primaryValue || !toEx) return;
+                var exEq = line.primaryValue * toEx;
+                var divEq = (primary == "divine") ? line.primaryValue : exEq / (rates.exalted ? rates.exalted : 1);
+                var icon = it.image ? ((it.image.indexOf("http") === 0) ? it.image : "https://web.poecdn.com" + it.image) : null;
+                var entry = {
+                  chaosEquivalent: divEq,
+                  exEquivalent: exEq,
+                  currencyTypeName: it.name,
+                  detailsId: _.kebabCase(it.name)
+                };
+                curr.currencyDetails.push({icon: icon, id: line.id, name: it.name, tradeId: line.id});
+                curr.lines.push(entry);
+                curr.map[_.kebabCase(it.name)] = $.extend({}, entry);
+              });
             } else {
-              console.log("unable to load orbwatch.trade values for league: "+league);
+              console.log("unable to load poe.ninja (PoE2) values for league: "+league);
               debug(response);
             }
           });
@@ -4242,7 +4246,7 @@ function getCurrencies(league, cb) {
             curr.lines = curr.lines.sort(function(a, b) {
               return b.chaosEquivalent - a.chaosEquivalent;
             });
-            debug(curr, "currencies from orbwatch.trade");
+            debug(curr, "currencies from poe.ninja (PoE2)");
             var ccc = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
             if (!ccc) ccc = {};
             ccc[league] = curr;
@@ -4262,23 +4266,43 @@ function getCurrencies(league, cb) {
             cb(null);
           }
         },function () {
-          console.log("unable to load orbwatch.trade values");
+          console.log("unable to load poe.ninja (PoE2) values");
           debug("GM_xmlhttpRequest errors", arguments);
           currFailed = true;
           cb(null);
         });
       } else {
         $.when(
-          getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Currency&date="+moment().format("YYYY-MM-DD")),
-          getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Fragment&date="+moment().format("YYYY-MM-DD")),
-          getDeferred("https://poe.ninja/api/data/itemoverview?league="+league+"&type=Scarab&date="+moment().format("YYYY-MM-DD"))
+          getDeferred("https://poe.ninja/poe1/api/economy/exchange/current/overview?league="+encodeURIComponent(league)+"&type=Currency"),
+          getDeferred("https://poe.ninja/poe1/api/economy/exchange/current/overview?league="+encodeURIComponent(league)+"&type=Fragment"),
+          getDeferred("https://poe.ninja/poe1/api/economy/exchange/current/overview?league="+encodeURIComponent(league)+"&type=Scarab")
         ).then(function () {
           curr = {map: {}, lines: [], currencyDetails: []};
           $.each( arguments, function( i, response ) {
             debug("GM_xmlhttpRequest response", response);
-            if (response.responseText) {
-              var c = JSON.parse(response.responseText);
+            var c = null;
+            if (response && response.status == 200 && response.responseText) {
+              try { c = JSON.parse(response.responseText); } catch (ex) { c = null; }
+            }
+            if (c) {
               curr.updated = moment().valueOf();
+              if (c.core && c.items && c.lines) {
+                // New poe.ninja exchange API: lines = {id, primaryValue}, items = {id, name, image}; ids are trade ids
+                var toChaos = 1;
+                if (c.core.primary && c.core.primary != "chaos") {
+                  toChaos = (c.core.rates && c.core.rates.chaos) ? c.core.rates.chaos : 0;
+                }
+                var itemsById = _.keyBy(c.items, 'id');
+                var converted = [];
+                $.each(c.lines, function(li, line) {
+                  var it = itemsById[line.id];
+                  if (!it || !line.primaryValue || !toChaos) return;
+                  var icon = it.image ? ((it.image.indexOf("http") === 0) ? it.image : "https://web.poecdn.com" + it.image) : null;
+                  curr.currencyDetails.push({id: line.id, name: it.name, icon: icon, tradeId: line.id});
+                  converted.push({currencyTypeName: it.name, chaosEquivalent: line.primaryValue * toChaos, detailsId: it.detailsId || _.kebabCase(it.name), icon: icon});
+                });
+                c = {lines: converted};
+              }
               if (c.currencyDetails) {
                 curr.currencyDetails = _.uniqBy(curr.currencyDetails.concat(c.currencyDetails), 'id');
               }
@@ -4413,7 +4437,7 @@ function initCurrencyTables(iframe) {
         });
         iframe[0].contentWindow.$(`#${lid}-pane p:first`).append(refreshButton);
       } else {
-        iframe[0].contentWindow.$(`#${lid}-pane`).empty().append(`<div class="alert alert-warning" role="alert">Unable to load currency values from ${poe2 ? 'orbwatch.trade' : 'poe.ninja'} for league ${l}</div>`);
+        iframe[0].contentWindow.$(`#${lid}-pane`).empty().append(`<div class="alert alert-warning" role="alert">Unable to load currency values from poe.ninja for league ${l}</div>`);
       }
     });
   };
@@ -4675,7 +4699,7 @@ function initCurrencyTables(iframe) {
           return Number(quantity);
         } else {
           if (!currencies.map[_.kebabCase(curr)]) {
-            throw new Error(`Can't find '${curr}' in ${ poe2 ? 'orbswatch' : 'poe.ninja'}'s values`);
+            throw new Error(`Can't find '${curr}' in poe.ninja's values`);
           }
           return Number(quantity) * (poe2 ? currencies.map[_.kebabCase(curr)].exEquivalent : currencies.map[_.kebabCase(curr)].chaosEquivalent);
         }
@@ -4701,7 +4725,7 @@ function initCurrencyTables(iframe) {
           return null;
         } else {
           if (!currencies.map[_.kebabCase(curr)]) {
-            throw new Error(`Can't find '${curr}' in ${ poe2 ? 'orbswatch' : 'poe.ninja'}'s values`);
+            throw new Error(`Can't find '${curr}' in poe.ninja's values`);
           }
           var cEq = (poe2 ? currencies.map[_.kebabCase(curr)].exEquivalent : currencies.map[_.kebabCase(curr)].chaosEquivalent);
           var rest = ((cEq > 1) ? quantity % 1 : 0);
@@ -4779,7 +4803,7 @@ function initCurrencyTables(iframe) {
         <br class="${currency == 'exalted' ? 'hide' : ''}" />
         <small class="${withRest === null ? 'hide' : 'bold'}">${((withRest) ? withRest.integ : "")} ${currency} + ${((withRest) ? (Math.round((withRest.rest*withRest.chaosEquivalent)*100)/100) : "")} exalted</small>
         <br class="${withRest === null ? 'hide' : ''}" />
-        click to sort for current orbwatch.trade values</div>`);
+        click to sort for current poe.ninja values</div>`);
     } else {
       tip = $(`<div>
         <small class="${currency == 'chaos' ? 'hide' : ''}">1 ${currency} = ${(Math.round(sellOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/sellOneValue)*10000)/10000)} ${currency}</small>
@@ -4814,10 +4838,10 @@ function initCurrencyTables(iframe) {
     if (poe2) {
       tip = $(`<div>1 ${translated} for ${(Math.round(cada*100000)/100000)} exalted
         <br />total trade value ${(Math.round(tot*100)/100)} exalted
-        <br /><small>calculated using current orbwatch.trade values:</small>
+        <br /><small>calculated using current poe.ninja values:</small>
         <br class="${translated == 'exalted' ? 'hide' : ''}" /><small class="${translated == 'exalted' ? 'hide' : ''}">1 ${translated} = ${(Math.round(sellOneValue*100)/100)} exalted / 1 exalted = ${(Math.round((1/sellOneValue)*10000)/10000)} ${translated}</small>
         <br class="${buycurrTranslated == 'exalted' ? 'hide' : ''}" /><small class="${buycurrTranslated == 'exalted' ? 'hide' : ''}">1 ${buycurrTranslated} = ${(Math.round(buyOneValue*100)/100)} exalted / 1 exalted = ${(Math.round((1/buyOneValue)*10000)/10000)} ${buycurrTranslated}</small>
-        <br />click to sort for current orbwatch.trade values</div>`);
+        <br />click to sort for current poe.ninja values</div>`);
     } else {
       tip = $(`<div>1 ${translated} for ${(Math.round(cada*100000)/100000)} chaos
         <br />total trade value ${(Math.round(tot*100)/100)} chaos
