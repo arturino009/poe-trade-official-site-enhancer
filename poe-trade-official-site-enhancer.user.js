@@ -1,20 +1,17 @@
 // ==UserScript==
 // @name         poe-trade-official-site-enhancer
 // @namespace    https://github.com/ghostscript3r/poe-trade-enhancer
-// @version      1.4.25
-// @description  Adds tons of usefull features to poe.trade, from a very easy to use save manager to save and laod your searches and even live search them all in one page, to an auto sort by real currency values (from poe.ninja), passing from gems max quality cost and more. I have some other very good idea for features to add, I'll gladly push them forward if I see people start using this.
+// @version      1.5.7
+// @description  Enhance your Path of Exile and Path of Exile 2 trading experience with powerful QoL features! An intuitive search save manager to save and load full searches or individual filter groups effortlessly. A new affix selector that dynamically displays only the mods available for the selected item type. Automatic sorting by real currency values (via poe.ninja) for better price comparisons. Quickly check gem max-quality costs and other useful enhancements. More features are on the way—if players find this useful, I'll keep expanding it!
 // @author       ghostscript3r@gmail.com | https://www.patreon.com/ghostscripter
 // @license      MIT
 // @match        https://www.pathofexile.com/trade*
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js
-// @require      https://greasyfork.org/scripts/373124-gm4-polyfill-mach6-legacy/code/gm4-polyfill-mach6-legacy.js?version=635792
 // @require      https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js
-// @require      https://unpkg.com/popper.js@1.15.0/dist/umd/popper.min.js
+// @require      https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js
 // @require      https://unpkg.com/tippy.js@4.3.5/umd/index.all.min.js
 // @require      https://code.jquery.com/jquery-1.11.3.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/async/3.1.0/async.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js
 // @resource     fontsCSS https://fonts.googleapis.com/css?family=Oswald|Roboto
 // @resource     editableJs https://greasyfork.org/scripts/387585-jqueryeditable/code/jqueryeditable.js?version=717975
 // @grant        GM_addStyle
@@ -27,24 +24,489 @@
 (function() {
   'use strict';
 
-  var namespace="ghost-scripter",ITEM_TYPES={Axe:["Abyssal Axe","Arming Axe","Boarding Axe","Broad Axe","Butcher Axe","Ceremonial Axe","Dagger Axe","Decorative Axe","Despot Axe","Double Axe","Ezomyte Axe","Gilded Axe","Headsman Axe","Infernal Axe","Jasper Axe","Karui Axe","Noble Axe","Reaver Axe","Royal Axe","Shadow Axe","Siege Axe","Spectral Axe","Stone Axe","Sundering Axe","Talon Axe","Timber Axe","Vaal Axe","Void Axe","War Axe","Wraith Axe"],Sceptre:["Abyssal Sceptre","Blood Sceptre","Bronze Sceptre","Carnal Sceptre","Crystal Sceptre","Darkwood Sceptre","Driftwood Sceptre","Horned Sceptre","Iron Sceptre","Karui Sceptre","Lead Sceptre","Ochre Sceptre","Opal Sceptre","Platinum Sceptre","Quartz Sceptre","Ritual Sceptre","Royal Sceptre","Sambar Sceptre","Shadow Sceptre","Stag Sceptre","Vaal Sceptre","Void Sceptre"],Amulet:["Agate Amulet","Amber Amulet","Blue Pearl Amulet","Citrine Amulet","Coral Amulet","Gold Amulet","Jade Amulet","Jet Amulet","Lapis Amulet","Marble Amulet","Onyx Amulet","Paua Amulet","Ruby Amulet","Turquoise Amulet"],Shield:["Alder Spiked Shield","Alloyed Spiked Shield","Ancient Spirit Shield","Angelic Kite Shield","Archon Kite Shield","Baroque Round Shield","Bone Spirit Shield","Branded Kite Shield","Brass Spirit Shield","Bronze Tower Shield","Buckskin Tower Shield","Burnished Spiked Shield","Cardinal Round Shield","Cedar Tower Shield","Ceremonial Kite Shield","Champion Kite Shield","Chiming Spirit Shield","Colossal Tower Shield","Compound Spiked Shield","Copper Tower Shield","Corroded Tower Shield","Crested Tower Shield","Crimson Round Shield","Driftwood Spiked Shield","Ebony Tower Shield","Elegant Round Shield","Etched Kite Shield","Ezomyte Spiked Shield","Ezomyte Tower Shield","Fir Round Shield","Fossilised Spirit Shield","Girded Tower Shield","Harmonic Spirit Shield","Ivory Spirit Shield","Jingling Spirit Shield","Lacewood Spirit Shield","Laminated Kite Shield","Layered Kite Shield","Linden Kite Shield","Mahogany Tower Shield","Maple Round Shield","Mirrored Spiked Shield","Mosaic Kite Shield","Ornate Spiked Shield","Painted Tower Shield","Pinnacle Tower Shield","Plank Kite Shield","Polished Spiked Shield","Rawhide Tower Shield","Redwood Spiked Shield","Reinforced Kite Shield","Reinforced Tower Shield","Rotted Round Shield","Scarlet Round Shield","Shagreen Tower Shield","Sovereign Spiked Shield","Spiked Round Shield","Spiny Round Shield","Splendid Round Shield","Splintered Tower Shield","Steel Kite Shield","Studded Round Shield","Supreme Spiked Shield","Tarnished Spirit Shield","Teak Round Shield","Thorium Spirit Shield","Titanium Spirit Shield","Twig Spirit Shield","Vaal Spirit Shield","Walnut Spirit Shield","Yew Spirit Shield"],Boots:["Ambush Boots","Assassin's Boots","Bronzescale Boots","Carnal Boots","Chain Boots","Clasped Boots","Conjurer Boots","Crusader Boots","Deerskin Boots","Dragonscale Boots","Eelskin Boots","Goathide Boots","Hydrascale Boots","Ironscale Boots","Leatherscale Boots","Legion Boots","Mesh Boots","Murder Boots","Nubuck Boots","Rawhide Boots","Ringmail Boots","Riveted Boots","Scholar Boots","Serpentscale Boots","Shackled Boots","Shagreen Boots","Sharkskin Boots","Slink Boots","Soldier Boots","Sorcerer Boots","Stealth Boots","Steelscale Boots","Strapped Boots","Trapper Boots","Two-Toned Boots","Wrapped Boots","Wyrmscale Boots","Zealot Boots"],Mitts:["Ambush Mitts","Assassin's Mitts","Carnal Mitts","Clasped Mitts","Murder Mitts","Strapped Mitts","Trapper Mitts","Wrapped Mitts"],Ambusher:["Ambusher"],Flask:["Amethyst Flask","Aquamarine Flask","Basalt Flask","Bismuth Flask","Colossal Hybrid Flask","Colossal Life Flask","Colossal Mana Flask","Diamond Flask","Divine Life Flask","Divine Mana Flask","Eternal Life Flask","Eternal Mana Flask","Giant Life Flask","Giant Mana Flask","Grand Life Flask","Grand Mana Flask","Granite Flask","Greater Life Flask","Greater Mana Flask","Hallowed Hybrid Flask","Hallowed Life Flask","Hallowed Mana Flask","Jade Flask","Large Hybrid Flask","Large Life Flask","Large Mana Flask","Medium Hybrid Flask","Medium Life Flask","Medium Mana Flask","Quartz Flask","Quicksilver Flask","Ruby Flask","Sacred Hybrid Flask","Sacred Life Flask","Sacred Mana Flask","Sanctified Life Flask","Sanctified Mana Flask","Sapphire Flask","Silver Flask","Small Hybrid Flask","Small Life Flask","Small Mana Flask","Stibnite Flask","Sulphur Flask","Topaz Flask"],Ring:["Amethyst Ring","Breach Ring","Coral Ring","Diamond Ring","Gold Ring","Iron Ring","Jet Ring","Moonstone Ring","Opal Ring","Paua Ring","Prismatic Ring","Ruby Ring","Sapphire Ring","Steel Ring","Topaz Ring","Two-Stone Ring","Unset Ring"],Club:["Ancestral Club","Barbed Club","Driftwood Club","Petrified Club","Spiked Club","Tribal Club"],Gauntlets:["Ancient Gauntlets","Antique Gauntlets","Bronze Gauntlets","Bronzescale Gauntlets","Dragonscale Gauntlets","Fishscale Gauntlets","Goliath Gauntlets","Hydrascale Gauntlets","Iron Gauntlets","Ironscale Gauntlets","Plated Gauntlets","Serpentscale Gauntlets","Steel Gauntlets","Steelscale Gauntlets","Titan Gauntlets","Vaal Gauntlets","Wyrmscale Gauntlets"],Greaves:["Ancient Greaves","Antique Greaves","Goliath Greaves","Iron Greaves","Kaom's Greaves","Plated Greaves","Reinforced Greaves","Steel Greaves","Titan Greaves","Vaal Greaves"],Sword:["Ancient Sword","Bastard Sword","Battle Sword","Broad Sword","Butcher Sword","Charan's Sword","Copper Sword","Corsair Sword","Courtesan Sword","Dragoon Sword","Elder Sword","Elegant Sword","Eternal Sword","Footman Sword","Gemstone Sword","Graceful Sword","Headman's Sword","Hook Sword","Infernal Sword","Legion Sword","Lion Sword","Ornate Sword","Reaver Sword","Rusted Sword","Spectral Sword","Tiger Sword","Two-Handed Sword","War Sword","Wraith Sword"],Rapier:["Antique Rapier","Apex Rapier","Basket Rapier","Dragonbone Rapier","Harpy Rapier","Primeval Rapier","Thorn Rapier","Vaal Rapier","Whalebone Rapier","Wyrmbone Rapier"],Gloves:["Arcanist Gloves","Chain Gloves","Conjurer Gloves","Crusader Gloves","Deerskin Gloves","Eelskin Gloves","Embroidered Gloves","Fingerless Silk Gloves","Goathide Gloves","Gripped Gloves","Legion Gloves","Mesh Gloves","Nubuck Gloves","Rawhide Gloves","Ringmail Gloves","Riveted Gloves","Samite Gloves","Satin Gloves","Shagreen Gloves","Sharkskin Gloves","Silk Gloves","Slink Gloves","Soldier Gloves","Sorcerer Gloves","Spiked Gloves","Stealth Gloves","Velvet Gloves","Wool Gloves","Zealot Gloves"],Slippers:["Arcanist Slippers","Avian Slippers","Samite Slippers","Satin Slippers","Silk Slippers","Velvet Slippers"],Plate:["Arena Plate","Astral Plate","Battle Plate","Bronze Plate","Colosseum Plate","Copper Plate","Crusader Plate","Full Plate","Gladiator Plate","Glorious Plate","Golden Plate","Kaom's Plate","Lordly Plate","Majestic Plate","Sun Plate","War Plate"],Talisman:["Ashscale Talisman","Avian Twins Talisman","Black Maw Talisman","Bonespire Talisman","Breakrib Talisman","Chrysalis Talisman","Clutching Talisman","Deadhand Talisman","Deep One Talisman","Fangjaw Talisman","Greatwolf Talisman","Hexclaw Talisman","Horned Talisman","Lone Antler Talisman","Longtooth Talisman","Mandible Talisman","Monkey Paw Talisman","Monkey Twins Talisman","Primal Skull Talisman","Rot Head Talisman","Rotfeather Talisman","Spinefuse Talisman","Splitnewt Talisman","Three Hands Talisman","Three Rat Talisman","Undying Flesh Talisman","Wereclaw Talisman","Writhing Talisman"],Bow:["Assassin Bow","Bone Bow","Citadel Bow","Composite Bow","Compound Bow","Crude Bow","Death Bow","Decimation Bow","Decurve Bow","Grove Bow","Harbinger Bow","Highborn Bow","Imperial Bow","Ivory Bow","Long Bow","Maraketh Bow","Ranger Bow","Recurve Bow","Reflex Bow","Royal Bow","Short Bow","Sniper Bow","Spine Bow","Steelwood Bow","Thicket Bow"],Garb:["Assassin's Garb","Cutthroat's Garb","Lacquered Garb","Sacrificial Garb","Sadist Garb","Silken Garb","Thief's Garb","Waxed Garb"],Mace:["Auric Mace","Behemoth Mace","Bladed Mace","Ceremonial Mace","Dragon Mace","Dream Mace","Flanged Mace","Nightmare Mace","Ornate Mace","Phantom Mace","Wyrm Mace"],Helmet:["Aventail Helmet","Barbute Helmet","Bone Helmet","Close Helmet","Cone Helmet","Crusader Helmet","Gladiator Helmet","Great Helmet","Lacquered Helmet","Reaver Helmet","Samite Helmet","Siege Helmet","Soldier Helmet","Zealot Helmet"],Awl:["Awl"],Baselard:["Baselard"],Foil:["Battered Foil","Burnished Foil","Elegant Foil","Fancy Foil","Jagged Foil","Jewelled Foil","Serrated Foil","Spiraled Foil","Tempered Foil"],Helm:["Battered Helm","Fencer Helm","Secutor Helm"],Buckler:["Battle Buckler","Corrugated Buckler","Crusader Buckler","Enameled Buckler","Gilded Buckler","Goathide Buckler","Golden Buckler","Hammered Buckler","Imperial Buckler","Ironwood Buckler","Lacquered Buckler","Oak Buckler","Painted Buckler","Pine Buckler","Vaal Buckler","War Buckler"],Hammer:["Battle Hammer","Legion Hammer","Stone Hammer","War Hammer"],Lamellar:["Battle Lamellar","Field Lamellar","Triumphant Lamellar"],Blinder:["Blinder"],Raiment:["Blood Raiment","Crimson Raiment","Scarlet Raiment"],Quiver:["Blunt Arrow Quiver","Broadhead Arrow Quiver","Conductive Quiver","Cured Quiver","Fire Arrow Quiver","Heavy Quiver","Light Quiver","Penetrating Arrow Quiver","Rugged Quiver","Serrated Arrow Quiver","Sharktooth Arrow Quiver","Spike-Point Arrow Quiver","Two-Point Arrow Quiver"],Armour:["Bone Armour","Carnal Armour","Crypt Armour","Full Scale Armour"],Circlet:["Bone Circlet","Hubris Circlet","Iron Circlet","Lunaris Circlet","Necromancer Circlet","Solaris Circlet","Steel Circlet","Tribal Circlet","Vine Circlet"],Blade:["Boot Blade","Corroded Blade","Curved Blade","Dusk Blade","Exquisite Blade","Ezomyte Blade","Highland Blade","Lithe Blade","Midnight Blade","Twilight Blade","Vaal Blade","Variscite Blade"],Knife:["Boot Knife","Butcher Knife","Carving Knife","Flaying Knife","Gutting Knife","Skinning Knife","Slaughter Knife"],Maul:["Brass Maul","Coronal Maul","Dread Maul","Driftwood Maul","Fright Maul","Imperial Maul","Jagged Maul","Karui Maul","Plated Maul","Solar Maul","Spiny Maul","Terror Maul","Totemic Maul","Tribal Maul"],Tunic:["Buckskin Tunic","Chainmail Tunic","Eelskin Tunic","Sharkskin Tunic"],Regalia:["Cabalist Regalia","Destroyer Regalia","Vaal Regalia"],Mask:["Callous Mask","Deicide Mask","Festival Mask","Golden Mask","Harlequin Mask","Iron Mask","Plague Mask","Raven Mask","Regicide Mask","Scare Mask","Vaal Mask"],Wand:["Carved Wand","Crystal Wand","Driftwood Wand","Engraved Wand","Heathen Wand","Imbued Wand","Omen Wand","Opal Wand","Pagan Wand","Profane Wand","Prophecy Wand","Quartz Wand","Sage Wand","Serpent Wand","Spiraled Wand","Tornado Wand"],Paw:["Cat's Paw","Hellion's Paw","Tiger's Paw"],Belt:["Chain Belt","Cloth Belt","Crystal Belt","Heavy Belt","Leather Belt","Studded Belt","Vanguard Belt"],Hauberk:["Chain Hauberk","Saint's Hauberk"],Doublet:["Chainmail Doublet","Dragonscale Doublet","Scale Doublet","Wyrmscale Doublet"],Vest:["Chainmail Vest","Oiled Vest","Padded Vest","Plate Vest","Scale Vest","Silken Vest"],Splitter:["Chest Splitter"],Chestplate:["Chestplate"],Cleaver:["Cleaver"],Jewel:["Cobalt Jewel","Crimson Jewel","Ghastly Eye Jewel","Hypnotic Eye Jewel","Murderous Eye Jewel","Prismatic Jewel","Searching Eye Jewel","Viridian Jewel"],Staff:["Coiled Staff","Crescent Staff","Eclipse Staff","Ezomyte Staff","Foul Staff","Highborn Staff","Imperial Staff","Iron Staff","Judgement Staff","Long Staff","Maelström Staff","Military Staff","Moon Staff","Primitive Staff","Primordial Staff","Royal Staff","Serpentine Staff","Vile Staff","Woodful Staff"],Mallet:["Colossus Mallet","Great Mallet","Mallet"],Brigandine:["Commander's Brigandine","Desert Brigandine","General's Brigandine","Hussar Brigandine","Infantry Brigandine","Light Brigandine","Soldier's Brigandine"],Vestment:["Conjurer's Vestment","Mage's Vestment","Occultist's Vestment"],Chainmail:["Conquest Chainmail","Crusader Chainmail","Devout Chainmail","Full Chainmail","Holy Chainmail","Saintly Chainmail"],Kris:["Copper Kris","Golden Kris","Platinum Kris"],Leather:["Coronal Leather","Destiny Leather","Exquisite Leather","Frontier Leather","Full Leather","Glorious Leather","Strapped Leather","Sun Leather","Wild Leather","Zodiac Leather"],Cutlass:["Cutlass"],Dagger:["Demon Dagger","Ezomyte Dagger","Fiend Dagger","Imp Dagger","Prong Dagger"],Horn:["Demon's Horn","Faun's Horn","Goat's Horn"],Claw:["Double Claw","Eagle Claw","Fright Claw","Gemini Claw","Great White Claw","Imperial Claw","Noble Claw","Prehistoric Claw","Sharktooth Claw","Sparkling Claw","Terror Claw","Thresher Claw","Timeworn Claw","Twin Claw","Vaal Claw"],Ringmail:["Elegant Ringmail","Full Ringmail","Latticed Ringmail","Loricated Ringmail","Ornate Ringmail"],Greatsword:["Engraved Greatsword","Etched Greatsword","Vaal Greatsword"],Hatchet:["Engraved Hatchet","Etched Hatchet","Jade Hatchet","Runic Hatchet","Rusted Hatchet","Vaal Hatchet"],Estoc:["Estoc"],Burgonet:["Eternal Burgonet","Ezomyte Burgonet","Royal Burgonet"],Gouger:["Eye Gouger","Gouger"],Rod:["Fishing Rod"],Fleshripper:["Fleshripper"],Bascinet:["Fluted Bascinet","Nightmare Bascinet","Pig-Faced Bascinet"],Dragonscale:["Full Dragonscale"],Wyrmscale:["Full Wyrmscale"],Gavel:["Gavel"],Sallet:["Gilded Sallet","Sallet","Visored Sallet"],Gladius:["Gladius"],Shank:["Glass Shank"],Branch:["Gnarled Branch"],Bracers:["Golden Bracers"],Caligae:["Golden Caligae"],Flame:["Golden Flame"],Hoop:["Golden Hoop"],Mantle:["Golden Mantle"],Obi:["Golden Obi"],Wreath:["Golden Wreath"],Grappler:["Grappler"],Crown:["Great Crown","Magistrate Crown","Praetor Crown","Prophet Crown"],Fetish:["Grinning Fetish"],Ripper:["Gut Ripper"],Hood:["Hunter Hood","Leather Hood","Silken Hood"],Skean:["Imperial Skean","Royal Skean","Skean"],Hat:["Iron Hat"],Chopper:["Jade Chopper","Jasper Chopper","Karui Chopper","Wrist Chopper"],Keyblade:["Keyblade"],Labrys:["Labrys"],Lathi:["Lathi"],Cap:["Leather Cap"],Pelt:["Lion Pelt","Ursine Pelt","Wolf Pelt"],Longsword:["Longsword"],Meatgrinder:["Meatgrinder"],Cage:["Mind Cage","Torture Cage"],Star:["Morning Star"],Fist:["Nailed Fist"],Silks:["Necromancer Silks"],Tricorne:["Noble Tricorne","Sinner Tricorne","Tricorne"],Coat:["Oiled Coat","Ringmail Coat","Sleek Coat","Varnished Coat"],Jacket:["Padded Jacket","Quilted Jacket","Sentinel Jacket"],Pecoraro:["Pecoraro"],Pernarch:["Pernarch"],Piledriver:["Piledriver"],Poignard:["Poignard"],Poleaxe:["Poleaxe"],Quarterstaff:["Quarterstaff"],Breaker:["Rock Breaker"],Coif:["Rusted Coif"],Spike:["Rusted Spike"],Sash:["Rustic Sash"],Sabre:["Sabre"],Robe:["Sage's Robe","Savant's Robe","Scholar's Robe","Silk Robe","Simple Robe","Spidersilk Robe","Widowsilk Robe"],Sai:["Sai"],Sekhem:["Sekhem","Tyrant's Sekhem"],Jerkin:["Shabby Jerkin"],Wrap:["Silken Wrap"],Sledgehammer:["Sledgehammer"],Smallsword:["Smallsword"],Bundle:["Spiked Bundle"],Steelhead:["Steelhead"],Stiletto:["Stiletto"],Vise:["Stygian Vise"],Tenderizer:["Tenderizer"],Stabber:["Throat Stabber"],Hook:["Tiger Hook"],Tomahawk:["Tomahawk"],Trisula:["Trisula"],Woodsplitter:["Woodsplitter"],Shoes:["Wool Shoes"]},FIXED_CURRENCY_VALUES=JSON.parse('{"lines":[{"currencyTypeName":"Mirror of Kalandra","pay":{"id":0,"league_id":1,"pay_currency_id":22,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":0.0000300679,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":22,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":21,"value":34056,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"receiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":33657.03,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"lowConfidenceReceiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"mirror-of-kalandra"},{"currencyTypeName":"Eternal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":27,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.0000479443816,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":27,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":20480.064,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"chaosEquivalent":20668.78,"lowConfidencePaySparkLine":{"data":[0,0,20,20,20,-14.29,25.15],"totalChange":25.15},"lowConfidenceReceiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"detailsId":"eternal-orb"},{"currencyTypeName":"Mirror Shard","pay":{"id":0,"league_id":1,"pay_currency_id":81,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":0.00083,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":81,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":1729.2,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[null,null,null,0,null,null,null],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":1467.01,"lowConfidencePaySparkLine":{"data":[0,14.29,12.5,10.77,-13.25,-13.25,-13.25],"totalChange":-13.25},"lowConfidenceReceiveSparkLine":{"data":[0,0.29,0,0.76,0.76,-5.71,-5.71],"totalChange":-5.71},"detailsId":"mirror-shard"},{"currencyTypeName":"Blessing of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":65,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.00435,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":65,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":267.4375,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"chaosEquivalent":248.66,"lowConfidencePaySparkLine":{"data":[0,-1.52,-1.52,-3.47,-6.92,-10.34,-10.34],"totalChange":-10.34},"lowConfidenceReceiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"detailsId":"blessing-of-chayula"},{"currencyTypeName":"Exalted Orb","pay":{"id":0,"league_id":1,"pay_currency_id":2,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.00769,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":2,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":80,"value":132,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"receiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":131.02,"lowConfidencePaySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"lowConfidenceReceiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"exalted-orb"},{"currencyTypeName":"Divine Orb","pay":{"id":0,"league_id":1,"pay_currency_id":3,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.03965841379310345,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":3,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":56,"value":26,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"receiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"chaosEquivalent":25.61,"lowConfidencePaySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"lowConfidenceReceiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"detailsId":"divine-orb"},{"currencyTypeName":"Harbinger\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":76,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":0.04860216494845361,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":76,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":24.439393939393938,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"receiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"chaosEquivalent":22.51,"lowConfidencePaySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"detailsId":"harbingers-orb"},{"currencyTypeName":"Ancient Orb","pay":{"id":0,"league_id":1,"pay_currency_id":78,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":0.05,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":78,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":48,"value":22,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"receiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"chaosEquivalent":21,"lowConfidencePaySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"lowConfidenceReceiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"detailsId":"ancient-orb"},{"currencyTypeName":"Orb of Annulment","pay":{"id":0,"league_id":1,"pay_currency_id":73,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.06667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":73,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":44,"value":18.8588,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"receiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"chaosEquivalent":16.93,"lowConfidencePaySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"lowConfidenceReceiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"detailsId":"orb-of-annulment"},{"currencyTypeName":"Blessing of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":64,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":64,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":9.350515463917526,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"chaosEquivalent":7.68,"lowConfidencePaySparkLine":{"data":[null,null,0,33.33,66.66,66.66,99.99],"totalChange":99.99},"lowConfidenceReceiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"detailsId":"blessing-of-uul-netol"},{"currencyTypeName":"Exalted Shard","pay":{"id":0,"league_id":1,"pay_currency_id":80,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":80,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":11,"value":7,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,null,0,0,0],"totalChange":0},"receiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"chaosEquivalent":6.5,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"detailsId":"exalted-shard"},{"currencyTypeName":"Master Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":48,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.24879285714285715,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":48,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":64,"value":4.911668875,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"receiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"chaosEquivalent":4.47,"lowConfidencePaySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"detailsId":"master-cartographers-sextant"},{"currencyTypeName":"Blessing of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":63,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":63,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":4,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":3,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"blessing-of-esh"},{"currencyTypeName":"Journeyman Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":47,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.4230887878787879,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":47,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":2.918542857142857,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"receiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"chaosEquivalent":2.64,"lowConfidencePaySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"lowConfidenceReceiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"detailsId":"journeyman-cartographers-sextant"},{"currencyTypeName":"Blessing of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":61,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":61,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":2.483673469387755,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"chaosEquivalent":2.24,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"detailsId":"blessing-of-xoph"},{"currencyTypeName":"Annulment Shard","pay":{"id":0,"league_id":1,"pay_currency_id":79,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":1.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":79,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":3.8,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":2.23,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,-9.09,-9.09,1718.18,1718.18,245.45],"totalChange":245.45},"detailsId":"annulment-shard"},{"currencyTypeName":"Blessing of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":62,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":62,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":2,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"chaosEquivalent":2,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"detailsId":"blessing-of-tul"},{"currencyTypeName":"Vaal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":8,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":40,"value":0.5834604444444444,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":8,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":81,"value":1.7833907142857144,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"receiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"chaosEquivalent":1.75,"lowConfidencePaySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"lowConfidenceReceiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"detailsId":"vaal-orb"},{"currencyTypeName":"Orb of Horizons","pay":{"id":0,"league_id":1,"pay_currency_id":75,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.958204,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":75,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":31,"value":1.79100045,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"chaosEquivalent":1.42,"lowConfidencePaySparkLine":{"data":[0,-0.33,0.72,4.29,0.72,-3.63,4.36],"totalChange":4.36},"lowConfidenceReceiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"detailsId":"orb-of-horizons"},{"currencyTypeName":"Splinter of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":60,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":0.83333,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":60,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":46,"value":1.5,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"chaosEquivalent":1.35,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"detailsId":"splinter-of-chayula"},{"currencyTypeName":"Gemcutter\'s Prism","pay":{"id":0,"league_id":1,"pay_currency_id":15,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.7885894949494949,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":15,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":74,"value":1.3104130434782608,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"receiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"chaosEquivalent":1.29,"lowConfidencePaySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"lowConfidenceReceiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"detailsId":"gemcutters-prism"},{"currencyTypeName":"Apprentice Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":46,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.9750981212121212,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":46,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":52,"value":1,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":1.01,"lowConfidencePaySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"apprentice-cartographers-sextant"},{"currencyTypeName":"Orb of Regret","pay":{"id":0,"league_id":1,"pay_currency_id":9,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":18,"value":1.0964574468085106,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":9,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":92,"value":1.0004330666666668,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"receiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"chaosEquivalent":0.96,"lowConfidencePaySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"detailsId":"orb-of-regret"},{"currencyTypeName":"Regal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":7,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":1.3920958247422681,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":7,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":73,"value":0.8269064536082474,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"receiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"chaosEquivalent":0.77,"lowConfidencePaySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"lowConfidenceReceiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"detailsId":"regal-orb"},{"currencyTypeName":"Engineer\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":77,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":2.605612244897959,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":77,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.8584277931034483,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"chaosEquivalent":0.62,"lowConfidencePaySparkLine":{"data":[0,2,11.98,11.98,30.74,30.74,30.49],"totalChange":30.49},"lowConfidenceReceiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"detailsId":"engineers-orb"},{"currencyTypeName":"Orb of Fusing","pay":{"id":0,"league_id":1,"pay_currency_id":5,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":1.95,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":5,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.55044,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"receiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"chaosEquivalent":0.53,"lowConfidencePaySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"lowConfidenceReceiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"detailsId":"orb-of-fusing"},{"currencyTypeName":"Orb of Scouring","pay":{"id":0,"league_id":1,"pay_currency_id":14,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":2.1,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":14,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.5354012105263158,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"receiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"chaosEquivalent":0.51,"lowConfidencePaySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"detailsId":"orb-of-scouring"},{"currencyTypeName":"Cartographer\'s Chisel","pay":{"id":0,"league_id":1,"pay_currency_id":10,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":2.4,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":10,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":58,"value":0.46549529545454543,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"receiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"chaosEquivalent":0.44,"lowConfidencePaySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"lowConfidenceReceiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"detailsId":"cartographers-chisel"},{"currencyTypeName":"Orb of Alchemy","pay":{"id":0,"league_id":1,"pay_currency_id":4,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":2.841666666666667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":4,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":65,"value":0.35714,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"receiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"chaosEquivalent":0.35,"lowConfidencePaySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"lowConfidenceReceiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"detailsId":"orb-of-alchemy"},{"currencyTypeName":"Silver Coin","pay":{"id":0,"league_id":1,"pay_currency_id":12,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":3.6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":12,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.3146063292682927,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"receiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"chaosEquivalent":0.3,"lowConfidencePaySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"lowConfidenceReceiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"detailsId":"silver-coin"},{"currencyTypeName":"Blessed Orb","pay":{"id":0,"league_id":1,"pay_currency_id":18,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":3.7901630434782607,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":18,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.32171585542168674,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"receiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"chaosEquivalent":0.29,"lowConfidencePaySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"lowConfidenceReceiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"detailsId":"blessed-orb"},{"currencyTypeName":"Chromatic Orb","pay":{"id":0,"league_id":1,"pay_currency_id":17,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":30,"value":3.900757575757576,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":17,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.27702283333333333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"receiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"chaosEquivalent":0.27,"lowConfidencePaySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"lowConfidenceReceiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"detailsId":"chromatic-orb"},{"currencyTypeName":"Orb of Binding","pay":{"id":0,"league_id":1,"pay_currency_id":74,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":74,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":28,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":0.25,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"orb-of-binding"},{"currencyTypeName":"Splinter of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":56,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":56,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"chaosEquivalent":0.23,"lowConfidencePaySparkLine":{"data":[null,null,0,14.29,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"detailsId":"splinter-of-xoph"},{"currencyTypeName":"Splinter of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":59,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":15,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":59,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"chaosEquivalent":0.2,"lowConfidencePaySparkLine":{"data":[null,null,0,50,50,50,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"detailsId":"splinter-of-uul-netol"},{"currencyTypeName":"Orb of Alteration","pay":{"id":0,"league_id":1,"pay_currency_id":6,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":32,"value":6.897234042553191,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":6,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":61,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"receiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"chaosEquivalent":0.14,"lowConfidencePaySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"lowConfidenceReceiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"detailsId":"orb-of-alteration"},{"currencyTypeName":"Jeweller\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":11,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":7.8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":11,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":75,"value":0.13261883720930231,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"receiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"chaosEquivalent":0.13,"lowConfidencePaySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"lowConfidenceReceiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"detailsId":"jewellers-orb"},{"currencyTypeName":"Orb of Chance","pay":{"id":0,"league_id":1,"pay_currency_id":16,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":8.64997340425532,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":16,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":76,"value":0.11111,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"receiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"chaosEquivalent":0.11,"lowConfidencePaySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"lowConfidenceReceiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"detailsId":"orb-of-chance"},{"currencyTypeName":"Glassblower\'s Bauble","pay":{"id":0,"league_id":1,"pay_currency_id":19,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":15.31340206185567,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":19,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":51,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[0,0,-1.94,3.94,3.9,3.9,9.05],"totalChange":9.05},"lowConfidenceReceiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"detailsId":"glassblowers-bauble"},{"currencyTypeName":"Splinter of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":57,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":57,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":0.14089376744186047,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"detailsId":"splinter-of-tul"},{"currencyTypeName":"Splinter of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":58,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":58,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.1326773181818182,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"chaosEquivalent":0.09,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"detailsId":"splinter-of-esh"},{"currencyTypeName":"Orb of Augmentation","pay":{"id":0,"league_id":1,"pay_currency_id":20,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":5,"value":42.121212121212125,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":20,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.035082486842105264,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,null,null,null,0],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"chaosEquivalent":0.03,"lowConfidencePaySparkLine":{"data":[0,-45.46,-46.56,-41.35,-39.88,-39.88,-42.9],"totalChange":-42.9},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"detailsId":"orb-of-augmentation"},{"currencyTypeName":"Blacksmith\'s Whetstone","pay":{"id":0,"league_id":1,"pay_currency_id":25,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":137.4747474747475,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":25,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.024965935064935066,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"receiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"chaosEquivalent":0.02,"lowConfidencePaySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"lowConfidenceReceiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"detailsId":"blacksmiths-whetstone"},{"currencyTypeName":"Perandus Coin","pay":{"id":0,"league_id":1,"pay_currency_id":13,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":200,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":13,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.011368279569892474,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0.22,-2.43,-4.97,-4.97,2.72,2.72],"totalChange":2.72},"lowConfidenceReceiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"detailsId":"perandus-coin"},{"currencyTypeName":"Orb of Transmutation","pay":{"id":0,"league_id":1,"pay_currency_id":21,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":196.62,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":21,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.01613,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,21.78,21.78,null,null],"totalChange":21.78},"receiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,-1.33,21.78,21.78,22.08,22.06],"totalChange":22.06},"lowConfidenceReceiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"detailsId":"orb-of-transmutation"},{"currencyTypeName":"Portal Scroll","pay":{"id":0,"league_id":1,"pay_currency_id":24,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":364.8484848484849,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":24,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.014209822916666667,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,-23.5,14.82,46.05,46.05,52.82,76.13],"totalChange":76.13},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"detailsId":"portal-scroll"},{"currencyTypeName":"Armourer\'s Scrap","pay":{"id":0,"league_id":1,"pay_currency_id":26,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":197.55050505050505,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":26,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.02,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,0,0,null,4.57],"totalChange":4.57},"receiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,1.53,0.71,0.71,1.73,5.31],"totalChange":5.31},"lowConfidenceReceiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"detailsId":"armourers-scrap"}],"currencyDetails":[{"id":1,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?scale=1&w=1&h=1","name":"Chaos Orb","poeTradeId":4},{"id":2,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToRare.png?scale=1&w=1&h=1","name":"Exalted Orb","poeTradeId":6},{"id":3,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyModValues.png?scale=1&w=1&h=1","name":"Divine Orb","poeTradeId":15},{"id":4,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeToRare.png?scale=1&w=1&h=1","name":"Orb of Alchemy","poeTradeId":3},{"id":5,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketLinks.png?scale=1&w=1&h=1","name":"Orb of Fusing","poeTradeId":2},{"id":6,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollMagic.png?scale=1&w=1&h=1","name":"Orb of Alteration","poeTradeId":1},{"id":7,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeMagicToRare.png?scale=1&w=1&h=1","name":"Regal Orb","poeTradeId":14},{"id":8,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyVaal.png?scale=1&w=1&h=1","name":"Vaal Orb","poeTradeId":16},{"id":9,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyPassiveSkillRefund.png?scale=1&w=1&h=1","name":"Orb of Regret","poeTradeId":13},{"id":10,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyMapQuality.png?scale=1&w=1&h=1","name":"Cartographer\'s Chisel","poeTradeId":10},{"id":11,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketNumbers.png?scale=1&w=1&h=1","name":"Jeweller\'s Orb","poeTradeId":8},{"id":12,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SilverObol.png?scale=1&w=1&h=1","name":"Silver Coin","poeTradeId":35},{"id":13,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyCoin.png?scale=1&w=1&h=1","name":"Perandus Coin","poeTradeId":26},{"id":14,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyConvertToNormal.png?scale=1&w=1&h=1","name":"Orb of Scouring","poeTradeId":11},{"id":15,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyGemQuality.png?scale=1&w=1&h=1","name":"Gemcutter\'s Prism","poeTradeId":5},{"id":16,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeRandomly.png?scale=1&w=1&h=1","name":"Orb of Chance","poeTradeId":9},{"id":17,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketColours.png?scale=1&w=1&h=1","name":"Chromatic Orb","poeTradeId":7},{"id":18,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImplicitMod.png?scale=1&w=1&h=1","name":"Blessed Orb","poeTradeId":12},{"id":19,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyFlaskQuality.png?scale=1&w=1&h=1","name":"Glassblower\'s Bauble","poeTradeId":21},{"id":20,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToMagic.png?scale=1&w=1&h=1","name":"Orb of Augmentation","poeTradeId":23},{"id":21,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeToMagic.png?scale=1&w=1&h=1","name":"Orb of Transmutation","poeTradeId":22},{"id":22,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyDuplicate.png?scale=1&w=1&h=1","name":"Mirror of Kalandra","poeTradeId":24},{"id":23,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyIdentification.png?scale=1&w=1&h=1","name":"Scroll of Wisdom","poeTradeId":17},{"id":24,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyPortal.png?scale=1&w=1&h=1","name":"Portal Scroll","poeTradeId":18},{"id":25,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyWeaponQuality.png?scale=1&w=1&h=1","name":"Blacksmith\'s Whetstone","poeTradeId":20},{"id":26,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyArmourQuality.png?scale=1&w=1&h=1","name":"Armourer\'s Scrap","poeTradeId":19},{"id":27,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImprintOrb.png?scale=1&w=1&h=1","name":"Eternal Orb","poeTradeId":25},{"id":28,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal04.png?scale=1&scaleIndex=0&w=1&h=1","name":"Sacrifice at Dusk","poeTradeId":27},{"id":29,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal01.png?scale=1&w=1&h=1&v=3b21ce0cd4c0b9e8cf5db6257daf831a3","name":"Sacrifice at Midnight","poeTradeId":28},{"id":30,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal02.png?scale=1&w=1&h=1&v=3ead6455599ec6c303f54ba98d6f8eb23","name":"Sacrifice at Dawn","poeTradeId":29},{"id":31,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal03.png?scale=1&w=1&h=1&v=ba374d543316349b87de121039c3cc6f3","name":"Sacrifice at Noon","poeTradeId":30},{"id":32,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal04.png?scale=1&w=1&h=1&v=735839ceae0fc45d15ec69555e9314133","name":"Mortal Grief","poeTradeId":31},{"id":33,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal01.png?scale=1&w=1&h=1&v=9336df5d7d0befd5963b71e7a68479ce3","name":"Mortal Rage","poeTradeId":32},{"id":34,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal03.png?scale=1&w=1&h=1&v=9fb218dad337a4627a59f74bfa2d6c863","name":"Mortal Ignorance","poeTradeId":34},{"id":35,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal02.png?scale=1&w=1&h=1&v=db5b529a8425bd2b9fd7bee9fca2e0183","name":"Mortal Hope","poeTradeId":33},{"id":36,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt01.png?scale=1&w=1&h=1&v=044cbdae1e06e621585eaa627c2162db3","name":"Eber\'s Key","poeTradeId":36},{"id":37,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt02.png?scale=1&w=1&h=1&v=757829336b7239c4b1e398c203f0cca03","name":"Yriel\'s Key","poeTradeId":37},{"id":38,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt03.png?scale=1&w=1&h=1&v=6e43b636847d46b560ef0518869a72943","name":"Inya\'s Key","poeTradeId":38},{"id":39,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt04.png?scale=1&w=1&h=1&v=5c3afc6bad631a50f9fe5ccb570aeb363","name":"Volkuur\'s Key","poeTradeId":39},{"id":40,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentHydra.png?scale=1&w=1&h=1&v=fd37e4be7672c0db8b549a1b16ad489d3","name":"Fragment of the Hydra","poeTradeId":41},{"id":41,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentPhoenix.png?scale=1&w=1&h=1&v=8f76720ab06bb40a6d6f75730f92e4a73","name":"Fragment of the Phoenix","poeTradeId":42},{"id":42,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentMinotaur.png?scale=1&w=1&h=1&v=e0e3f5e7daf32736d63fc3df1ba981223","name":"Fragment of the Minotaur","poeTradeId":43},{"id":43,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentChimera.png?scale=1&w=1&h=1&v=15bd6ba80e1853c22ae3acf40abf64283","name":"Fragment of the Chimera","poeTradeId":44},{"id":44,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Labyrinth.png?scale=1&w=1&h=1&v=ef005aef5d2f9135d6922f4b1b912f783","name":"Offering to the Goddess","poeTradeId":40},{"id":45,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImprintOrb.png?scale=1&w=1&h=1","name":"Stacked Deck","poeTradeId":-1},{"id":46,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusWhite.png?scale=1&w=1&h=1","name":"Apprentice Cartographer\'s Sextant","poeTradeId":45},{"id":47,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusYellow.png?scale=1&w=1&h=1","name":"Journeyman Cartographer\'s Sextant","poeTradeId":46},{"id":48,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusRed.png?scale=1&w=1&h=1","name":"Master Cartographer\'s Sextant","poeTradeId":47},{"id":49,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealWhite.png?scale=1&w=1&h=1","name":"Apprentice Cartographer\'s Seal","poeTradeId":-1},{"id":50,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealYellow.png?scale=1&w=1&h=1","name":"Journeyman Cartographer\'s Seal","poeTradeId":-1},{"id":51,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Master Cartographer\'s Seal","poeTradeId":-1},{"id":52,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Sacrifice Set","poeTradeId":48},{"id":53,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Mortal Set","poeTradeId":49},{"id":54,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Pale Court Set","poeTradeId":50},{"id":55,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Shaper Set","poeTradeId":51},{"id":56,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Xoph","poeTradeId":52},{"id":57,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Tul","poeTradeId":53},{"id":58,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Esh","poeTradeId":54},{"id":59,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Uul-Netol","poeTradeId":55},{"id":60,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Chayula","poeTradeId":56},{"id":61,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Xoph","poeTradeId":57},{"id":62,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Tul","poeTradeId":58},{"id":63,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Esh","poeTradeId":59},{"id":64,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Uul-Netol","poeTradeId":60},{"id":65,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Chayula","poeTradeId":61},{"id":66,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Breachstone","poeTradeId":62},{"id":67,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Breachstone","poeTradeId":63},{"id":68,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Breachstone","poeTradeId":64},{"id":69,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Breachstone","poeTradeId":65},{"id":70,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Breachstone","poeTradeId":66},{"id":71,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/VaultMap.png?scale=1&scaleIndex=0&w=1&h=1","name":"Ancient Reliquary Key","poeTradeId":494},{"id":72,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/SinFlaskEmpty.png?scale=1&scaleIndex=0&w=1&h=2","name":"Divine Vessel","poeTradeId":512},{"id":73,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AnnullOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Annulment","poeTradeId":513},{"id":74,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/BindingOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Binding","poeTradeId":514},{"id":75,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/HorizonOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Horizons","poeTradeId":515},{"id":76,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/HarbingerOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Harbinger\'s Orb","poeTradeId":516},{"id":77,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/EngineersOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Engineer\'s Orb","poeTradeId":517},{"id":78,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AncientOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Ancient Orb","poeTradeId":518},{"id":79,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AnnullShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Annulment Shard","poeTradeId":519},{"id":80,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/ExaltedShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Exalted Shard","poeTradeId":521},{"id":81,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/MirrorShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Mirror Shard","poeTradeId":520},{"id":82,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/VaultMap3.png?scale=1&scaleIndex=0&w=1&h=1","name":"Timeworn Reliquary Key","poeTradeId":-1},{"id":83,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Charged Breachstone","poeTradeId":-1},{"id":84,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Charged Breachstone","poeTradeId":-1},{"id":85,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Charged Breachstone","poeTradeId":-1},{"id":86,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Charged Breachstone","poeTradeId":-1},{"id":87,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Charged Breachstone","poeTradeId":-1},{"id":88,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Enriched Breachstone","poeTradeId":-1},{"id":89,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Enriched Breachstone","poeTradeId":-1},{"id":90,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Enriched Breachstone","poeTradeId":-1},{"id":91,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Enriched Breachstone","poeTradeId":-1},{"id":92,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Enriched Breachstone","poeTradeId":-1},{"id":93,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Pure Breachstone","poeTradeId":-1},{"id":94,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Pure Breachstone","poeTradeId":-1},{"id":95,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Pure Breachstone","poeTradeId":-1},{"id":96,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Pure Breachstone","poeTradeId":-1},{"id":97,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Pure Breachstone","poeTradeId":-1}],"map":{"Mirror of Kalandra":{"currencyTypeName":"Mirror of Kalandra","pay":{"id":0,"league_id":1,"pay_currency_id":22,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":0.0000300679,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":22,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":21,"value":34056,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"receiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":33657.03,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"lowConfidenceReceiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"mirror-of-kalandra"},"Eternal Orb":{"currencyTypeName":"Eternal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":27,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.0000479443816,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":27,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":20480.064,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"chaosEquivalent":20668.78,"lowConfidencePaySparkLine":{"data":[0,0,20,20,20,-14.29,25.15],"totalChange":25.15},"lowConfidenceReceiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"detailsId":"eternal-orb"},"Mirror Shard":{"currencyTypeName":"Mirror Shard","pay":{"id":0,"league_id":1,"pay_currency_id":81,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":0.00083,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":81,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":1729.2,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[null,null,null,0,null,null,null],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":1467.01,"lowConfidencePaySparkLine":{"data":[0,14.29,12.5,10.77,-13.25,-13.25,-13.25],"totalChange":-13.25},"lowConfidenceReceiveSparkLine":{"data":[0,0.29,0,0.76,0.76,-5.71,-5.71],"totalChange":-5.71},"detailsId":"mirror-shard"},"Blessing of Chayula":{"currencyTypeName":"Blessing of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":65,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.00435,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":65,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":267.4375,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"chaosEquivalent":248.66,"lowConfidencePaySparkLine":{"data":[0,-1.52,-1.52,-3.47,-6.92,-10.34,-10.34],"totalChange":-10.34},"lowConfidenceReceiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"detailsId":"blessing-of-chayula"},"Exalted Orb":{"currencyTypeName":"Exalted Orb","pay":{"id":0,"league_id":1,"pay_currency_id":2,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.00769,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":2,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":80,"value":132,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"receiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":131.02,"lowConfidencePaySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"lowConfidenceReceiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"exalted-orb"},"Divine Orb":{"currencyTypeName":"Divine Orb","pay":{"id":0,"league_id":1,"pay_currency_id":3,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.03965841379310345,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":3,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":56,"value":26,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"receiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"chaosEquivalent":25.61,"lowConfidencePaySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"lowConfidenceReceiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"detailsId":"divine-orb"},"Harbinger\'s Orb":{"currencyTypeName":"Harbinger\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":76,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":0.04860216494845361,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":76,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":24.439393939393938,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"receiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"chaosEquivalent":22.51,"lowConfidencePaySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"detailsId":"harbingers-orb"},"Ancient Orb":{"currencyTypeName":"Ancient Orb","pay":{"id":0,"league_id":1,"pay_currency_id":78,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":0.05,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":78,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":48,"value":22,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"receiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"chaosEquivalent":21,"lowConfidencePaySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"lowConfidenceReceiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"detailsId":"ancient-orb"},"Orb of Annulment":{"currencyTypeName":"Orb of Annulment","pay":{"id":0,"league_id":1,"pay_currency_id":73,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.06667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":73,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":44,"value":18.8588,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"receiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"chaosEquivalent":16.93,"lowConfidencePaySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"lowConfidenceReceiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"detailsId":"orb-of-annulment"},"Blessing of Uul-Netol":{"currencyTypeName":"Blessing of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":64,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":64,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":9.350515463917526,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"chaosEquivalent":7.68,"lowConfidencePaySparkLine":{"data":[null,null,0,33.33,66.66,66.66,99.99],"totalChange":99.99},"lowConfidenceReceiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"detailsId":"blessing-of-uul-netol"},"Exalted Shard":{"currencyTypeName":"Exalted Shard","pay":{"id":0,"league_id":1,"pay_currency_id":80,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":80,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":11,"value":7,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,null,0,0,0],"totalChange":0},"receiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"chaosEquivalent":6.5,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"detailsId":"exalted-shard"},"Master Cartographer\'s Sextant":{"currencyTypeName":"Master Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":48,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.24879285714285715,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":48,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":64,"value":4.911668875,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"receiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"chaosEquivalent":4.47,"lowConfidencePaySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"detailsId":"master-cartographers-sextant"},"Blessing of Esh":{"currencyTypeName":"Blessing of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":63,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":63,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":4,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":3,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"blessing-of-esh"},"Journeyman Cartographer\'s Sextant":{"currencyTypeName":"Journeyman Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":47,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.4230887878787879,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":47,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":2.918542857142857,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"receiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"chaosEquivalent":2.64,"lowConfidencePaySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"lowConfidenceReceiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"detailsId":"journeyman-cartographers-sextant"},"Blessing of Xoph":{"currencyTypeName":"Blessing of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":61,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":61,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":2.483673469387755,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"chaosEquivalent":2.24,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"detailsId":"blessing-of-xoph"},"Annulment Shard":{"currencyTypeName":"Annulment Shard","pay":{"id":0,"league_id":1,"pay_currency_id":79,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":1.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":79,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":3.8,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":2.23,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,-9.09,-9.09,1718.18,1718.18,245.45],"totalChange":245.45},"detailsId":"annulment-shard"},"Blessing of Tul":{"currencyTypeName":"Blessing of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":62,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":62,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":2,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"chaosEquivalent":2,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"detailsId":"blessing-of-tul"},"Vaal Orb":{"currencyTypeName":"Vaal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":8,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":40,"value":0.5834604444444444,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":8,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":81,"value":1.7833907142857144,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"receiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"chaosEquivalent":1.75,"lowConfidencePaySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"lowConfidenceReceiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"detailsId":"vaal-orb"},"Orb of Horizons":{"currencyTypeName":"Orb of Horizons","pay":{"id":0,"league_id":1,"pay_currency_id":75,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.958204,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":75,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":31,"value":1.79100045,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"chaosEquivalent":1.42,"lowConfidencePaySparkLine":{"data":[0,-0.33,0.72,4.29,0.72,-3.63,4.36],"totalChange":4.36},"lowConfidenceReceiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"detailsId":"orb-of-horizons"},"Splinter of Chayula":{"currencyTypeName":"Splinter of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":60,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":0.83333,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":60,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":46,"value":1.5,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"chaosEquivalent":1.35,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"detailsId":"splinter-of-chayula"},"Gemcutter\'s Prism":{"currencyTypeName":"Gemcutter\'s Prism","pay":{"id":0,"league_id":1,"pay_currency_id":15,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.7885894949494949,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":15,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":74,"value":1.3104130434782608,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"receiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"chaosEquivalent":1.29,"lowConfidencePaySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"lowConfidenceReceiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"detailsId":"gemcutters-prism"},"Apprentice Cartographer\'s Sextant":{"currencyTypeName":"Apprentice Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":46,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.9750981212121212,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":46,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":52,"value":1,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":1.01,"lowConfidencePaySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"apprentice-cartographers-sextant"},"Orb of Regret":{"currencyTypeName":"Orb of Regret","pay":{"id":0,"league_id":1,"pay_currency_id":9,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":18,"value":1.0964574468085106,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":9,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":92,"value":1.0004330666666668,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"receiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"chaosEquivalent":0.96,"lowConfidencePaySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"detailsId":"orb-of-regret"},"Regal Orb":{"currencyTypeName":"Regal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":7,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":1.3920958247422681,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":7,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":73,"value":0.8269064536082474,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"receiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"chaosEquivalent":0.77,"lowConfidencePaySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"lowConfidenceReceiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"detailsId":"regal-orb"},"Engineer\'s Orb":{"currencyTypeName":"Engineer\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":77,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":2.605612244897959,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":77,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.8584277931034483,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"chaosEquivalent":0.62,"lowConfidencePaySparkLine":{"data":[0,2,11.98,11.98,30.74,30.74,30.49],"totalChange":30.49},"lowConfidenceReceiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"detailsId":"engineers-orb"},"Orb of Fusing":{"currencyTypeName":"Orb of Fusing","pay":{"id":0,"league_id":1,"pay_currency_id":5,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":1.95,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":5,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.55044,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"receiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"chaosEquivalent":0.53,"lowConfidencePaySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"lowConfidenceReceiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"detailsId":"orb-of-fusing"},"Orb of Scouring":{"currencyTypeName":"Orb of Scouring","pay":{"id":0,"league_id":1,"pay_currency_id":14,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":2.1,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":14,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.5354012105263158,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"receiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"chaosEquivalent":0.51,"lowConfidencePaySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"detailsId":"orb-of-scouring"},"Cartographer\'s Chisel":{"currencyTypeName":"Cartographer\'s Chisel","pay":{"id":0,"league_id":1,"pay_currency_id":10,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":2.4,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":10,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":58,"value":0.46549529545454543,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"receiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"chaosEquivalent":0.44,"lowConfidencePaySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"lowConfidenceReceiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"detailsId":"cartographers-chisel"},"Orb of Alchemy":{"currencyTypeName":"Orb of Alchemy","pay":{"id":0,"league_id":1,"pay_currency_id":4,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":2.841666666666667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":4,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":65,"value":0.35714,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"receiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"chaosEquivalent":0.35,"lowConfidencePaySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"lowConfidenceReceiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"detailsId":"orb-of-alchemy"},"Silver Coin":{"currencyTypeName":"Silver Coin","pay":{"id":0,"league_id":1,"pay_currency_id":12,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":3.6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":12,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.3146063292682927,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"receiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"chaosEquivalent":0.3,"lowConfidencePaySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"lowConfidenceReceiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"detailsId":"silver-coin"},"Blessed Orb":{"currencyTypeName":"Blessed Orb","pay":{"id":0,"league_id":1,"pay_currency_id":18,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":3.7901630434782607,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":18,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.32171585542168674,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"receiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"chaosEquivalent":0.29,"lowConfidencePaySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"lowConfidenceReceiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"detailsId":"blessed-orb"},"Chromatic Orb":{"currencyTypeName":"Chromatic Orb","pay":{"id":0,"league_id":1,"pay_currency_id":17,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":30,"value":3.900757575757576,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":17,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.27702283333333333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"receiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"chaosEquivalent":0.27,"lowConfidencePaySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"lowConfidenceReceiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"detailsId":"chromatic-orb"},"Orb of Binding":{"currencyTypeName":"Orb of Binding","pay":{"id":0,"league_id":1,"pay_currency_id":74,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":74,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":28,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":0.25,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"orb-of-binding"},"Splinter of Xoph":{"currencyTypeName":"Splinter of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":56,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":56,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"chaosEquivalent":0.23,"lowConfidencePaySparkLine":{"data":[null,null,0,14.29,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"detailsId":"splinter-of-xoph"},"Splinter of Uul-Netol":{"currencyTypeName":"Splinter of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":59,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":15,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":59,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"chaosEquivalent":0.2,"lowConfidencePaySparkLine":{"data":[null,null,0,50,50,50,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"detailsId":"splinter-of-uul-netol"},"Orb of Alteration":{"currencyTypeName":"Orb of Alteration","pay":{"id":0,"league_id":1,"pay_currency_id":6,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":32,"value":6.897234042553191,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":6,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":61,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"receiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"chaosEquivalent":0.14,"lowConfidencePaySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"lowConfidenceReceiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"detailsId":"orb-of-alteration"},"Jeweller\'s Orb":{"currencyTypeName":"Jeweller\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":11,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":7.8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":11,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":75,"value":0.13261883720930231,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"receiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"chaosEquivalent":0.13,"lowConfidencePaySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"lowConfidenceReceiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"detailsId":"jewellers-orb"},"Orb of Chance":{"currencyTypeName":"Orb of Chance","pay":{"id":0,"league_id":1,"pay_currency_id":16,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":8.64997340425532,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":16,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":76,"value":0.11111,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"receiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"chaosEquivalent":0.11,"lowConfidencePaySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"lowConfidenceReceiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"detailsId":"orb-of-chance"},"Glassblower\'s Bauble":{"currencyTypeName":"Glassblower\'s Bauble","pay":{"id":0,"league_id":1,"pay_currency_id":19,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":15.31340206185567,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":19,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":51,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[0,0,-1.94,3.94,3.9,3.9,9.05],"totalChange":9.05},"lowConfidenceReceiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"detailsId":"glassblowers-bauble"},"Splinter of Tul":{"currencyTypeName":"Splinter of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":57,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":57,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":0.14089376744186047,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"detailsId":"splinter-of-tul"},"Splinter of Esh":{"currencyTypeName":"Splinter of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":58,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":58,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.1326773181818182,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"chaosEquivalent":0.09,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"detailsId":"splinter-of-esh"},"Orb of Augmentation":{"currencyTypeName":"Orb of Augmentation","pay":{"id":0,"league_id":1,"pay_currency_id":20,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":5,"value":42.121212121212125,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":20,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.035082486842105264,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,null,null,null,0],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"chaosEquivalent":0.03,"lowConfidencePaySparkLine":{"data":[0,-45.46,-46.56,-41.35,-39.88,-39.88,-42.9],"totalChange":-42.9},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"detailsId":"orb-of-augmentation"},"Blacksmith\'s Whetstone":{"currencyTypeName":"Blacksmith\'s Whetstone","pay":{"id":0,"league_id":1,"pay_currency_id":25,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":137.4747474747475,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":25,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.024965935064935066,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"receiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"chaosEquivalent":0.02,"lowConfidencePaySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"lowConfidenceReceiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"detailsId":"blacksmiths-whetstone"},"Perandus Coin":{"currencyTypeName":"Perandus Coin","pay":{"id":0,"league_id":1,"pay_currency_id":13,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":200,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":13,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.011368279569892474,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0.22,-2.43,-4.97,-4.97,2.72,2.72],"totalChange":2.72},"lowConfidenceReceiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"detailsId":"perandus-coin"},"Orb of Transmutation":{"currencyTypeName":"Orb of Transmutation","pay":{"id":0,"league_id":1,"pay_currency_id":21,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":196.62,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":21,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.01613,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,21.78,21.78,null,null],"totalChange":21.78},"receiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,-1.33,21.78,21.78,22.08,22.06],"totalChange":22.06},"lowConfidenceReceiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"detailsId":"orb-of-transmutation"},"Portal Scroll":{"currencyTypeName":"Portal Scroll","pay":{"id":0,"league_id":1,"pay_currency_id":24,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":364.8484848484849,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":24,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.014209822916666667,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,-23.5,14.82,46.05,46.05,52.82,76.13],"totalChange":76.13},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"detailsId":"portal-scroll"},"Armourer\'s Scrap":{"currencyTypeName":"Armourer\'s Scrap","pay":{"id":0,"league_id":1,"pay_currency_id":26,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":197.55050505050505,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":26,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.02,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,0,0,null,4.57],"totalChange":4.57},"receiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,1.53,0.71,0.71,1.73,5.31],"totalChange":5.31},"lowConfidenceReceiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"detailsId":"armourers-scrap"}},"updated":1548166976379}'),REGIONS=[{regionId:-1,names:[{name:"Other",language:{code:"en"}},{name:"Other",language:{code:"fr"}},{name:"Other",language:{code:"de"}},{name:"Other",language:{code:"ko"}},{name:"Other",language:{code:"pt"}},{name:"Other",language:{code:"ru"}},{name:"Other",language:{code:"es"}},{name:"Other",language:{code:"th"}}]},{regionId:0,names:[{name:"Haewark Hamlet",language:{code:"en"}},{name:"Le Hameau d'Haewark",language:{code:"fr"}},{name:"Haewark Hamlet",language:{code:"de"}},{name:"헤이워크 촌락",language:{code:"ko"}},{name:"Aldeia de Haewark",language:{code:"pt"}},{name:"Деревня Хейварк",language:{code:"ru"}},{name:"Aldea de Haewark",language:{code:"es"}},{name:"Haewark Hamlet",language:{code:"th"}}]},{regionId:1,names:[{name:"Tirn's End",language:{code:"en"}},{name:"La Lisière de Tirn",language:{code:"fr"}},{name:"Tirns Ende",language:{code:"de"}},{name:"티른의 끝자락",language:{code:"ko"}},{name:"Fim de Tirn",language:{code:"pt"}},{name:"Предел Тирна",language:{code:"ru"}},{name:"El final de Tirn",language:{code:"es"}},{name:"Tirn's End",language:{code:"th"}}]},{regionId:2,names:[{name:"Lex Proxima",language:{code:"en"}},{name:"Lex Proxima",language:{code:"fr"}},{name:"Lex Proxima",language:{code:"de"}},{name:"렉스 프록시마",language:{code:"ko"}},{name:"Lex Proxima",language:{code:"pt"}},{name:"Лекс Проксима",language:{code:"ru"}},{name:"Lex Proxima",language:{code:"es"}},{name:"Lex Proxima",language:{code:"th"}}]},{regionId:3,names:[{name:"Lex Ejoris",language:{code:"en"}},{name:"Lex Ejoris",language:{code:"fr"}},{name:"Lex Ejoris",language:{code:"de"}},{name:"렉스 에요리스",language:{code:"ko"}},{name:"Lex Ejoris",language:{code:"pt"}},{name:"Лекс Эйорис",language:{code:"ru"}},{name:"Lex Ejoris",language:{code:"es"}},{name:"Lex Ejoris",language:{code:"th"}}]},{regionId:4,names:[{name:"New Vastir",language:{code:"en"}},{name:"Nouveau-Vastir",language:{code:"fr"}},{name:"Neu Vastir",language:{code:"de"}},{name:"뉴 바스티르",language:{code:"ko"}},{name:"Nova Vastir",language:{code:"pt"}},{name:"Новый Вастир",language:{code:"ru"}},{name:"Nuevo Vastir",language:{code:"es"}},{name:"New Vastir",language:{code:"th"}}]},{regionId:5,names:[{name:"Glennach Cairns",language:{code:"en"}},{name:"Les Cairns de Glennach",language:{code:"fr"}},{name:"Glennach Cairns",language:{code:"de"}},{name:"글렌나크 돌무덤",language:{code:"ko"}},{name:"Marcos de Glennach",language:{code:"pt"}},{name:"Пирамиды Гленнаха",language:{code:"ru"}},{name:"Túmulos de Glennach",language:{code:"es"}},{name:"Glennach Cairns",language:{code:"th"}}]},{regionId:6,names:[{name:"Valdo's Rest",language:{code:"en"}},{name:"Le Repos de Valdo",language:{code:"fr"}},{name:"Valdos Rast",language:{code:"de"}},{name:"발도의 휴식처",language:{code:"ko"}},{name:"Descanso de Valdo",language:{code:"pt"}},{name:"Покой Валдо",language:{code:"ru"}},{name:"El descanso de Valdo",language:{code:"es"}},{name:"Valdo's Rest",language:{code:"th"}}]},{regionId:7,names:[{name:"Lira Arthain",language:{code:"en"}},{name:"Lira Arthain",language:{code:"fr"}},{name:"Lira Arthain",language:{code:"de"}},{name:"리라 아르타인",language:{code:"ko"}},{name:"Lira Arthain",language:{code:"pt"}},{name:"Лира Артейн",language:{code:"ru"}},{name:"Lira Arthain",language:{code:"es"}},{name:"Lira Arthain",language:{code:"th"}}]}],MAPS={id:16,name:"Expedition",maps:[{id:408,tier:3,tiers:[3,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Museum.png?scale=1&mn=11&mt=",names:[{name:"Museum Map",language:{code:"en"}},{name:"Musée, Carte",language:{code:"fr"}},{name:"'Museum'-Karte",language:{code:"de"}},{name:"박물관 지도(Museum Map)",language:{code:"ko"}},{name:"Mapa: Museu",language:{code:"pt"}},{name:"Карта музея",language:{code:"ru"}},{name:"Mapa de Museo",language:{code:"es"}},{name:"Museum Map",language:{code:"th"}}],region:4},{id:708,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal04.png",names:[{name:"Mortal Grief",language:{code:"en"}},{name:"Chagrin mortifère",language:{code:"fr"}},{name:"Tödliche Trauer",language:{code:"de"}},{name:"필멸의 슬픔",language:{code:"ko"}},{name:"Pesar Mortal",language:{code:"pt"}},{name:"Смертное уныние",language:{code:"ru"}},{name:"Dolor Mortal",language:{code:"es"}},{name:"Mortal Grief",language:{code:"th"}}],region:-1},{id:600,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UniqueMap1.png",names:[{name:"Vaults of Atziri",language:{code:"en"}},{name:"La Salle des coffres d'Atziri",language:{code:"fr"}},{name:"Atziris Gewölbe",language:{code:"de"}},{name:"앗지리의 금고실(Vaults of Atziri)",language:{code:"ko"}},{name:"Relíquias de Atziri",language:{code:"pt"}},{name:"Сокровищница Атзири",language:{code:"ru"}},{name:"Cámaras de Atziri",language:{code:"es"}},{name:"Vaults of Atziri",language:{code:"th"}}],region:-1},{id:461,tier:16,tiers:[16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Hydra.png?scale=1&mn=11&mt=",names:[{name:"Lair of the Hydra Map",language:{code:"en"}},{name:"Antre de l'Hydre, Carte",language:{code:"fr"}},{name:"'Versteck der Hydra'-Karte",language:{code:"de"}},{name:"히드라의 소굴 지도(Lair of the Hydra Map)",language:{code:"ko"}},{name:"Mapa: Covil da Hidra",language:{code:"pt"}},{name:"Карта логова Гидры",language:{code:"ru"}},{name:"Mapa de Guarida de la Hidra",language:{code:"es"}},{name:"Lair of the Hydra Map",language:{code:"th"}}],region:-1},{id:705,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal01.png",names:[{name:"Mortal Rage",language:{code:"en"}},{name:"Rage mortifère",language:{code:"fr"}},{name:"Tödliche Wut",language:{code:"de"}},{name:"필멸의 격노",language:{code:"ko"}},{name:"Fúria Mortal",language:{code:"pt"}},{name:"Смертный гнев",language:{code:"ru"}},{name:"Furia Mortal",language:{code:"es"}},{name:"Mortal Rage",language:{code:"th"}}],region:-1},{id:354,tier:4,tiers:[4,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Beacon.png?scale=1&mn=11&mt=",names:[{name:"Lighthouse Map",language:{code:"en"}},{name:"Phare, Carte",language:{code:"fr"}},{name:"'Leuchtturm'-Karte",language:{code:"de"}},{name:"등대 지도(Lighthouse Map)",language:{code:"ko"}},{name:"Mapa: Torre do Farol",language:{code:"pt"}},{name:"Карта навигационной башни",language:{code:"ru"}},{name:"Mapa de Faro",language:{code:"es"}},{name:"Lighthouse Map",language:{code:"th"}}],region:4},{id:849,tier:11,tiers:[0,0,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Bramblefall.png?scale=1&mn=11&mt=",names:[{name:"Bramble Valley Map",language:{code:"en"}},{name:"Bramble Valley Map",language:{code:"fr"}},{name:"Bramble Valley Map",language:{code:"de"}},{name:"Bramble Valley Map",language:{code:"ko"}},{name:"Bramble Valley Map",language:{code:"pt"}},{name:"Bramble Valley Map",language:{code:"ru"}},{name:"Bramble Valley Map",language:{code:"es"}},{name:"Bramble Valley Map",language:{code:"th"}}],region:3},{id:447,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Core.png?scale=1&mn=11&mt=",names:[{name:"Core Map",language:{code:"en"}},{name:"Cœur, Carte",language:{code:"fr"}},{name:"'Schwarzer Kern'-Karte",language:{code:"de"}},{name:"중심부 지도(Core Map)",language:{code:"ko"}},{name:"Mapa: Núcleo",language:{code:"pt"}},{name:"Карта сердца",language:{code:"ru"}},{name:"Mapa de Núcleo",language:{code:"es"}},{name:"Core Map",language:{code:"th"}}],region:7},{id:731,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png",names:[{name:"Xoph's Breachstone",language:{code:"en"}},{name:"Pierre de Brèche de Xoph",language:{code:"fr"}},{name:"Xophs Riss-Stein",language:{code:"de"}},{name:"조프의 균열석",language:{code:"ko"}},{name:"Pedra da Fenda de Xoph",language:{code:"pt"}},{name:"Камень Разлома Ксофа",language:{code:"ru"}},{name:"Piedra de Fisura de Xoph",language:{code:"es"}},{name:"Xoph's Breachstone",language:{code:"th"}}],region:-1},{id:601,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/MaelstromofChaos.png",names:[{name:"Maelström of Chaos",language:{code:"en"}},{name:"Le Maelström du chaos",language:{code:"fr"}},{name:"Mahlstrom des Chaos",language:{code:"de"}},{name:"혼돈의 마엘스트롬(Maelström of Chaos)",language:{code:"ko"}},{name:"Vórtice do Caos",language:{code:"pt"}},{name:"Вихрь хаоса",language:{code:"ru"}},{name:"Vorágine de Caos",language:{code:"es"}},{name:"Maelström of Chaos",language:{code:"th"}}],region:-1},{id:624,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SynthesisFireGuardianMap.png",names:[{name:"Augmented Distant Memory",language:{code:"en"}},{name:"Souvenir lointain exacerbé",language:{code:"fr"}},{name:"Verstärkte entfernte Erinnerung",language:{code:"de"}},{name:"강화된 희미한 기억(Augmented Distant Memory)",language:{code:"ko"}},{name:"Memória Distante Aumentada",language:{code:"pt"}},{name:"Дополненное отдалённое воспоминание",language:{code:"ru"}},{name:"Memoria Lejana Mejorada",language:{code:"es"}},{name:"ความทรงจำที่ห่างไกลที่ถูกแต่งเติม",language:{code:"th"}}],region:-1},{id:735,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png",names:[{name:"Chayula's Breachstone",language:{code:"en"}},{name:"Pierre de Brèche de Chayula",language:{code:"fr"}},{name:"Chayulas Riss-Stein",language:{code:"de"}},{name:"차율라의 균열석",language:{code:"ko"}},{name:"Pedra da Fenda de Chayula",language:{code:"pt"}},{name:"Камень Разлома Чаюлы",language:{code:"ru"}},{name:"Piedra de Fisura de Chayula",language:{code:"es"}},{name:"Chayula's Breachstone",language:{code:"th"}}],region:-1},{id:741,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/XophsEnrichedBreachstone.png",names:[{name:"Xoph's Enriched Breachstone",language:{code:"en"}},{name:"Pierre de Brèche enrichie de Xoph",language:{code:"fr"}},{name:"Xophs angereicherter Riss-Stein",language:{code:"de"}},{name:"조프의 풍부한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Enriquecida de Xoph",language:{code:"pt"}},{name:"Обогащённый камень Разлома Ксофа",language:{code:"ru"}},{name:"Piedra de Fisura Enriquecida de Xoph",language:{code:"es"}},{name:"Xoph's Enriched Breachstone",language:{code:"th"}}],region:-1},{id:373,tier:4,tiers:[4,7,11,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/DryWoods.png?scale=1&mn=11&mt=",names:[{name:"Ashen Wood Map",language:{code:"en"}},{name:"Bois cendreux, Carte",language:{code:"fr"}},{name:"'Vertrockneter Wald'-Karte",language:{code:"de"}},{name:"잿빛 숲 지도(Ashen Wood Map)",language:{code:"ko"}},{name:"Mapa: Mata Cinzenta",language:{code:"pt"}},{name:"Карта пепельного леса",language:{code:"ru"}},{name:"Mapa de Selva Pálida",language:{code:"es"}},{name:"Ashen Wood Map",language:{code:"th"}}],region:2},{id:387,tier:4,tiers:[4,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Bazaar.png?scale=1&mn=11&mt=",names:[{name:"Bazaar Map",language:{code:"en"}},{name:"Bazar, Carte",language:{code:"fr"}},{name:"'Basar'-Karte",language:{code:"de"}},{name:"장터 지도(Bazaar Map)",language:{code:"ko"}},{name:"Mapa: Bazar",language:{code:"pt"}},{name:"Карта базара",language:{code:"ru"}},{name:"Mapa de Bazar",language:{code:"es"}},{name:"Bazaar Map",language:{code:"th"}}],region:7},{id:625,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SynthesisLightningGuardianMap.png",names:[{name:"Twisted Distant Memory",language:{code:"en"}},{name:"Souvenir lointain déformé",language:{code:"fr"}},{name:"Verdorbene entfernte Erinnerung",language:{code:"de"}},{name:"뒤틀린 희미한 기억(Twisted Distant Memory)",language:{code:"ko"}},{name:"Memória Distante Distorcida",language:{code:"pt"}},{name:"Искаженное отдалённое воспоминание",language:{code:"ru"}},{name:"Memoria Lejana Retorcida",language:{code:"es"}},{name:"ความทรงจำที่ห่างไกลที่ถูกบิดเบือน",language:{code:"th"}}],region:-1},{id:444,tier:3,tiers:[3,6,10,12,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Shrine.png?scale=1&mn=11&mt=",names:[{name:"Shrine Map",language:{code:"en"}},{name:"Sanctuaire, Carte",language:{code:"fr"}},{name:"'Schrein'-Karte",language:{code:"de"}},{name:"성소 지도(Shrine Map)",language:{code:"ko"}},{name:"Mapa: Altar",language:{code:"pt"}},{name:"Карта святыни",language:{code:"ru"}},{name:"Mapa de Santuario",language:{code:"es"}},{name:"Shrine Map",language:{code:"th"}}],region:1},{id:365,tier:3,tiers:[3,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Barrows.png?scale=1&mn=11&mt=",names:[{name:"Barrows Map",language:{code:"en"}},{name:"Tertres, Carte",language:{code:"fr"}},{name:"'Hügelgräber'-Karte",language:{code:"de"}},{name:"고분 지도(Barrows Map)",language:{code:"ko"}},{name:"Mapa: Tumuli",language:{code:"pt"}},{name:"Карта кургана",language:{code:"ru"}},{name:"Mapa de Túmulos",language:{code:"es"}},{name:"Barrows Map",language:{code:"th"}}],region:4},{id:726,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberElder02.png",names:[{name:"Fragment of Emptiness",language:{code:"en"}},{name:"Fragment du Vide",language:{code:"fr"}},{name:"Fragment der Leere",language:{code:"de"}},{name:"허무의 조각",language:{code:"ko"}},{name:"Fragmento do Vazio",language:{code:"pt"}},{name:"Фрагмент пустоты",language:{code:"ru"}},{name:"Fragmento de vacío",language:{code:"es"}},{name:"Fragment of Emptiness",language:{code:"th"}}],region:-1},{id:357,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Corrosion.png?scale=1&mn=11&mt=",names:[{name:"Sulphur Vents Map",language:{code:"en"}},{name:"Geysers de soufre, Carte",language:{code:"fr"}},{name:"'Schwefelquellen'-Karte",language:{code:"de"}},{name:"유황 분출구 지도(Sulphur Vents Map)",language:{code:"ko"}},{name:"Mapa: Aberturas de Enxofre",language:{code:"pt"}},{name:"Карта серного озера",language:{code:"ru"}},{name:"Mapa de Fumarolas de Azufre",language:{code:"es"}},{name:"Sulphur Vents Map",language:{code:"th"}}],region:5},{id:736,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/XophsChargedBreachstone.png",names:[{name:"Xoph's Charged Breachstone",language:{code:"en"}},{name:"Pierre de Brèche chargée de Xoph",language:{code:"fr"}},{name:"Xophs geladener Riss-Stein",language:{code:"de"}},{name:"조프의 충전된 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Energizada de Xoph",language:{code:"pt"}},{name:"Заряженный камень Разлома Ксофа",language:{code:"ru"}},{name:"Piedra de Fisura Cargada de Xoph",language:{code:"es"}},{name:"Xoph's Charged Breachstone",language:{code:"th"}}],region:-1},{id:627,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SynthesisBossGuardianMap.png",names:[{name:"Cortex",language:{code:"en"}},{name:"Le Cortex",language:{code:"fr"}},{name:"Cortex",language:{code:"de"}},{name:"코텍스(Cortex)",language:{code:"ko"}},{name:"Córtex",language:{code:"pt"}},{name:"Кора",language:{code:"ru"}},{name:"Córtex",language:{code:"es"}},{name:"Cortex",language:{code:"th"}}],region:-1},{id:704,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/VaalComplete.png",names:[{name:"Sacrifice Set",language:{code:"en"}},{name:"Ensemble du sacrifice",language:{code:"fr"}},{name:"Opfergaben-Set",language:{code:"de"}},{name:"희생 세트",language:{code:"ko"}},{name:"Conjunto de Sacrifícios",language:{code:"pt"}},{name:"Набор Жертв",language:{code:"ru"}},{name:"Set de Sacrificio",language:{code:"es"}},{name:"Sacrifice Set",language:{code:"th"}}],region:-1},{id:749,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/UulNetolsPureBreachstone.png",names:[{name:"Uul-Netol's Pure Breachstone",language:{code:"en"}},{name:"Pierre de Brèche pure d'Uul-Netol",language:{code:"fr"}},{name:"Uul-Netols purer Riss-Stein",language:{code:"de"}},{name:"울네톨의 순수한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Pura de Uul-Netol",language:{code:"pt"}},{name:"Очищенный камень Разлома Уул-Нетол",language:{code:"ru"}},{name:"Piedra de Fisura Pura de Uul-Netol",language:{code:"es"}},{name:"Uul-Netol's Pure Breachstone",language:{code:"th"}}],region:-1},{id:395,tier:5,tiers:[5,9,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/MudGeyser.png?scale=1&mn=11&mt=",names:[{name:"Mud Geyser Map",language:{code:"en"}},{name:"Geyser boueux, Carte",language:{code:"fr"}},{name:"'Schlammgeysir'-Karte",language:{code:"de"}},{name:"진흙 간헐천 지도(Mud Geyser Map)",language:{code:"ko"}},{name:"Mapa: Gêiser de Lama",language:{code:"pt"}},{name:"Карта грязевого гейзера",language:{code:"ru"}},{name:"Mapa de Géiser de Fango",language:{code:"es"}},{name:"Mud Geyser Map",language:{code:"th"}}],region:4},{id:851,tier:6,tiers:[0,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/CrimsonTownship.png?scale=1&mn=11&mt=",names:[{name:"Crimson Township Map",language:{code:"en"}},{name:"Crimson Township Map",language:{code:"fr"}},{name:"Crimson Township Map",language:{code:"de"}},{name:"Crimson Township Map",language:{code:"ko"}},{name:"Crimson Township Map",language:{code:"pt"}},{name:"Crimson Township Map",language:{code:"ru"}},{name:"Crimson Township Map",language:{code:"es"}},{name:"Crimson Township Map",language:{code:"th"}}],region:1},{id:371,tier:8,tiers:[0,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Thicket.png?scale=1&mn=11&mt=",names:[{name:"Thicket Map",language:{code:"en"}},{name:"Bosquet, Carte",language:{code:"fr"}},{name:"'Dickicht'-Karte",language:{code:"de"}},{name:"잡목림 지도(Thicket Map)",language:{code:"ko"}},{name:"Mapa: Matagal",language:{code:"pt"}},{name:"Карта чащи",language:{code:"ru"}},{name:"Mapa de Matorral",language:{code:"es"}},{name:"Thicket Map",language:{code:"th"}}],region:7},{id:449,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/SulphurVents.png?scale=1&mn=11&mt=",names:[{name:"Acid Caverns Map",language:{code:"en"}},{name:"Cavernes d'acide, Carte",language:{code:"fr"}},{name:"'Ätzende Höhlen'-Karte",language:{code:"de"}},{name:"산성 암굴 지도(Acid Caverns Map)",language:{code:"ko"}},{name:"Mapa: Cavernas Ácidas",language:{code:"pt"}},{name:"Карта едких пещер",language:{code:"ru"}},{name:"Mapa de Cavernas Ácidas",language:{code:"es"}},{name:"Acid Caverns Map",language:{code:"th"}}],region:2},{id:719,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/ShaperComplete.png",names:[{name:"Key to the Crucible",language:{code:"en"}},{name:"Clé du Creuset",language:{code:"fr"}},{name:"Schlüssel zum Schmelztiegel",language:{code:"de"}},{name:"시련의 열쇠",language:{code:"ko"}},{name:"Chave para o Crisol",language:{code:"pt"}},{name:"Ключ к Тиглю",language:{code:"ru"}},{name:"Llave hacia el Crisol",language:{code:"es"}},{name:"Key to the Crucible",language:{code:"th"}}],region:-1},{id:443,tier:3,tiers:[3,7,10,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/HighGardens.png?scale=1&mn=11&mt=",names:[{name:"Terrace Map",language:{code:"en"}},{name:"Terrasses, Carte",language:{code:"fr"}},{name:"'Terrasse'-Karte",language:{code:"de"}},{name:"테라스 지도(Terrace Map)",language:{code:"ko"}},{name:"Mapa: Terraço",language:{code:"pt"}},{name:"Карта террасы",language:{code:"ru"}},{name:"Mapa de Terraza",language:{code:"es"}},{name:"Terrace Map",language:{code:"th"}}],region:1},{id:381,tier:3,tiers:[3,7,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Ramparts.png?scale=1&mn=11&mt=",names:[{name:"Ramparts Map",language:{code:"en"}},{name:"Remparts, Carte",language:{code:"fr"}},{name:"'Befestigungen'-Karte",language:{code:"de"}},{name:"성벽 지도(Ramparts Map)",language:{code:"ko"}},{name:"Mapa: Fortaleza",language:{code:"pt"}},{name:"Карта бастиона",language:{code:"ru"}},{name:"Mapa de Murallas",language:{code:"es"}},{name:"Ramparts Map",language:{code:"th"}}],region:7},{id:617,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HarbingerWhite.png",names:[{name:"The Beachhead",language:{code:"en"}},{name:"La Tête de pont",language:{code:"fr"}},{name:"Der Brückenkopf",language:{code:"de"}},{name:"교두보(The Beachhead)",language:{code:"ko"}},{name:"A Cabeça de Ponte",language:{code:"pt"}},{name:"Плацдарм",language:{code:"ru"}},{name:"La Cabecera de la Playa",language:{code:"es"}},{name:"The Beachhead",language:{code:"th"}}],region:-1},{id:609,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/DeathandTaxes.png",names:[{name:"Death and Taxes",language:{code:"en"}},{name:"La Mort et les Impôts",language:{code:"fr"}},{name:"Der sichere Tod",language:{code:"de"}},{name:"죽음과 의무(Death and Taxes)",language:{code:"ko"}},{name:"Morte e Impostos",language:{code:"pt"}},{name:"Смерть и налоги",language:{code:"ru"}},{name:"Muerte e Impuestos",language:{code:"es"}},{name:"Death and Taxes",language:{code:"th"}}],region:-1},{id:457,tier:4,tiers:[4,7,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/SunkenCity.png?scale=1&mn=11&mt=",names:[{name:"Sunken City Map",language:{code:"en"}},{name:"Cité engloutie, Carte",language:{code:"fr"}},{name:"'Versunkene Stadt'-Karte",language:{code:"de"}},{name:"물에 잠긴 도시 지도(Sunken City Map)",language:{code:"ko"}},{name:"Mapa: Cidade Afundada",language:{code:"pt"}},{name:"Карта затонувшего города",language:{code:"ru"}},{name:"Mapa de Ciudad Hundida",language:{code:"es"}},{name:"Sunken City Map",language:{code:"th"}}],region:7},{id:703,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal04.png",names:[{name:"Sacrifice at Dusk",language:{code:"en"}},{name:"Sacrifice au crépuscule",language:{code:"fr"}},{name:"Opfergabe bei Abenddämmerung",language:{code:"de"}},{name:"황혼의 희생",language:{code:"ko"}},{name:"Sacrifício ao Anoitecer",language:{code:"pt"}},{name:"Жертва на закате",language:{code:"ru"}},{name:"Sacrificio al Anochecer",language:{code:"es"}},{name:"Sacrifice at Dusk",language:{code:"th"}}],region:-1},{id:450,tier:11,tiers:[0,0,0,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/DarkForest.png?scale=1&mn=11&mt=",names:[{name:"Dark Forest Map",language:{code:"en"}},{name:"Forêt obscure, Carte",language:{code:"fr"}},{name:"'Dunkelforst'-Karte",language:{code:"de"}},{name:"어둠의 숲 지도(Dark Forest Map)",language:{code:"ko"}},{name:"Mapa: Floresta Negra",language:{code:"pt"}},{name:"Карта мрачного леса",language:{code:"ru"}},{name:"Mapa de Bosque Oscuro",language:{code:"es"}},{name:"Dark Forest Map",language:{code:"th"}}],region:1},{id:744,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/UulNetolsEnrichedBreachstone.png",names:[{name:"Uul-Netol's Enriched Breachstone",language:{code:"en"}},{name:"Pierre de Brèche enrichie d'Uul-Netol",language:{code:"fr"}},{name:"Uul-Netols angereicherter Riss-Stein",language:{code:"de"}},{name:"울네톨의 풍부한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Enriquecida de Uul-Netol",language:{code:"pt"}},{name:"Обогащённый камень Разлома Уул-Нетол",language:{code:"ru"}},{name:"Piedra de Fisura Enriquecida de Uul-Netol",language:{code:"es"}},{name:"Uul-Netol's Enriched Breachstone",language:{code:"th"}}],region:-1},{id:711,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt02.png",names:[{name:"Yriel's Key",language:{code:"en"}},{name:"Clé d'Yriel",language:{code:"fr"}},{name:"Yriels Schlüssel",language:{code:"de"}},{name:"이리엘의 열쇠",language:{code:"ko"}},{name:"Chave de Yriel",language:{code:"pt"}},{name:"Ключ Ириэла",language:{code:"ru"}},{name:"Llave de Yriel",language:{code:"es"}},{name:"Yriel's Key",language:{code:"th"}}],region:-1},{id:382,tier:4,tiers:[4,7,11,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Dunes.png?scale=1&mn=11&mt=",names:[{name:"Dunes Map",language:{code:"en"}},{name:"Dunes, Carte",language:{code:"fr"}},{name:"'Dünen'-Karte",language:{code:"de"}},{name:"사구 지도(Dunes Map)",language:{code:"ko"}},{name:"Mapa: Dunas",language:{code:"pt"}},{name:"Карта дюн",language:{code:"ru"}},{name:"Mapa de Dunas",language:{code:"es"}},{name:"Dunes Map",language:{code:"th"}}],region:3},{id:460,tier:16,tiers:[16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Chimera.png?scale=1&mn=11&mt=",names:[{name:"Pit of the Chimera Map",language:{code:"en"}},{name:"Fosse de la Chimère, Carte",language:{code:"fr"}},{name:"'Grube der Chimäre'-Karte",language:{code:"de"}},{name:"키메라의 구덩이 지도(Pit of the Chimera Map)",language:{code:"ko"}},{name:"Mapa: Fosso da Quimera",language:{code:"pt"}},{name:"Карта ямы Химеры",language:{code:"ru"}},{name:"Mapa de Hoyo de la Quimera",language:{code:"es"}},{name:"Pit of the Chimera Map",language:{code:"th"}}],region:-1},{id:757,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Labyrinth.png",names:[{name:"Offering to the Goddess",language:{code:"en"}},{name:"Offrande à la déesse",language:{code:"fr"}},{name:"Opfergabe an die Göttin",language:{code:"de"}},{name:"여신에게 바치는 공물",language:{code:"ko"}},{name:"Oferenda à Deusa",language:{code:"pt"}},{name:"Подношение богине",language:{code:"ru"}},{name:"Ofrenda a la Diosa",language:{code:"es"}},{name:"Offering to the Goddess",language:{code:"th"}}],region:-1},{id:465,tier:16,tiers:[0,0,0,0,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/VaalTempleBase.png?scale=1&mn=11&mt=",names:[{name:"Vaal Temple Map",language:{code:"en"}},{name:"Temple vaal, Carte",language:{code:"fr"}},{name:"'Vaal-Tempel'-Karte",language:{code:"de"}},{name:"바알 사원 지도(Vaal Temple Map)",language:{code:"ko"}},{name:"Mapa: Templo Vaal",language:{code:"pt"}},{name:"Карта храма ваал",language:{code:"ru"}},{name:"Mapa de Templo Vaal",language:{code:"es"}},{name:"Vaal Temple Map",language:{code:"th"}}],region:2},{id:407,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Arena.png?scale=1&mn=11&mt=",names:[{name:"Arena Map",language:{code:"en"}},{name:"Arène, Carte",language:{code:"fr"}},{name:"'Arena'-Karte",language:{code:"de"}},{name:"투기장 지도(Arena Map)",language:{code:"ko"}},{name:"Mapa: Arena",language:{code:"pt"}},{name:"Карта арены",language:{code:"ru"}},{name:"Mapa de Arena",language:{code:"es"}},{name:"Arena Map",language:{code:"th"}}],region:6},{id:446,tier:7,tiers:[0,7,12,14,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Oasis.png?scale=1&mn=11&mt=",names:[{name:"Desert Spring Map",language:{code:"en"}},{name:"Source du désert, Carte",language:{code:"fr"}},{name:"'Wüstenquell'-Karte",language:{code:"de"}},{name:"사막의 샘 지도(Desert Spring Map)",language:{code:"ko"}},{name:"Mapa: Fonte do Deserto",language:{code:"pt"}},{name:"Карта пустынного источника",language:{code:"ru"}},{name:"Mapa de Manantial de Desierto",language:{code:"es"}},{name:"Desert Spring Map",language:{code:"th"}}],region:0},{id:748,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/EshsPureBreachstone.png",names:[{name:"Esh's Pure Breachstone",language:{code:"en"}},{name:"Pierre de Brèche pure d'Esh",language:{code:"fr"}},{name:"Eshs purer Riss-Stein",language:{code:"de"}},{name:"에쉬의 순수한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Pura de Esh",language:{code:"pt"}},{name:"Очищенный камень Разлома Иш",language:{code:"ru"}},{name:"Piedra de Fisura Pura de Esh",language:{code:"es"}},{name:"Esh's Pure Breachstone",language:{code:"th"}}],region:-1},{id:451,tier:5,tiers:[5,9,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Sanctuary.png?scale=1&mn=11&mt=",names:[{name:"Crimson Temple Map",language:{code:"en"}},{name:"Temple écarlate, Carte",language:{code:"fr"}},{name:"'Bluttempel'-Karte",language:{code:"de"}},{name:"진홍색 사원 지도(Crimson Temple Map)",language:{code:"ko"}},{name:"Mapa: Templo Carmesim",language:{code:"pt"}},{name:"Карта кровавого храма",language:{code:"ru"}},{name:"Mapa de Templo Carmesí",language:{code:"es"}},{name:"Crimson Temple Map",language:{code:"th"}}],region:7},{id:734,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png",names:[{name:"Uul-Netol's Breachstone",language:{code:"en"}},{name:"Pierre de Brèche d'Uul-Netol",language:{code:"fr"}},{name:"Uul-Netols Riss-Stein",language:{code:"de"}},{name:"울네톨의 균열석",language:{code:"ko"}},{name:"Pedra da Fenda de Uul-Netol",language:{code:"pt"}},{name:"Камень Разлома Уул-Нетол",language:{code:"ru"}},{name:"Piedra de Fisura de Uul-Netol",language:{code:"es"}},{name:"Uul-Netol's Breachstone",language:{code:"th"}}],region:-1},{id:730,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SinFlaskEmpty.png",names:[{name:"Divine Vessel",language:{code:"en"}},{name:"Réceptacle divin",language:{code:"fr"}},{name:"Göttliches Gefäß",language:{code:"de"}},{name:"성스러운 시험관",language:{code:"ko"}},{name:"Recipiente Divino",language:{code:"pt"}},{name:"Божественный сосуд",language:{code:"ru"}},{name:"Recipiente Divino",language:{code:"es"}},{name:"Divine Vessel",language:{code:"th"}}],region:-1},{id:433,tier:9,tiers:[0,0,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/CastleRuins.png?scale=1&mn=11&mt=",names:[{name:"Castle Ruins Map",language:{code:"en"}},{name:"Château en ruines, Carte",language:{code:"fr"}},{name:"'Burgruinen'-Karte",language:{code:"de"}},{name:"성곽 유적 지도(Castle Ruins Map)",language:{code:"ko"}},{name:"Mapa: Ruínas do Castelo",language:{code:"pt"}},{name:"Карта развалин замка",language:{code:"ru"}},{name:"Mapa de Ruinas del Castillo",language:{code:"es"}},{name:"Castle Ruins Map",language:{code:"th"}}],region:5},{id:728,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberElder04.png",names:[{name:"Fragment of Knowledge",language:{code:"en"}},{name:"Fragment de la Connaissance",language:{code:"fr"}},{name:"Fragment des Wissens",language:{code:"de"}},{name:"지식의 조각",language:{code:"ko"}},{name:"Fragmento do Conhecimento",language:{code:"pt"}},{name:"Фрагмент знания",language:{code:"ru"}},{name:"Fragmento de conocimiento",language:{code:"es"}},{name:"Fragment of Knowledge",language:{code:"th"}}],region:-1},{id:416,tier:3,tiers:[3,7,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Bog.png?scale=1&mn=11&mt=",names:[{name:"Bog Map",language:{code:"en"}},{name:"Tourbière, Carte",language:{code:"fr"}},{name:"'Sumpf'-Karte",language:{code:"de"}},{name:"습지대 지도(Bog Map)",language:{code:"ko"}},{name:"Mapa: Brejo",language:{code:"pt"}},{name:"Карта трясины",language:{code:"ru"}},{name:"Mapa de Ciénaga",language:{code:"es"}},{name:"Bog Map",language:{code:"th"}}],region:2},{id:610,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UniqueMapEye.png",names:[{name:"Whakawairua Tuahu",language:{code:"en"}},{name:"Whakawairua Tuahu",language:{code:"fr"}},{name:"Whakawairua Tuahu",language:{code:"de"}},{name:"와카와 투아후(Whakawairua Tuahu)",language:{code:"ko"}},{name:"Whakawairua Tuahu",language:{code:"pt"}},{name:"Вакаваируа Туаху",language:{code:"ru"}},{name:"Whakawairua Tuahu",language:{code:"es"}},{name:"Whakawairua Tuahu",language:{code:"th"}}],region:-1},{id:626,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SynthesisGolemGuardianMap.png",names:[{name:"Rewritten Distant Memory",language:{code:"en"}},{name:"Souvenir lointain réécrit",language:{code:"fr"}},{name:"Umgeschriebene entfernte Erinnerung",language:{code:"de"}},{name:"다시 쓰인 희미한 기억(Rewritten Distant Memory)",language:{code:"ko"}},{name:"Memória Distante Reescrita",language:{code:"pt"}},{name:"Переписанное отдалённое воспоминание",language:{code:"ru"}},{name:"Memoria Lejana Reescrita",language:{code:"es"}},{name:"ความทรงจำที่ห่างไกลที่ถูกเขียนใหม่",language:{code:"th"}}],region:-1},{id:759,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/LabyrinthHarvestInfused1.png",names:[{name:"Gift to the Goddess",language:{code:"en"}},{name:"Présent à la déesse",language:{code:"fr"}},{name:"Geschenk an die Göttin",language:{code:"de"}},{name:"여신에게 바치는 선물",language:{code:"ko"}},{name:"Presente à Deusa",language:{code:"pt"}},{name:"Дар богине",language:{code:"ru"}},{name:"Regalo a la Diosa",language:{code:"es"}},{name:"Gift to the Goddess",language:{code:"th"}}],region:-1},{id:424,tier:5,tiers:[5,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/SpiderForest.png?scale=1&mn=11&mt=",names:[{name:"Spider Forest Map",language:{code:"en"}},{name:"Forêt aux araignées, Carte",language:{code:"fr"}},{name:"'Spinnenwald'-Karte",language:{code:"de"}},{name:"거미 숲 지도(Spider Forest Map)",language:{code:"ko"}},{name:"Mapa: Floresta da Aranha",language:{code:"pt"}},{name:"Карта паучьего леса",language:{code:"ru"}},{name:"Mapa de Bosque de Arañas",language:{code:"es"}},{name:"Spider Forest Map",language:{code:"th"}}],region:3},{id:850,tier:9,tiers:[0,9,12,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Burn.png?scale=1&mn=11&mt=",names:[{name:"Grave Trough Map",language:{code:"en"}},{name:"Grave Trough Map",language:{code:"fr"}},{name:"Grave Trough Map",language:{code:"de"}},{name:"Grave Trough Map",language:{code:"ko"}},{name:"Grave Trough Map",language:{code:"pt"}},{name:"Grave Trough Map",language:{code:"ru"}},{name:"Grave Trough Map",language:{code:"es"}},{name:"Grave Trough Map",language:{code:"th"}}],region:4},{id:459,tier:6,tiers:[0,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Carcass.png?scale=1&mn=11&mt=",names:[{name:"Carcass Map",language:{code:"en"}},{name:"Carcasse, Carte",language:{code:"fr"}},{name:"'Kadaver'-Karte",language:{code:"de"}},{name:"시체 지도(Carcass Map)",language:{code:"ko"}},{name:"Mapa: Carcaça",language:{code:"pt"}},{name:"Карта остова",language:{code:"ru"}},{name:"Mapa de Cadáver",language:{code:"es"}},{name:"Carcass Map",language:{code:"th"}}],region:5},{id:348,tier:4,tiers:[4,8,12,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Courthouse.png?scale=1&mn=11&mt=",names:[{name:"Courthouse Map",language:{code:"en"}},{name:"Prétoire, Carte",language:{code:"fr"}},{name:"'Gericht'-Karte",language:{code:"de"}},{name:"법원 지도(Courthouse Map)",language:{code:"ko"}},{name:"Mapa: Corte",language:{code:"pt"}},{name:"Карта здания суда",language:{code:"ru"}},{name:"Mapa de Juzgado",language:{code:"es"}},{name:"Courthouse Map",language:{code:"th"}}],region:5},{id:853,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/ColdRiver.png?scale=1&mn=11&mt=",names:[{name:"Cold River Map",language:{code:"en"}},{name:"Cold River Map",language:{code:"fr"}},{name:"Cold River Map",language:{code:"de"}},{name:"Cold River Map",language:{code:"ko"}},{name:"Cold River Map",language:{code:"pt"}},{name:"Cold River Map",language:{code:"ru"}},{name:"Cold River Map",language:{code:"es"}},{name:"Cold River Map",language:{code:"th"}}],region:1},{id:403,tier:9,tiers:[0,9,12,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Plateau.png?scale=1&mn=11&mt=",names:[{name:"Plateau Map",language:{code:"en"}},{name:"Plateau, Carte",language:{code:"fr"}},{name:"'Plateau'-Karte",language:{code:"de"}},{name:"고원 지도(Plateau Map)",language:{code:"ko"}},{name:"Mapa: Planalto",language:{code:"pt"}},{name:"Карта плоскогорья",language:{code:"ru"}},{name:"Mapa de Meseta",language:{code:"es"}},{name:"Plateau Map",language:{code:"th"}}],region:7},{id:701,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal02.png",names:[{name:"Sacrifice at Dawn",language:{code:"en"}},{name:"Sacrifice à l'aube",language:{code:"fr"}},{name:"Opfergabe bei Morgendämmerung",language:{code:"de"}},{name:"새벽의 희생",language:{code:"ko"}},{name:"Sacrifício ao Amanhecer",language:{code:"pt"}},{name:"Жертва на рассвете",language:{code:"ru"}},{name:"Sacrificio al Amanecer",language:{code:"es"}},{name:"Sacrifice at Dawn",language:{code:"th"}}],region:-1},{id:727,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberElder03.png",names:[{name:"Fragment of Shape",language:{code:"en"}},{name:"Fragment du Façonnement",language:{code:"fr"}},{name:"Fragment der Schöpfung",language:{code:"de"}},{name:"형성의 조각",language:{code:"ko"}},{name:"Fragmento de Forma",language:{code:"pt"}},{name:"Фрагмент формы",language:{code:"ru"}},{name:"Fragmento de forma",language:{code:"es"}},{name:"Fragment of Shape",language:{code:"th"}}],region:-1},{id:367,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Fields.png?scale=1&mn=11&mt=",names:[{name:"Fields Map",language:{code:"en"}},{name:"Champs, Carte",language:{code:"fr"}},{name:"'Flachland'-Karte",language:{code:"de"}},{name:"들판 지도(Fields Map)",language:{code:"ko"}},{name:"Mapa: Campos",language:{code:"pt"}},{name:"Карта полей",language:{code:"ru"}},{name:"Mapa de Campos",language:{code:"es"}},{name:"Fields Map",language:{code:"th"}}],region:5},{id:417,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Pier.png?scale=1&mn=11&mt=",names:[{name:"Pier Map",language:{code:"en"}},{name:"Jetée, Carte",language:{code:"fr"}},{name:"'Pier'-Karte",language:{code:"de"}},{name:"선창 지도(Pier Map)",language:{code:"ko"}},{name:"Mapa: Píer",language:{code:"pt"}},{name:"Карта причала",language:{code:"ru"}},{name:"Mapa de Muelle",language:{code:"es"}},{name:"Pier Map",language:{code:"th"}}],region:3},{id:337,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Cage.png?scale=1&mn=11&mt=",names:[{name:"Cage Map",language:{code:"en"}},{name:"Cage, Carte",language:{code:"fr"}},{name:"'Käfig'-Karte",language:{code:"de"}},{name:"창살 지도(Cage Map)",language:{code:"ko"}},{name:"Mapa: Jaula",language:{code:"pt"}},{name:"Карта клетки",language:{code:"ru"}},{name:"Mapa de Jaula",language:{code:"es"}},{name:"Cage Map",language:{code:"th"}}],region:2},{id:717,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentChimera.png",names:[{name:"Fragment of the Chimera",language:{code:"en"}},{name:"Fragment de la Chimère",language:{code:"fr"}},{name:"Fragment der Chimäre",language:{code:"de"}},{name:"키메라의 지도 조각",language:{code:"ko"}},{name:"Fragmento da Quimera",language:{code:"pt"}},{name:"Фрагмент Химеры",language:{code:"ru"}},{name:"Fragmento de la Quimera",language:{code:"es"}},{name:"Fragment of the Chimera",language:{code:"th"}}],region:-1},{id:338,tier:4,tiers:[4,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/FungalCaverns.png?scale=1&mn=11&mt=",names:[{name:"Fungal Hollow Map",language:{code:"en"}},{name:"Gouffre fongique, Carte",language:{code:"fr"}},{name:"'Pilzbewachsene Höhle'-Karte",language:{code:"de"}},{name:"곰팡이 동혈 지도(Fungal Hollow Map)",language:{code:"ko"}},{name:"Mapa: Oco Fúngico",language:{code:"pt"}},{name:"Карта грибковой впадины",language:{code:"ru"}},{name:"Mapa de Hondonada Fúngica",language:{code:"es"}},{name:"Fungal Hollow Map",language:{code:"th"}}],region:3},{id:423,tier:11,tiers:[0,0,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/PrimordialPool.png?scale=1&mn=11&mt=",names:[{name:"Primordial Pool Map",language:{code:"en"}},{name:"Bassin primordial, Carte",language:{code:"fr"}},{name:"'Urbecken'-Karte",language:{code:"de"}},{name:"태고의 웅덩이 지도(Primordial Pool Map)",language:{code:"ko"}},{name:"Mapa: Lamaçal Primordial",language:{code:"pt"}},{name:"Карта древнего озера",language:{code:"ru"}},{name:"Mapa de Charca Primordial",language:{code:"es"}},{name:"Primordial Pool Map",language:{code:"th"}}],region:0},{id:605,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/FairgravesMap01.png",names:[{name:"Mao Kun",language:{code:"en"}},{name:"Mao Kun",language:{code:"fr"}},{name:"Mao Kun",language:{code:"de"}},{name:"마오 쿤(Mao Kun)",language:{code:"ko"}},{name:"Mao Kun",language:{code:"pt"}},{name:"Мао Кун",language:{code:"ru"}},{name:"Mao Kun",language:{code:"es"}},{name:"Mao Kun",language:{code:"th"}}],region:-1},{id:616,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HallowedGround.png",names:[{name:"Hallowed Ground",language:{code:"en"}},{name:"Terreurs nocturnes",language:{code:"fr"}},{name:"Nacht des Grauens",language:{code:"de"}},{name:"거룩한 대지(Hallowed Ground)",language:{code:"ko"}},{name:"Terras Sagradas",language:{code:"pt"}},{name:"Священная земля",language:{code:"ru"}},{name:"Una Noche de Terror",language:{code:"es"}},{name:"Hallowed Ground",language:{code:"th"}}],region:-1},{id:427,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Factory.png?scale=1&mn=11&mt=",names:[{name:"Factory Map",language:{code:"en"}},{name:"Fabrique, Carte",language:{code:"fr"}},{name:"'Manufaktur'-Karte",language:{code:"de"}},{name:"공장 지도(Factory Map)",language:{code:"ko"}},{name:"Mapa: Fábrica",language:{code:"pt"}},{name:"Карта фактории",language:{code:"ru"}},{name:"Mapa de Fábrica",language:{code:"es"}},{name:"Factory Map",language:{code:"th"}}],region:0},{id:448,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Colosseum.png?scale=1&mn=11&mt=",names:[{name:"Colosseum Map",language:{code:"en"}},{name:"Colisée, Carte",language:{code:"fr"}},{name:"'Kolosseum'-Karte",language:{code:"de"}},{name:"원형 경기장 지도(Colosseum Map)",language:{code:"ko"}},{name:"Mapa: Coliseu",language:{code:"pt"}},{name:"Карта колизея",language:{code:"ru"}},{name:"Mapa de Coliseo",language:{code:"es"}},{name:"Colosseum Map",language:{code:"th"}}],region:5},{id:740,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/ChayulasChargedBreachstone.png",names:[{name:"Chayula's Charged Breachstone",language:{code:"en"}},{name:"Pierre de Brèche chargée de Chayula",language:{code:"fr"}},{name:"Chayulas geladener Riss-Stein",language:{code:"de"}},{name:"차율라의 충전된 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Energizada de Chayula",language:{code:"pt"}},{name:"Заряженный камень Разлома Чаюлы",language:{code:"ru"}},{name:"Piedra de Fisura Cargada de Chayula",language:{code:"es"}},{name:"Chayula's Charged Breachstone",language:{code:"th"}}],region:-1},{id:430,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/DefiledCathedral.png?scale=1&mn=11&mt=",names:[{name:"Defiled Cathedral Map",language:{code:"en"}},{name:"Cathédrale profanée, Carte",language:{code:"fr"}},{name:"'Entweihte Kathedrale'-Karte",language:{code:"de"}},{name:"더럽혀진 대성당 지도(Defiled Cathedral Map)",language:{code:"ko"}},{name:"Mapa: Catedral Profanada",language:{code:"pt"}},{name:"Карта осквернённого собора",language:{code:"ru"}},{name:"Mapa de Catedral Profanada",language:{code:"es"}},{name:"Defiled Cathedral Map",language:{code:"th"}}],region:0},{id:326,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Lookout.png?scale=1&mn=11&mt=",names:[{name:"Lookout Map",language:{code:"en"}},{name:"Belvédère, Carte",language:{code:"fr"}},{name:"'Ausguck'-Karte",language:{code:"de"}},{name:"전망대 지도(Lookout Map)",language:{code:"ko"}},{name:"Mapa: Posto de Vigia",language:{code:"pt"}},{name:"Карта обзорной площадки",language:{code:"ru"}},{name:"Mapa de Puesto de Observación",language:{code:"es"}},{name:"Lookout Map",language:{code:"th"}}],region:1},{id:380,tier:14,tiers:[0,0,0,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Residence.png?scale=1&mn=11&mt=",names:[{name:"Residence Map",language:{code:"en"}},{name:"Résidence, Carte",language:{code:"fr"}},{name:"'Residenz'-Karte",language:{code:"de"}},{name:"주택 지도(Residence Map)",language:{code:"ko"}},{name:"Mapa: Residência",language:{code:"pt"}},{name:"Карта резиденции",language:{code:"ru"}},{name:"Mapa de Residencia",language:{code:"es"}},{name:"Residence Map",language:{code:"th"}}],region:4},{id:714,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourtComplete.png",names:[{name:"Pale Court Set",language:{code:"en"}},{name:"Ensemble de la Cour pâle",language:{code:"fr"}},{name:"Das bleiche Gericht",language:{code:"de"}},{name:"창백한 궁정 세트",language:{code:"ko"}},{name:"Conjunto da Corte Pálida",language:{code:"pt"}},{name:"Набор Бледного суда",language:{code:"ru"}},{name:"Set de la Corte Pálida",language:{code:"es"}},{name:"Pale Court Set",language:{code:"th"}}],region:-1},{id:725,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberElder01.png",names:[{name:"Fragment of Terror",language:{code:"en"}},{name:"Fragment de la Terreur",language:{code:"fr"}},{name:"Fragment des Schreckens",language:{code:"de"}},{name:"공포의 조각",language:{code:"ko"}},{name:"Fragmento do Terror",language:{code:"pt"}},{name:"Фрагмент ужаса",language:{code:"ru"}},{name:"Fragmento de terror",language:{code:"es"}},{name:"Fragment of Terror",language:{code:"th"}}],region:-1},{id:628,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HarbingerUber.png",names:[{name:"Infused Beachhead",language:{code:"en"}},{name:"La Tête de pont infusée",language:{code:"fr"}},{name:"Verstärkter Brückenkopf",language:{code:"de"}},{name:"주입된 교두보(Infused Beachhead)",language:{code:"ko"}},{name:"Cabeça da Ponte Infundida",language:{code:"pt"}},{name:"Усиленный Плацдарм",language:{code:"ru"}},{name:"La Cabecera de la playa infundida",language:{code:"es"}},{name:"Infused Beachhead",language:{code:"th"}}],region:-1},{id:359,tier:3,tiers:[3,7,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Maze.png?scale=1&mn=11&mt=",names:[{name:"Maze Map",language:{code:"en"}},{name:"Dédale, Carte",language:{code:"fr"}},{name:"'Irrgarten'-Karte",language:{code:"de"}},{name:"미로 지도(Maze Map)",language:{code:"ko"}},{name:"Mapa: Dédalo",language:{code:"pt"}},{name:"Карта лабиринта",language:{code:"ru"}},{name:"Mapa de Laberinto",language:{code:"es"}},{name:"Maze Map",language:{code:"th"}}],region:2},{id:612,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/TheVinktarSquare.png",names:[{name:"The Vinktar Square",language:{code:"en"}},{name:"La Place de Vinktar",language:{code:"fr"}},{name:"Der Vinktar-Platz",language:{code:"de"}},{name:"빙타 광장(The Vinktar Square)",language:{code:"ko"}},{name:"A Praça Vinktar",language:{code:"pt"}},{name:"Площадь Винктара",language:{code:"ru"}},{name:"La Plaza de Vinktar",language:{code:"es"}},{name:"The Vinktar Square",language:{code:"th"}}],region:-1},{id:742,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/TulsEnrichedBreachstone.png",names:[{name:"Tul's Enriched Breachstone",language:{code:"en"}},{name:"Pierre de Brèche enrichie de Tul",language:{code:"fr"}},{name:"Tuls angereicherter Riss-Stein",language:{code:"de"}},{name:"툴의 풍부한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Enriquecida de Tul",language:{code:"pt"}},{name:"Обогащённый камень Разлома Тул",language:{code:"ru"}},{name:"Piedra de Fisura Enriquecida de Tul",language:{code:"es"}},{name:"Tul's Enriched Breachstone",language:{code:"th"}}],region:-1},{id:353,tier:5,tiers:[0,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Volcano.png?scale=1&mn=11&mt=",names:[{name:"Volcano Map",language:{code:"en"}},{name:"Volcan, Carte",language:{code:"fr"}},{name:"'Vulkan'-Karte",language:{code:"de"}},{name:"화산 지도(Volcano Map)",language:{code:"ko"}},{name:"Mapa: Vulcão",language:{code:"pt"}},{name:"Карта вулкана",language:{code:"ru"}},{name:"Mapa de Volcán",language:{code:"es"}},{name:"Volcano Map",language:{code:"th"}}],region:5},{id:712,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt03.png",names:[{name:"Inya's Key",language:{code:"en"}},{name:"Clé d'Inya",language:{code:"fr"}},{name:"Inyas Schlüssel",language:{code:"de"}},{name:"이냐의 열쇠",language:{code:"ko"}},{name:"Chave de Inya",language:{code:"pt"}},{name:"Ключ Иньи",language:{code:"ru"}},{name:"Llave de Inya",language:{code:"es"}},{name:"Inya's Key",language:{code:"th"}}],region:-1},{id:341,tier:4,tiers:[4,7,11,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/DryPeninsula.png?scale=1&mn=11&mt=",names:[{name:"Peninsula Map",language:{code:"en"}},{name:"Péninsule, Carte",language:{code:"fr"}},{name:"'Halbinsel'-Karte",language:{code:"de"}},{name:"반도 지도(Peninsula Map)",language:{code:"ko"}},{name:"Mapa: Península",language:{code:"pt"}},{name:"Карта мыса",language:{code:"ru"}},{name:"Mapa de Península",language:{code:"es"}},{name:"Peninsula Map",language:{code:"th"}}],region:5},{id:439,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Abyss.png?scale=1&mn=11&mt=",names:[{name:"Caldera Map",language:{code:"en"}},{name:"Caldeira, Carte",language:{code:"fr"}},{name:"'Caldera'-Karte",language:{code:"de"}},{name:"칼데라 지도(Caldera Map)",language:{code:"ko"}},{name:"Mapa: Caldeira Vulcânica",language:{code:"pt"}},{name:"Карта кальдеры",language:{code:"ru"}},{name:"Mapa de Caldera",language:{code:"es"}},{name:"Caldera Map",language:{code:"th"}}],region:5},{id:604,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PoorjoysAsylum.png",names:[{name:"Poorjoy's Asylum",language:{code:"en"}},{name:"L'Asile de Poorjoy",language:{code:"fr"}},{name:"PoorJoys Zuflucht",language:{code:"de"}},{name:"푸어조이의 은신처(Poorjoy's Asylum)",language:{code:"ko"}},{name:"Asilo de Poorjoy",language:{code:"pt"}},{name:"Богадельня Паршута",language:{code:"ru"}},{name:"Asilo de PoorJoy",language:{code:"es"}},{name:"Poorjoy's Asylum",language:{code:"th"}}],region:-1},{id:739,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/UulNetolsChargedBreachstone.png",names:[{name:"Uul-Netol's Charged Breachstone",language:{code:"en"}},{name:"Pierre de Brèche chargée d'Uul-Netol",language:{code:"fr"}},{name:"Uul-Netols geladener Riss-Stein",language:{code:"de"}},{name:"울네톨의 충전된 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Energizada de Uul-Netol",language:{code:"pt"}},{name:"Заряженный камень Разлома Уул-Нетол",language:{code:"ru"}},{name:"Piedra de Fisura Cargada de Uul-Netol",language:{code:"es"}},{name:"Uul-Netol's Charged Breachstone",language:{code:"th"}}],region:-1},{id:385,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Terrace.png?scale=1&mn=11&mt=",names:[{name:"Gardens Map",language:{code:"en"}},{name:"Jardins, Carte",language:{code:"fr"}},{name:"'Gärten'-Karte",language:{code:"de"}},{name:"정원 지도(Gardens Map)",language:{code:"ko"}},{name:"Mapa: Jardins",language:{code:"pt"}},{name:"Карта садов",language:{code:"ru"}},{name:"Mapa de Jardines",language:{code:"es"}},{name:"Gardens Map",language:{code:"th"}}],region:7},{id:856,tier:3,tiers:[3,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/FrozenCabins.png?scale=1&mn=11&mt=",names:[{name:"Frozen Cabins Map",language:{code:"en"}},{name:"Frozen Cabins Map",language:{code:"fr"}},{name:"Frozen Cabins Map",language:{code:"de"}},{name:"Frozen Cabins Map",language:{code:"ko"}},{name:"Frozen Cabins Map",language:{code:"pt"}},{name:"Frozen Cabins Map",language:{code:"ru"}},{name:"Frozen Cabins Map",language:{code:"es"}},{name:"Frozen Cabins Map",language:{code:"th"}}],region:2},{id:718,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentHydra.png",names:[{name:"Fragment of the Hydra",language:{code:"en"}},{name:"Fragment de l'Hydre",language:{code:"fr"}},{name:"Fragment der Hydra",language:{code:"de"}},{name:"히드라의 지도 조각",language:{code:"ko"}},{name:"Fragmento da Hidra",language:{code:"pt"}},{name:"Фрагмент Гидры",language:{code:"ru"}},{name:"Fragmento de la Hidra",language:{code:"es"}},{name:"Fragment of the Hydra",language:{code:"th"}}],region:-1},{id:852,tier:16,tiers:[0,0,0,0,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/ThaumaturgyDungeon.png?scale=1&mn=11&mt=",names:[{name:"Foundry Map",language:{code:"en"}},{name:"Foundry Map",language:{code:"fr"}},{name:"Foundry Map",language:{code:"de"}},{name:"Foundry Map",language:{code:"ko"}},{name:"Foundry Map",language:{code:"pt"}},{name:"Foundry Map",language:{code:"ru"}},{name:"Foundry Map",language:{code:"es"}},{name:"Foundry Map",language:{code:"th"}}],region:3},{id:848,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Stagnation.png?scale=1&mn=11&mt=",names:[{name:"Stagnation Map",language:{code:"en"}},{name:"Stagnation Map",language:{code:"fr"}},{name:"Stagnation Map",language:{code:"de"}},{name:"Stagnation Map",language:{code:"ko"}},{name:"Stagnation Map",language:{code:"pt"}},{name:"Stagnation Map",language:{code:"ru"}},{name:"Stagnation Map",language:{code:"es"}},{name:"Stagnation Map",language:{code:"th"}}],region:7},{id:751,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/KaruiFragment.png",names:[{name:"Timeless Karui Emblem",language:{code:"en"}},{name:"Emblème intemporel des Karuis",language:{code:"fr"}},{name:"Immerwährendes Emblem der Karui",language:{code:"de"}},{name:"무궁한 카루이 상징",language:{code:"ko"}},{name:"Emblema Atemporal Karui",language:{code:"pt"}},{name:"Вневременной знак каруи",language:{code:"ru"}},{name:"Emblema atemporal karui",language:{code:"es"}},{name:"Timeless Karui Emblem",language:{code:"th"}}],region:-1},{id:715,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentPhoenix.png",names:[{name:"Fragment of the Phoenix",language:{code:"en"}},{name:"Fragment du Phénix",language:{code:"fr"}},{name:"Fragment des Phönix",language:{code:"de"}},{name:"불사조의 지도 조각",language:{code:"ko"}},{name:"Fragmento da Fênix",language:{code:"pt"}},{name:"Фрагмент Феникса",language:{code:"ru"}},{name:"Fragmento del Fénix",language:{code:"es"}},{name:"Fragment of the Phoenix",language:{code:"th"}}],region:-1},{id:355,tier:3,tiers:[3,6,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Canyon.png?scale=1&mn=11&mt=",names:[{name:"Canyon Map",language:{code:"en"}},{name:"Canyon, Carte",language:{code:"fr"}},{name:"'Schlucht'-Karte",language:{code:"de"}},{name:"협곡 지도(Canyon Map)",language:{code:"ko"}},{name:"Mapa: Cânion",language:{code:"pt"}},{name:"Карта ущелья",language:{code:"ru"}},{name:"Mapa de Cañón",language:{code:"es"}},{name:"Canyon Map",language:{code:"th"}}],region:5},{id:393,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Armory.png?scale=1&mn=11&mt=",names:[{name:"Armoury Map",language:{code:"en"}},{name:"Armurerie, Carte",language:{code:"fr"}},{name:"'Waffenkammer'-Karte",language:{code:"de"}},{name:"갑주 창고 지도(Armoury Map)",language:{code:"ko"}},{name:"Mapa: Armaria",language:{code:"pt"}},{name:"Карта оружейной",language:{code:"ru"}},{name:"Mapa de Armería",language:{code:"es"}},{name:"Armoury Map",language:{code:"th"}}],region:2},{id:401,tier:14,tiers:[0,0,0,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Tower.png?scale=1&mn=11&mt=",names:[{name:"Tower Map",language:{code:"en"}},{name:"Tour, Carte",language:{code:"fr"}},{name:"'Turm'-Karte",language:{code:"de"}},{name:"탑 지도(Tower Map)",language:{code:"ko"}},{name:"Mapa: Torre",language:{code:"pt"}},{name:"Карта башни",language:{code:"ru"}},{name:"Mapa de la Torre",language:{code:"es"}},{name:"Tower Map",language:{code:"th"}}],region:0},{id:436,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/PrimevalRuins.png?scale=1&mn=11&mt=",names:[{name:"Primordial Blocks Map",language:{code:"en"}},{name:"Vestiges primordiaux, Carte",language:{code:"fr"}},{name:"'Urzeitliche Ruinen'-Karte",language:{code:"de"}},{name:"태고의 구역 지도(Primordial Blocks Map)",language:{code:"ko"}},{name:"Mapa: Blocos Primordiais",language:{code:"pt"}},{name:"Карта первобытного поселения",language:{code:"ru"}},{name:"Mapa de Vestigios Primordiales",language:{code:"es"}},{name:"Primordial Blocks Map",language:{code:"th"}}],region:0},{id:755,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/VaalFragment.png",names:[{name:"Timeless Vaal Emblem",language:{code:"en"}},{name:"Emblème intemporel des Vaal",language:{code:"fr"}},{name:"Immerwährendes Emblem der Vaal",language:{code:"de"}},{name:"무궁한 바알 상징",language:{code:"ko"}},{name:"Emblema Atemporal Vaal",language:{code:"pt"}},{name:"Вневременной знак ваал",language:{code:"ru"}},{name:"Emblema atemporal vaal",language:{code:"es"}},{name:"Timeless Vaal Emblem",language:{code:"th"}}],region:-1},{id:415,tier:9,tiers:[0,0,9,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Precinct.png?scale=1&mn=11&mt=",names:[{name:"Precinct Map",language:{code:"en"}},{name:"Quartier, Carte",language:{code:"fr"}},{name:"'Stadtviertel'-Karte",language:{code:"de"}},{name:"구획 지도(Precinct Map)",language:{code:"ko"}},{name:"Mapa: Precinto",language:{code:"pt"}},{name:"Карта окрестностей",language:{code:"ru"}},{name:"Mapa de Recinto",language:{code:"es"}},{name:"Precinct Map",language:{code:"th"}}],region:5},{id:394,tier:13,tiers:[0,0,0,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Courtyard.png?scale=1&mn=11&mt=",names:[{name:"Courtyard Map",language:{code:"en"}},{name:"Cour, Carte",language:{code:"fr"}},{name:"'Hofgarten'-Karte",language:{code:"de"}},{name:"안뜰 지도(Courtyard Map)",language:{code:"ko"}},{name:"Mapa: Pátio",language:{code:"pt"}},{name:"Карта подворья",language:{code:"ru"}},{name:"Mapa de Patio",language:{code:"es"}},{name:"Courtyard Map",language:{code:"th"}}],region:6},{id:409,tier:10,tiers:[0,0,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Scriptorium.png?scale=1&mn=11&mt=",names:[{name:"Scriptorium Map",language:{code:"en"}},{name:"Scriptorium, Carte",language:{code:"fr"}},{name:"'Skriptorium'-Karte",language:{code:"de"}},{name:"필사실 지도(Scriptorium Map)",language:{code:"ko"}},{name:"Mapa: Scriptorium",language:{code:"pt"}},{name:"Карта скриптория",language:{code:"ru"}},{name:"Mapa de Sala del Escriba",language:{code:"es"}},{name:"Scriptorium Map",language:{code:"th"}}],region:7},{id:420,tier:4,tiers:[4,7,11,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Promenade.png?scale=1&mn=11&mt=",names:[{name:"Promenade Map",language:{code:"en"}},{name:"Esplanade, Carte",language:{code:"fr"}},{name:"'Promenade'-Karte",language:{code:"de"}},{name:"산책로 지도(Promenade Map)",language:{code:"ko"}},{name:"Mapa: Esplanada",language:{code:"pt"}},{name:"Карта прогулочного парка",language:{code:"ru"}},{name:"Mapa de Rambla",language:{code:"es"}},{name:"Promenade Map",language:{code:"th"}}],region:3},{id:379,tier:14,tiers:[0,0,0,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Crematorium.png?scale=1&mn=11&mt=",names:[{name:"Lava Chamber Map",language:{code:"en"}},{name:"Chambre lavique, Carte",language:{code:"fr"}},{name:"'Lavakammer'-Karte",language:{code:"de"}},{name:"용암의 방 지도(Lava Chamber Map)",language:{code:"ko"}},{name:"Mapa: Câmara de Lava",language:{code:"pt"}},{name:"Карта лавовой тюрьмы",language:{code:"ru"}},{name:"Mapa de Cámara de Lava",language:{code:"es"}},{name:"Lava Chamber Map",language:{code:"th"}}],region:3},{id:398,tier:14,tiers:[0,0,0,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/MineralPools.png?scale=1&mn=11&mt=",names:[{name:"Mineral Pools Map",language:{code:"en"}},{name:"Bassins minéraux, Carte",language:{code:"fr"}},{name:"'Mineralquellen'-Karte",language:{code:"de"}},{name:"광물층 지도(Mineral Pools Map)",language:{code:"ko"}},{name:"Mapa: Fontes Minerais",language:{code:"pt"}},{name:"Карта минеральных озёр",language:{code:"ru"}},{name:"Mapa de Charcas Minerales",language:{code:"es"}},{name:"Mineral Pools Map",language:{code:"th"}}],region:0},{id:608,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UniqueMap2.png",names:[{name:"Untainted Paradise",language:{code:"en"}},{name:"Paradis immaculé",language:{code:"fr"}},{name:"Unberührtes Paradies",language:{code:"de"}},{name:"때묻지 않은 낙원(Untainted Paradise)",language:{code:"ko"}},{name:"Paraíso Imaculado",language:{code:"pt"}},{name:"Нетронутый рай",language:{code:"ru"}},{name:"Paraíso Impoluto",language:{code:"es"}},{name:"Untainted Paradise",language:{code:"th"}}],region:-1},{id:441,tier:1,tiers:[1,4,8,10,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Park.png?scale=1&mn=11&mt=",names:[{name:"Park Map",language:{code:"en"}},{name:"Parc, Carte",language:{code:"fr"}},{name:"'Park'-Karte",language:{code:"de"}},{name:"공원 지도(Park Map)",language:{code:"ko"}},{name:"Mapa: Parque",language:{code:"pt"}},{name:"Карта парка",language:{code:"ru"}},{name:"Mapa de Parque",language:{code:"es"}},{name:"Park Map",language:{code:"th"}}],region:1},{id:724,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/ElderComplete.png",names:[{name:"Key to Decay",language:{code:"en"}},{name:"Clé de la Décadence",language:{code:"fr"}},{name:"Schlüssel zum Verfall",language:{code:"de"}},{name:"부패의 열쇠",language:{code:"ko"}},{name:"Chave para a Decadência",language:{code:"pt"}},{name:"Ключ к Порче",language:{code:"ru"}},{name:"Llave hacia el Decaimiento",language:{code:"es"}},{name:"Key to Decay",language:{code:"th"}}],region:-1},{id:418,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Crypt.png?scale=1&mn=11&mt=",names:[{name:"Cursed Crypt Map",language:{code:"en"}},{name:"Crypte maudite, Carte",language:{code:"fr"}},{name:"'Verwunschene Krypta'-Karte",language:{code:"de"}},{name:"저주받은 지하실 지도(Cursed Crypt Map)",language:{code:"ko"}},{name:"Mapa: Cripta Amaldiçoada",language:{code:"pt"}},{name:"Карта проклятого склепа",language:{code:"ru"}},{name:"Mapa de Cripta Maldita",language:{code:"es"}},{name:"Cursed Crypt Map",language:{code:"th"}}],region:1},{id:372,tier:3,tiers:[3,6,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Wharf.png?scale=1&mn=11&mt=",names:[{name:"Wharf Map",language:{code:"en"}},{name:"Embarcadère, Carte",language:{code:"fr"}},{name:"'Hafen'-Karte",language:{code:"de"}},{name:"부두 지도(Wharf Map)",language:{code:"ko"}},{name:"Mapa: Cais",language:{code:"pt"}},{name:"Карта пристани",language:{code:"ru"}},{name:"Mapa de Embarcadero",language:{code:"es"}},{name:"Wharf Map",language:{code:"th"}}],region:6},{id:397,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/TropicalIsland.png?scale=1&mn=11&mt=",names:[{name:"Tropical Island Map",language:{code:"en"}},{name:"Île tropicale, Carte",language:{code:"fr"}},{name:"'Tropische Insel'-Karte",language:{code:"de"}},{name:"열대 섬 지도(Tropical Island Map)",language:{code:"ko"}},{name:"Mapa: Ilha Tropical",language:{code:"pt"}},{name:"Карта тропического острова",language:{code:"ru"}},{name:"Mapa de Isla Tropical",language:{code:"es"}},{name:"Tropical Island Map",language:{code:"th"}}],region:1},{id:614,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PerandusManor.png",names:[{name:"The Perandus Manor",language:{code:"en"}},{name:"Le Manoir des Pérandus",language:{code:"fr"}},{name:"Das Perandus-Anwesen",language:{code:"de"}},{name:"페란두스 저택(The Perandus Manor)",language:{code:"ko"}},{name:"A Mansão Perandus",language:{code:"pt"}},{name:"Особняк Перандусов",language:{code:"ru"}},{name:"La Mansión Perandus",language:{code:"es"}},{name:"The Perandus Manor",language:{code:"th"}}],region:-1},{id:400,tier:3,tiers:[3,7,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Sepulchre.png?scale=1&mn=11&mt=",names:[{name:"Sepulchre Map",language:{code:"en"}},{name:"Sépulcre, Carte",language:{code:"fr"}},{name:"'Grabstätte'-Karte",language:{code:"de"}},{name:"매장소 지도(Sepulchre Map)",language:{code:"ko"}},{name:"Mapa: Sepulcro",language:{code:"pt"}},{name:"Карта усыпальницы",language:{code:"ru"}},{name:"Mapa de Sepulcro",language:{code:"es"}},{name:"Sepulchre Map",language:{code:"th"}}],region:7},{id:857,tier:11,tiers:[0,0,0,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/ForkingRiver.png?scale=1&mn=11&mt=",names:[{name:"Forking River Map",language:{code:"en"}},{name:"Forking River Map",language:{code:"fr"}},{name:"Forking River Map",language:{code:"de"}},{name:"Forking River Map",language:{code:"ko"}},{name:"Forking River Map",language:{code:"pt"}},{name:"Forking River Map",language:{code:"ru"}},{name:"Forking River Map",language:{code:"es"}},{name:"Forking River Map",language:{code:"th"}}],region:6},{id:462,tier:16,tiers:[16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Minotaur.png?scale=1&mn=11&mt=",names:[{name:"Maze of the Minotaur Map",language:{code:"en"}},{name:"Dédale du Minotaure, Carte",language:{code:"fr"}},{name:"'Labyrinth des Minotauren'-Karte",language:{code:"de"}},{name:"미노타우로스의 미로 지도(Maze of the Minotaur Map)",language:{code:"ko"}},{name:"Mapa: Labirinto do Minotauro",language:{code:"pt"}},{name:"Карта лабиринта Минотавра",language:{code:"ru"}},{name:"Mapa de Laberinto del Minotauro",language:{code:"es"}},{name:"Maze of the Minotaur Map",language:{code:"th"}}],region:-1},{id:404,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Estuary.png?scale=1&mn=11&mt=",names:[{name:"Estuary Map",language:{code:"en"}},{name:"Estuaire, Carte",language:{code:"fr"}},{name:"'Flussmündung'-Karte",language:{code:"de"}},{name:"강어귀 지도(Estuary Map)",language:{code:"ko"}},{name:"Mapa: Estuário",language:{code:"pt"}},{name:"Карта устья реки",language:{code:"ru"}},{name:"Mapa de Estuario",language:{code:"es"}},{name:"Estuary Map",language:{code:"th"}}],region:6},{id:702,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal03.png",names:[{name:"Sacrifice at Noon",language:{code:"en"}},{name:"Sacrifice de midi",language:{code:"fr"}},{name:"Opfergabe bei Mittag",language:{code:"de"}},{name:"정오의 희생",language:{code:"ko"}},{name:"Sacrifício ao Meio Dia",language:{code:"pt"}},{name:"Жертва в полдень",language:{code:"ru"}},{name:"Sacrificio al Mediodía",language:{code:"es"}},{name:"Sacrifice at Noon",language:{code:"th"}}],region:-1},{id:455,tier:14,tiers:[0,0,0,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Corpse.png?scale=1&mn=11&mt=",names:[{name:"Lava Lake Map",language:{code:"en"}},{name:"Lac de lave, Carte",language:{code:"fr"}},{name:"'Lavasee'-Karte",language:{code:"de"}},{name:"용암 호수 지도(Lava Lake Map)",language:{code:"ko"}},{name:"Mapa: Lago de Lava",language:{code:"pt"}},{name:"Карта лавового озера",language:{code:"ru"}},{name:"Mapa de Lago de Lava",language:{code:"es"}},{name:"Lava Lake Map",language:{code:"th"}}],region:7},{id:349,tier:4,tiers:[4,7,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Strand.png?scale=1&mn=11&mt=",names:[{name:"Strand Map",language:{code:"en"}},{name:"Rivage, Carte",language:{code:"fr"}},{name:"'Küste'-Karte",language:{code:"de"}},{name:"해안 지도(Strand Map)",language:{code:"ko"}},{name:"Mapa: Costa",language:{code:"pt"}},{name:"Карта взморья",language:{code:"ru"}},{name:"Mapa de Litoral",language:{code:"es"}},{name:"Strand Map",language:{code:"th"}}],region:5},{id:440,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Ghetto.png?scale=1&mn=11&mt=",names:[{name:"Ghetto Map",language:{code:"en"}},{name:"Ghetto, Carte",language:{code:"fr"}},{name:"'Elendsviertel'-Karte",language:{code:"de"}},{name:"빈민촌 지도(Ghetto Map)",language:{code:"ko"}},{name:"Mapa: Gueto",language:{code:"pt"}},{name:"Карта хибар",language:{code:"ru"}},{name:"Mapa de Gueto",language:{code:"es"}},{name:"Ghetto Map",language:{code:"th"}}],region:5},{id:335,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Marshes.png?scale=1&mn=11&mt=",names:[{name:"Marshes Map",language:{code:"en"}},{name:"Marécage, Carte",language:{code:"fr"}},{name:"'Marschlande'-Karte",language:{code:"de"}},{name:"습지 지도(Marshes Map)",language:{code:"ko"}},{name:"Mapa: Pântano",language:{code:"pt"}},{name:"Карта болот",language:{code:"ru"}},{name:"Mapa de Marjales",language:{code:"es"}},{name:"Marshes Map",language:{code:"th"}}],region:5},{id:453,tier:10,tiers:[0,0,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Dig.png?scale=1&mn=11&mt=",names:[{name:"Dig Map",language:{code:"en"}},{name:"Déblai, Carte",language:{code:"fr"}},{name:"'Ausgrabung'-Karte",language:{code:"de"}},{name:"발굴지 지도(Dig Map)",language:{code:"ko"}},{name:"Mapa: Cavidade",language:{code:"pt"}},{name:"Карта развалин",language:{code:"ru"}},{name:"Mapa de Perforación",language:{code:"es"}},{name:"Dig Map",language:{code:"th"}}],region:2},{id:412,tier:4,tiers:[4,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Belfry.png?scale=1&mn=11&mt=",names:[{name:"Belfry Map",language:{code:"en"}},{name:"Beffroi, Carte",language:{code:"fr"}},{name:"'Glockenturm'-Karte",language:{code:"de"}},{name:"종탑 지도(Belfry Map)",language:{code:"ko"}},{name:"Mapa: Campanário",language:{code:"pt"}},{name:"Карта колокольни",language:{code:"ru"}},{name:"Mapa de Campanario",language:{code:"es"}},{name:"Belfry Map",language:{code:"th"}}],region:0},{id:619,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HarbingerRed.png",names:[{name:"The Beachhead",language:{code:"en"}},{name:"La Tête de pont",language:{code:"fr"}},{name:"Der Brückenkopf",language:{code:"de"}},{name:"교두보(The Beachhead)",language:{code:"ko"}},{name:"A Cabeça de Ponte",language:{code:"pt"}},{name:"Плацдарм",language:{code:"ru"}},{name:"La Cabecera de la Playa",language:{code:"es"}},{name:"The Beachhead",language:{code:"th"}}],region:-1},{id:429,tier:4,tiers:[4,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Pit1.png?scale=1&mn=11&mt=",names:[{name:"Pit Map",language:{code:"en"}},{name:"Fosse, Carte",language:{code:"fr"}},{name:"'Grube'-Karte",language:{code:"de"}},{name:"구덩이 지도(Pit Map)",language:{code:"ko"}},{name:"Mapa: Fosso",language:{code:"pt"}},{name:"Карта ямы",language:{code:"ru"}},{name:"Mapa de Hoyo",language:{code:"es"}},{name:"Pit Map",language:{code:"th"}}],region:3},{id:358,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Chambers.png?scale=1&mn=11&mt=",names:[{name:"Haunted Mansion Map",language:{code:"en"}},{name:"Manoir hanté, Carte",language:{code:"fr"}},{name:"'Geistervilla'-Karte",language:{code:"de"}},{name:"으스스한 대저택 지도(Haunted Mansion Map)",language:{code:"ko"}},{name:"Mapa: Mansão Assombrada",language:{code:"pt"}},{name:"Карта дома с привидениями",language:{code:"ru"}},{name:"Mapa de Mansión Embrujada",language:{code:"es"}},{name:"Haunted Mansion Map",language:{code:"th"}}],region:2},{id:847,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/DesertShipGraveyard.png?scale=1&mn=11&mt=",names:[{name:"Dry Sea Map",language:{code:"en"}},{name:"Dry Sea Map",language:{code:"fr"}},{name:"Dry Sea Map",language:{code:"de"}},{name:"Dry Sea Map",language:{code:"ko"}},{name:"Dry Sea Map",language:{code:"pt"}},{name:"Dry Sea Map",language:{code:"ru"}},{name:"Dry Sea Map",language:{code:"es"}},{name:"Dry Sea Map",language:{code:"th"}}],region:5},{id:732,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png",names:[{name:"Tul's Breachstone",language:{code:"en"}},{name:"Pierre de Brèche de Tul",language:{code:"fr"}},{name:"Tuls Riss-Stein",language:{code:"de"}},{name:"툴의 균열석",language:{code:"ko"}},{name:"Pedra da Fenda de Tul",language:{code:"pt"}},{name:"Камень Разлома Тул",language:{code:"ru"}},{name:"Piedra de Fisura de Tul",language:{code:"es"}},{name:"Tul's Breachstone",language:{code:"th"}}],region:-1},{id:332,tier:5,tiers:[5,8,12,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Desert.png?scale=1&mn=11&mt=",names:[{name:"Desert Map",language:{code:"en"}},{name:"Désert, Carte",language:{code:"fr"}},{name:"'Wüste'-Karte",language:{code:"de"}},{name:"사막 지도(Desert Map)",language:{code:"ko"}},{name:"Mapa: Deserto",language:{code:"pt"}},{name:"Карта пустыни",language:{code:"ru"}},{name:"Mapa de Desierto",language:{code:"es"}},{name:"Desert Map",language:{code:"th"}}],region:0},{id:331,tier:4,tiers:[4,7,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Pen.png?scale=1&mn=11&mt=",names:[{name:"Pen Map",language:{code:"en"}},{name:"Enclos, Carte",language:{code:"fr"}},{name:"'Pferch'-Karte",language:{code:"de"}},{name:"우리 지도(Pen Map)",language:{code:"ko"}},{name:"Mapa: Estábulo",language:{code:"pt"}},{name:"Карта загона",language:{code:"ru"}},{name:"Mapa de Corral",language:{code:"es"}},{name:"Pen Map",language:{code:"th"}}],region:0},{id:356,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Baths.png?scale=1&mn=11&mt=",names:[{name:"Conservatory Map",language:{code:"en"}},{name:"Atrium, Carte",language:{code:"fr"}},{name:"'Konservatorium'-Karte",language:{code:"de"}},{name:"온실 지도(Conservatory Map)",language:{code:"ko"}},{name:"Mapa: Conservatório",language:{code:"pt"}},{name:"Карта зимнего сада",language:{code:"ru"}},{name:"Mapa de Conservatorio",language:{code:"es"}},{name:"Conservatory Map",language:{code:"th"}}],region:6},{id:330,tier:12,tiers:[0,0,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Alleyways.png?scale=1&mn=11&mt=",names:[{name:"Alleyways Map",language:{code:"en"}},{name:"Ruelles, Carte",language:{code:"fr"}},{name:"'Gassen'-Karte",language:{code:"de"}},{name:"골목길 지도(Alleyways Map)",language:{code:"ko"}},{name:"Mapa: Becos",language:{code:"pt"}},{name:"Карта переулка",language:{code:"ru"}},{name:"Mapa de Callejones",language:{code:"es"}},{name:"Alleyways Map",language:{code:"th"}}],region:4},{id:345,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Arcade.png?scale=1&mn=11&mt=",names:[{name:"Arcade Map",language:{code:"en"}},{name:"Arcades, Carte",language:{code:"fr"}},{name:"'Arkaden'-Karte",language:{code:"de"}},{name:"상점가 지도(Arcade Map)",language:{code:"ko"}},{name:"Mapa: Arcada",language:{code:"pt"}},{name:"Карта агоры",language:{code:"ru"}},{name:"Mapa de Galería",language:{code:"es"}},{name:"Arcade Map",language:{code:"th"}}],region:0},{id:442,tier:5,tiers:[0,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Malformation.png?scale=1&mn=11&mt=",names:[{name:"Malformation Map",language:{code:"en"}},{name:"Malformation, Carte",language:{code:"fr"}},{name:"'Missbildung'-Karte",language:{code:"de"}},{name:"기형 지도(Malformation Map)",language:{code:"ko"}},{name:"Mapa: Malformação",language:{code:"pt"}},{name:"Карта недр",language:{code:"ru"}},{name:"Mapa de Malformación",language:{code:"es"}},{name:"Malformation Map",language:{code:"th"}}],region:2},{id:411,tier:3,tiers:[3,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Shipyard.png?scale=1&mn=11&mt=",names:[{name:"Shipyard Map",language:{code:"en"}},{name:"Chantier naval, Carte",language:{code:"fr"}},{name:"'Werft'-Karte",language:{code:"de"}},{name:"조선소 지도(Shipyard Map)",language:{code:"ko"}},{name:"Mapa: Estaleiro",language:{code:"pt"}},{name:"Карта верфи",language:{code:"ru"}},{name:"Mapa de Astillero",language:{code:"es"}},{name:"Shipyard Map",language:{code:"th"}}],region:4},{id:452,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Plaza.png?scale=1&mn=11&mt=",names:[{name:"Plaza Map",language:{code:"en"}},{name:"Square, Carte",language:{code:"fr"}},{name:"'Vorplatz'-Karte",language:{code:"de"}},{name:"광장 지도(Plaza Map)",language:{code:"ko"}},{name:"Mapa: Praça",language:{code:"pt"}},{name:"Карта площади",language:{code:"ru"}},{name:"Mapa de Plaza",language:{code:"es"}},{name:"Plaza Map",language:{code:"th"}}],region:2},{id:621,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Doryanis.png",names:[{name:"Doryani's Machinarium",language:{code:"en"}},{name:"Le Machinarium de Doryani",language:{code:"fr"}},{name:"Doryanis Machinarium",language:{code:"de"}},{name:"도리아니의 기계실(Doryani's Machinarium)",language:{code:"ko"}},{name:"Maquinário de Doryani",language:{code:"pt"}},{name:"Машинариум Дориани",language:{code:"ru"}},{name:"Taller de Máquinas de Doryani",language:{code:"es"}},{name:"Doryani's Machinarium",language:{code:"th"}}],region:-1},{id:463,tier:16,tiers:[16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Phoenix.png?scale=1&mn=11&mt=",names:[{name:"Forge of the Phoenix Map",language:{code:"en"}},{name:"Forge du Phénix, Carte",language:{code:"fr"}},{name:"'Schmiede des Phönix'-Karte",language:{code:"de"}},{name:"불사조의 대장간 지도(Forge of the Phoenix Map)",language:{code:"ko"}},{name:"Mapa: Fornalha da Fênix ",language:{code:"pt"}},{name:"Карта кузницы Феникса",language:{code:"ru"}},{name:"Mapa de Forja del Fénix",language:{code:"es"}},{name:"Forge of the Phoenix Map",language:{code:"th"}}],region:-1},{id:327,tier:1,tiers:[1,4,8,10,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Beach.png?scale=1&mn=11&mt=",names:[{name:"Beach Map",language:{code:"en"}},{name:"Plage, Carte",language:{code:"fr"}},{name:"'Strand'-Karte",language:{code:"de"}},{name:"해변 지도(Beach Map)",language:{code:"ko"}},{name:"Mapa: Praia",language:{code:"pt"}},{name:"Карта пляжа",language:{code:"ru"}},{name:"Mapa de Playa",language:{code:"es"}},{name:"Beach Map",language:{code:"th"}}],region:5},{id:421,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Lair.png?scale=1&mn=11&mt=",names:[{name:"Lair Map",language:{code:"en"}},{name:"Antre, Carte",language:{code:"fr"}},{name:"'Lager'-Karte",language:{code:"de"}},{name:"소굴 지도(Lair Map)",language:{code:"ko"}},{name:"Mapa: Covil",language:{code:"pt"}},{name:"Карта логова",language:{code:"ru"}},{name:"Mapa de Guarida",language:{code:"es"}},{name:"Lair Map",language:{code:"th"}}],region:6},{id:375,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Cemetery.png?scale=1&mn=11&mt=",names:[{name:"Cemetery Map",language:{code:"en"}},{name:"Cimetière, Carte",language:{code:"fr"}},{name:"'Totenacker'-Karte",language:{code:"de"}},{name:"공동묘지 지도(Cemetery Map)",language:{code:"ko"}},{name:"Mapa: Cemitério",language:{code:"pt"}},{name:"Карта погоста",language:{code:"ru"}},{name:"Mapa de Camposanto",language:{code:"es"}},{name:"Cemetery Map",language:{code:"th"}}],region:1},{id:391,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/VaalPyramid.png?scale=1&mn=11&mt=",names:[{name:"Vaal Pyramid Map",language:{code:"en"}},{name:"Pyramide vaal, Carte",language:{code:"fr"}},{name:"'Vaal-Pyramide'-Karte",language:{code:"de"}},{name:"바알 피라미드 지도(Vaal Pyramid Map)",language:{code:"ko"}},{name:"Mapa: Pirâmide Vaal",language:{code:"pt"}},{name:"Карта пирамиды ваал",language:{code:"ru"}},{name:"Mapa de Pirámide Vaal",language:{code:"es"}},{name:"Vaal Pyramid Map",language:{code:"th"}}],region:2},{id:754,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/TemplarFragment.png",names:[{name:"Timeless Templar Emblem",language:{code:"en"}},{name:"Emblème intemporel des Templiers",language:{code:"fr"}},{name:"Immerwährendes Emblem der Templer",language:{code:"de"}},{name:"무궁한 템플러 상징",language:{code:"ko"}},{name:"Emblema Atemporal Templário",language:{code:"pt"}},{name:"Вневременной знак храмовников",language:{code:"ru"}},{name:"Emblema atemporal templario",language:{code:"es"}},{name:"Timeless Templar Emblem",language:{code:"th"}}],region:-1},{id:722,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMapGuardianHoly.png",names:[{name:"Fragment of Constriction",language:{code:"en"}},{name:"Fragment de la Constriction",language:{code:"fr"}},{name:"Fragment des Unterdrückung",language:{code:"de"}},{name:"속박의 조각",language:{code:"ko"}},{name:"Fragmento do Constritor",language:{code:"pt"}},{name:"Фрагмент угнетения",language:{code:"ru"}},{name:"Fragmento de constricción",language:{code:"es"}},{name:"Fragment of Constriction",language:{code:"th"}}],region:-1},{id:368,tier:4,tiers:[4,8,11,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/JungleValley.png?scale=1&mn=11&mt=",names:[{name:"Jungle Valley Map",language:{code:"en"}},{name:"Vallée de la jungle, Carte",language:{code:"fr"}},{name:"'Dschungeltal'-Karte",language:{code:"de"}},{name:"밀림 계곡 지도(Jungle Valley Map)",language:{code:"ko"}},{name:"Mapa: Vale Selvagem",language:{code:"pt"}},{name:"Карта долины джунглей",language:{code:"ru"}},{name:"Mapa de Valle de la Jungla",language:{code:"es"}},{name:"Jungle Valley Map",language:{code:"th"}}],region:5},{id:410,tier:8,tiers:[0,8,12,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Boulevard.png?scale=1&mn=11&mt=",names:[{name:"Siege Map",language:{code:"en"}},{name:"Siège, Carte",language:{code:"fr"}},{name:"'Belagerung'-Karte",language:{code:"de"}},{name:"공성 지도(Siege Map)",language:{code:"ko"}},{name:"Mapa: Cerco",language:{code:"pt"}},{name:"Карта осаждённого города",language:{code:"ru"}},{name:"Mapa de Asedio",language:{code:"es"}},{name:"Siege Map",language:{code:"th"}}],region:3},{id:723,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMapGuardianChaos.png",names:[{name:"Fragment of Purification",language:{code:"en"}},{name:"Fragment de la Purification",language:{code:"fr"}},{name:"Fragment des Läuterung",language:{code:"de"}},{name:"정화의 조각",language:{code:"ko"}},{name:"Fragmento do Purificador",language:{code:"pt"}},{name:"Фрагмент искупления",language:{code:"ru"}},{name:"Fragmento de purificación",language:{code:"es"}},{name:"Fragment of Purification",language:{code:"th"}}],region:-1},{id:607,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/olmec.png",names:[{name:"Olmec's Sanctum",language:{code:"en"}},{name:"Le Sanctuaire d'Olmec",language:{code:"fr"}},{name:"Olmecs Heiligtum",language:{code:"de"}},{name:"올멕의 지성소(Olmec's Sanctum)",language:{code:"ko"}},{name:"Santuário Olmeca",language:{code:"pt"}},{name:"Святилище Ольмека",language:{code:"ru"}},{name:"Santuario de Olmec",language:{code:"es"}},{name:"Olmec's Sanctum",language:{code:"th"}}],region:-1},{id:363,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/IvoryTemple.png?scale=1&mn=11&mt=",names:[{name:"Ivory Temple Map",language:{code:"en"}},{name:"Temple d'ivoire, Carte",language:{code:"fr"}},{name:"'Elfenbeintempel'-Karte",language:{code:"de"}},{name:"상아 사원 지도(Ivory Temple Map)",language:{code:"ko"}},{name:"Mapa: Templo de Marfim",language:{code:"pt"}},{name:"Карта храма из слоновой кости",language:{code:"ru"}},{name:"Mapa de Templo de Marfil",language:{code:"es"}},{name:"Ivory Temple Map",language:{code:"th"}}],region:3},{id:352,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Glacier.png?scale=1&mn=11&mt=",names:[{name:"Glacier Map",language:{code:"en"}},{name:"Glacier, Carte",language:{code:"fr"}},{name:"'Gletscher'-Karte",language:{code:"de"}},{name:"빙하 지도(Glacier Map)",language:{code:"ko"}},{name:"Mapa: Geleira",language:{code:"pt"}},{name:"Карта ледника",language:{code:"ru"}},{name:"Mapa de Glaciar",language:{code:"es"}},{name:"Glacier Map",language:{code:"th"}}],region:2},{id:707,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal03.png",names:[{name:"Mortal Ignorance",language:{code:"en"}},{name:"Ignorance mortifère",language:{code:"fr"}},{name:"Tödliche Ignoranz",language:{code:"de"}},{name:"필멸의 무지",language:{code:"ko"}},{name:"Ignorância Mortal",language:{code:"pt"}},{name:"Смертное невежество",language:{code:"ru"}},{name:"Ignorancia Mortal",language:{code:"es"}},{name:"Mortal Ignorance",language:{code:"th"}}],region:-1},{id:405,tier:9,tiers:[0,9,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Vault.png?scale=1&mn=11&mt=",names:[{name:"Vault Map",language:{code:"en"}},{name:"Chambre forte, Carte",language:{code:"fr"}},{name:"'Schatzkammer'-Karte",language:{code:"de"}},{name:"금고실 지도(Vault Map)",language:{code:"ko"}},{name:"Mapa: Forte",language:{code:"pt"}},{name:"Карта хранилища",language:{code:"ru"}},{name:"Mapa de Bóveda",language:{code:"es"}},{name:"Vault Map",language:{code:"th"}}],region:3},{id:334,tier:12,tiers:[0,0,0,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Cavern.png?scale=1&mn=11&mt=",names:[{name:"Flooded Mine Map",language:{code:"en"}},{name:"Mine inondée, Carte",language:{code:"fr"}},{name:"'Überflutete Mine'-Karte",language:{code:"de"}},{name:"물에 잠긴 광산 지도(Flooded Mine Map)",language:{code:"ko"}},{name:"Mapa: Mina Inundada",language:{code:"pt"}},{name:"Карта затопленной шахты",language:{code:"ru"}},{name:"Mapa de Mina Inundada",language:{code:"es"}},{name:"Flooded Mine Map",language:{code:"th"}}],region:1},{id:758,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/LabyrinthHarvest.png",names:[{name:"Tribute to the Goddess",language:{code:"en"}},{name:"Tribut à la déesse",language:{code:"fr"}},{name:"Tribut an die Göttin",language:{code:"de"}},{name:"여신에게 바치는 제물",language:{code:"ko"}},{name:"Tributo à Deusa",language:{code:"pt"}},{name:"Дань богине",language:{code:"ru"}},{name:"Tributo a la Diosa",language:{code:"es"}},{name:"Tribute to the Goddess",language:{code:"th"}}],region:-1},{id:435,tier:10,tiers:[0,0,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Villa.png?scale=1&mn=11&mt=",names:[{name:"Mapa de Villa",language:{code:"es"}},{name:"Villa Map",language:{code:"th"}},{name:"Villa Map",language:{code:"en"}},{name:"Villa, Carte",language:{code:"fr"}},{name:"'Villa'-Karte",language:{code:"de"}},{name:"빌라 지도(Villa Map)",language:{code:"ko"}},{name:"Mapa: Quinta",language:{code:"pt"}},{name:"Карта поместья",language:{code:"ru"}}],region:6},{id:336,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Iceberg.png?scale=1&mn=11&mt=",names:[{name:"Iceberg Map",language:{code:"en"}},{name:"Iceberg, Carte",language:{code:"fr"}},{name:"'Eisberg'-Karte",language:{code:"de"}},{name:"빙산 지도(Iceberg Map)",language:{code:"ko"}},{name:"Mapa: Iceberg",language:{code:"pt"}},{name:"Карта айсберга",language:{code:"ru"}},{name:"Mapa de Iceberg",language:{code:"es"}},{name:"Iceberg Map",language:{code:"th"}}],region:2},{id:388,tier:12,tiers:[0,0,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Laboratory.png?scale=1&mn=11&mt=",names:[{name:"Laboratory Map",language:{code:"en"}},{name:"Laboratoire, Carte",language:{code:"fr"}},{name:"'Laboratorium'-Karte",language:{code:"de"}},{name:"실험실 지도(Laboratory Map)",language:{code:"ko"}},{name:"Mapa: Laboratório",language:{code:"pt"}},{name:"Карта лаборатории",language:{code:"ru"}},{name:"Mapa de Laboratorio",language:{code:"es"}},{name:"Laboratory Map",language:{code:"th"}}],region:7},{id:360,tier:1,tiers:[1,4,8,10,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Channel.png?scale=1&mn=11&mt=",names:[{name:"Channel Map",language:{code:"en"}},{name:"Canal, Carte",language:{code:"fr"}},{name:"'Kanal'-Karte",language:{code:"de"}},{name:"물길 지도(Channel Map)",language:{code:"ko"}},{name:"Mapa: Canal",language:{code:"pt"}},{name:"Карта канала",language:{code:"ru"}},{name:"Mapa de Cauce",language:{code:"es"}},{name:"Channel Map",language:{code:"th"}}],region:6},{id:706,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal02.png",names:[{name:"Mortal Hope",language:{code:"en"}},{name:"Espoir mortifère",language:{code:"fr"}},{name:"Tödliche Hoffnung",language:{code:"de"}},{name:"필멸의 희망",language:{code:"ko"}},{name:"Esperança Mortal",language:{code:"pt"}},{name:"Смертная надежда",language:{code:"ru"}},{name:"Esperanza Mortal",language:{code:"es"}},{name:"Mortal Hope",language:{code:"th"}}],region:-1},{id:750,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/ChayulasPureBreachstone.png",names:[{name:"Chayula's Pure Breachstone",language:{code:"en"}},{name:"Pierre de Brèche pure de Chayula",language:{code:"fr"}},{name:"Chayulas purer Riss-Stein",language:{code:"de"}},{name:"차율라의 순수한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Pura de Chayula",language:{code:"pt"}},{name:"Очищенный камень Разлома Чаюлы",language:{code:"ru"}},{name:"Piedra de Fisura Pura de Chayula",language:{code:"es"}},{name:"Chayula's Pure Breachstone",language:{code:"th"}}],region:-1},{id:374,tier:5,tiers:[0,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Atoll.png?scale=1&mn=11&mt=",names:[{name:"Atoll Map",language:{code:"en"}},{name:"Atoll, Carte",language:{code:"fr"}},{name:"'Atoll'-Karte",language:{code:"de"}},{name:"산호섬 지도(Atoll Map)",language:{code:"ko"}},{name:"Mapa: Atol",language:{code:"pt"}},{name:"Карта атолла",language:{code:"ru"}},{name:"Mapa de Atolón",language:{code:"es"}},{name:"Atoll Map",language:{code:"th"}}],region:1},{id:328,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Graveyard.png?scale=1&mn=11&mt=",names:[{name:"Graveyard Map",language:{code:"en"}},{name:"Champ du repos, Carte",language:{code:"fr"}},{name:"'Friedhof'-Karte",language:{code:"de"}},{name:"묘지 지도(Graveyard Map)",language:{code:"ko"}},{name:"Mapa: Sepulcrário",language:{code:"pt"}},{name:"Карта кладбища",language:{code:"ru"}},{name:"Mapa de Cementerio",language:{code:"es"}},{name:"Graveyard Map",language:{code:"th"}}],region:5},{id:753,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/EternalEmpireFragment.png",names:[{name:"Timeless Eternal Emblem",language:{code:"en"}},{name:"Emblème intemporel de l'Empire éternel",language:{code:"fr"}},{name:"Immerwährendes Emblem des Ewigen Kaiserreichs",language:{code:"de"}},{name:"무궁한 영원의 상징",language:{code:"ko"}},{name:"Emblema Atemporal Eterno",language:{code:"pt"}},{name:"Вневременной знак Вечных",language:{code:"ru"}},{name:"Emblema atemporal eterno",language:{code:"es"}},{name:"Timeless Eternal Emblem",language:{code:"th"}}],region:-1},{id:351,tier:8,tiers:[0,0,8,10,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Grotto.png?scale=1&mn=11&mt=",names:[{name:"Grotto Map",language:{code:"en"}},{name:"Grotte, Carte",language:{code:"fr"}},{name:"'Grotte'-Karte",language:{code:"de"}},{name:"석굴 지도(Grotto Map)",language:{code:"ko"}},{name:"Mapa: Gruta",language:{code:"pt"}},{name:"Карта грота",language:{code:"ru"}},{name:"Mapa de Gruta",language:{code:"es"}},{name:"Grotto Map",language:{code:"th"}}],region:6},{id:343,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/BurialChambers.png?scale=1&mn=11&mt=",names:[{name:"Burial Chambers Map",language:{code:"en"}},{name:"Chambres funéraires, Carte",language:{code:"fr"}},{name:"'Grabkammern'-Karte",language:{code:"de"}},{name:"묘실 지도(Burial Chambers Map)",language:{code:"ko"}},{name:"Mapa: Câmaras Sepulcrais",language:{code:"pt"}},{name:"Карта погребальных камер",language:{code:"ru"}},{name:"Mapa de Aposentos del Entierro",language:{code:"es"}},{name:"Burial Chambers Map",language:{code:"th"}}],region:4},{id:384,tier:9,tiers:[0,0,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/UndergroundRiver.png?scale=1&mn=11&mt=",names:[{name:"Underground River Map",language:{code:"en"}},{name:"Rivière souterraine, Carte",language:{code:"fr"}},{name:"'Unterirdischer Fluss'-Karte",language:{code:"de"}},{name:"지하 강 지도(Underground River Map)",language:{code:"ko"}},{name:"Mapa: Rio Subterrâneo",language:{code:"pt"}},{name:"Карта подземной реки",language:{code:"ru"}},{name:"Mapa de Río Subterráneo",language:{code:"es"}},{name:"Underground River Map",language:{code:"th"}}],region:2},{id:713,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt04.png",names:[{name:"Volkuur's Key",language:{code:"en"}},{name:"Clé de Volkuur",language:{code:"fr"}},{name:"Volkuurs Schlüssel",language:{code:"de"}},{name:"볼쿠르의 열쇠",language:{code:"ko"}},{name:"Chave de Volkuur",language:{code:"pt"}},{name:"Ключ Волкуур",language:{code:"ru"}},{name:"Llave de Volkuur",language:{code:"es"}},{name:"Volkuur's Key",language:{code:"th"}}],region:-1},{id:419,tier:3,tiers:[3,6,9,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Orchard.png?scale=1&mn=11&mt=",names:[{name:"Orchard Map",language:{code:"en"}},{name:"Verger, Carte",language:{code:"fr"}},{name:"'Obstgarten'-Karte",language:{code:"de"}},{name:"과수원 지도(Orchard Map)",language:{code:"ko"}},{name:"Mapa: Pomar",language:{code:"pt"}},{name:"Карта фруктового сада",language:{code:"ru"}},{name:"Mapa de Huerto",language:{code:"es"}},{name:"Orchard Map",language:{code:"th"}}],region:5},{id:377,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Tribunal.png?scale=1&mn=11&mt=",names:[{name:"Crater Map",language:{code:"en"}},{name:"Cratère, Carte",language:{code:"fr"}},{name:"'Krater'-Karte",language:{code:"de"}},{name:"분화구 지도(Crater Map)",language:{code:"ko"}},{name:"Mapa: Cratera",language:{code:"pt"}},{name:"Карта кратера",language:{code:"ru"}},{name:"Mapa de Cráter",language:{code:"es"}},{name:"Crater Map",language:{code:"th"}}],region:1},{id:414,tier:4,tiers:[4,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Wasteland.png?scale=1&mn=11&mt=",names:[{name:"Wasteland Map",language:{code:"en"}},{name:"Terre désolée, Carte",language:{code:"fr"}},{name:"'Ödland'-Karte",language:{code:"de"}},{name:"황무지 지도(Wasteland Map)",language:{code:"ko"}},{name:"Mapa: Devastação",language:{code:"pt"}},{name:"Карта пустоши",language:{code:"ru"}},{name:"Mapa de Páramo",language:{code:"es"}},{name:"Wasteland Map",language:{code:"th"}}],region:7},{id:426,tier:5,tiers:[0,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Waterways.png?scale=1&mn=11&mt=",names:[{name:"Waterways Map",language:{code:"en"}},{name:"Aqueduc, Carte",language:{code:"fr"}},{name:"'Wasserwege'-Karte",language:{code:"de"}},{name:"수로 지도(Waterways Map)",language:{code:"ko"}},{name:"Mapa: Canais",language:{code:"pt"}},{name:"Карта водотоков",language:{code:"ru"}},{name:"Mapa de Canales",language:{code:"es"}},{name:"Waterways Map",language:{code:"th"}}],region:1},{id:386,tier:5,tiers:[5,8,11,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/ArachnidNest.png?scale=1&mn=11&mt=",names:[{name:"Arachnid Nest Map",language:{code:"en"}},{name:"Nid d'arachnides, Carte",language:{code:"fr"}},{name:"'Arachnidennest'-Karte",language:{code:"de"}},{name:"거미류 둥지 지도(Arachnid Nest Map)",language:{code:"ko"}},{name:"Mapa: Ninho Aracnídeo",language:{code:"pt"}},{name:"Карта гнезда пауков",language:{code:"ru"}},{name:"Mapa de Nido Arácnido",language:{code:"es"}},{name:"Arachnid Nest Map",language:{code:"th"}}],region:3},{id:854,tier:10,tiers:[0,0,10,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/ForbiddenWoods.png?scale=1&mn=11&mt=",names:[{name:"Forbidden Woods Map",language:{code:"en"}},{name:"Forbidden Woods Map",language:{code:"fr"}},{name:"Forbidden Woods Map",language:{code:"de"}},{name:"Forbidden Woods Map",language:{code:"ko"}},{name:"Forbidden Woods Map",language:{code:"pt"}},{name:"Forbidden Woods Map",language:{code:"ru"}},{name:"Forbidden Woods Map",language:{code:"es"}},{name:"Forbidden Woods Map",language:{code:"th"}}],region:5},{id:747,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/TulsPureBreachstone.png",names:[{name:"Tul's Pure Breachstone",language:{code:"en"}},{name:"Pierre de Brèche pure de Tul",language:{code:"fr"}},{name:"Tuls purer Riss-Stein",language:{code:"de"}},{name:"툴의 순수한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Pura de Tul",language:{code:"pt"}},{name:"Очищенный камень Разлома Тул",language:{code:"ru"}},{name:"Piedra de Fisura Pura de Tul",language:{code:"es"}},{name:"Tul's Pure Breachstone",language:{code:"th"}}],region:-1},{id:376,tier:16,tiers:[0,0,0,0,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/UndergroundSea.png?scale=1&mn=11&mt=",names:[{name:"Underground Sea Map",language:{code:"en"}},{name:"Mer souterraine, Carte",language:{code:"fr"}},{name:"'Unterirdischer See'-Karte",language:{code:"de"}},{name:"지하 해양 지도(Underground Sea Map)",language:{code:"ko"}},{name:"Mapa: Mar Subterrâneo",language:{code:"pt"}},{name:"Карта подземного моря",language:{code:"ru"}},{name:"Mapa de Mar Subterráneo",language:{code:"es"}},{name:"Underground Sea Map",language:{code:"th"}}],region:6},{id:709,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaalComplete.png",names:[{name:"Mortal Set",language:{code:"en"}},{name:"Ensemble mortifère",language:{code:"fr"}},{name:"Tödliches Set",language:{code:"de"}},{name:"필멸 세트",language:{code:"ko"}},{name:"Conjunto Mortal",language:{code:"pt"}},{name:"Набор Смертных",language:{code:"ru"}},{name:"Set Mortal",language:{code:"es"}},{name:"Mortal Set",language:{code:"th"}}],region:-1},{id:333,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/AridLake.png?scale=1&mn=11&mt=",names:[{name:"Arid Lake Map",language:{code:"en"}},{name:"Lac aride, Carte",language:{code:"fr"}},{name:"'Ausgetrockneter See'-Karte",language:{code:"de"}},{name:"메마른 호수 지도(Arid Lake Map)",language:{code:"ko"}},{name:"Mapa: Lago Árido",language:{code:"pt"}},{name:"Карта высохшего озера",language:{code:"ru"}},{name:"Mapa de Lago Árido",language:{code:"es"}},{name:"Arid Lake Map",language:{code:"th"}}],region:1},{id:329,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Dungeon.png?scale=1&mn=11&mt=",names:[{name:"Dungeon Map",language:{code:"en"}},{name:"Donjon, Carte",language:{code:"fr"}},{name:"'Verlies'-Karte",language:{code:"de"}},{name:"던전 지도(Dungeon Map)",language:{code:"ko"}},{name:"Mapa: Masmorra",language:{code:"pt"}},{name:"Карта подземелья",language:{code:"ru"}},{name:"Mapa de Mazmorra",language:{code:"es"}},{name:"Dungeon Map",language:{code:"th"}}],region:4},{id:406,tier:3,tiers:[3,7,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Temple.png?scale=1&mn=11&mt=",names:[{name:"Temple Map",language:{code:"en"}},{name:"Temple, Carte",language:{code:"fr"}},{name:"'Tempel'-Karte",language:{code:"de"}},{name:"사원 지도(Temple Map)",language:{code:"ko"}},{name:"Mapa: Templo",language:{code:"pt"}},{name:"Карта храма",language:{code:"ru"}},{name:"Mapa de Templo",language:{code:"es"}},{name:"Temple Map",language:{code:"th"}}],region:2},{id:618,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HarbingerYellow.png",names:[{name:"The Beachhead",language:{code:"en"}},{name:"La Tête de pont",language:{code:"fr"}},{name:"Der Brückenkopf",language:{code:"de"}},{name:"교두보(The Beachhead)",language:{code:"ko"}},{name:"A Cabeça de Ponte",language:{code:"pt"}},{name:"Плацдарм",language:{code:"ru"}},{name:"La Cabecera de la Playa",language:{code:"es"}},{name:"The Beachhead",language:{code:"th"}}],region:-1},{id:729,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UberElderComplete.png",names:[{name:"Maddening Object",language:{code:"en"}},{name:"Chose aliénante",language:{code:"fr"}},{name:"Objekt des Wahnsinns",language:{code:"de"}},{name:"광기의 물체",language:{code:"ko"}},{name:"Objeto Enlouquecedor",language:{code:"pt"}},{name:"Субстанция безумия",language:{code:"ru"}},{name:"Objeto enloquecedor",language:{code:"es"}},{name:"Maddening Object",language:{code:"th"}}],region:-1},{id:733,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png",names:[{name:"Esh's Breachstone",language:{code:"en"}},{name:"Pierre de Brèche d'Esh",language:{code:"fr"}},{name:"Eshs Riss-Stein",language:{code:"de"}},{name:"에쉬의 균열석",language:{code:"ko"}},{name:"Pedra da Fenda de Esh",language:{code:"pt"}},{name:"Камень Разлома Иш",language:{code:"ru"}},{name:"Piedra de Fisura de Esh",language:{code:"es"}},{name:"Esh's Breachstone",language:{code:"th"}}],region:-1},{id:340,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/SulphurWastes.png?scale=1&mn=11&mt=",names:[{name:"Leyline Map",language:{code:"en"}},{name:"Ligne de ley, Carte",language:{code:"fr"}},{name:"'Brachland'-Karte",language:{code:"de"}},{name:"지맥 지도(Leyline Map)",language:{code:"ko"}},{name:"Mapa: Alinhamentos",language:{code:"pt"}},{name:"Карта тропы",language:{code:"ru"}},{name:"Mapa de Línea Ley",language:{code:"es"}},{name:"Leyline Map",language:{code:"th"}}],region:2},{id:611,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/HallOfGrandmasters.png",names:[{name:"Hall of Grandmasters",language:{code:"en"}},{name:"Assemblée des Grands maîtres",language:{code:"fr"}},{name:"Halle der Großmeister",language:{code:"de"}},{name:"명인의 전당(Hall of Grandmasters)",language:{code:"ko"}},{name:"Salão dos Grão-Mestres",language:{code:"pt"}},{name:"Зал великих мастеров",language:{code:"ru"}},{name:"Salón de los Grandes Maestros",language:{code:"es"}},{name:"Hall of Grandmasters",language:{code:"th"}}],region:-1},{id:613,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/WolfMap.png",names:[{name:"Caer Blaidd, Wolfpack's Den",language:{code:"en"}},{name:"Caer Blaidd, la Tanière de la meute",language:{code:"fr"}},{name:"Caer Blaidd – Wolfsrudelhöhle",language:{code:"de"}},{name:"캐어블레이드 늑대의 소굴(Caer Blaidd, Wolfpack's Den)",language:{code:"ko"}},{name:"Caer Blaidd, Toca dos Lobos",language:{code:"pt"}},{name:"Caer Blaidd, логово стаи",language:{code:"ru"}},{name:"Caer Blaidd, Madriguera de Lobos",language:{code:"es"}},{name:"Caer Blaidd, Wolfpack's Den",language:{code:"th"}}],region:-1},{id:620,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Celestial.png",names:[{name:"The Twilight Temple",language:{code:"en"}},{name:"Le Temple du Crépuscule",language:{code:"fr"}},{name:"Der Zwielichttempel",language:{code:"de"}},{name:"황혼의 사원(The Twilight Temple)",language:{code:"ko"}},{name:"Templo do Crepúsculo",language:{code:"pt"}},{name:"Сумеречный храм",language:{code:"ru"}},{name:"El Templo del Crepúsculo",language:{code:"es"}},{name:"The Twilight Temple",language:{code:"th"}}],region:-1},{id:603,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/musicbox.png",names:[{name:"Acton's Nightmare",language:{code:"en"}},{name:"Le Cauchemar d'Acton",language:{code:"fr"}},{name:"Actons Albtraum",language:{code:"de"}},{name:"액턴의 악몽(Acton's Nightmare)",language:{code:"ko"}},{name:"Pesadelo de Acton",language:{code:"pt"}},{name:"Кошмар Актоны",language:{code:"ru"}},{name:"Pesadilla de Acton",language:{code:"es"}},{name:"Acton's Nightmare",language:{code:"th"}}],region:-1},{id:339,tier:9,tiers:[0,0,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Excavation.png?scale=1&mn=11&mt=",names:[{name:"Excavation Map",language:{code:"en"}},{name:"Excavation, Carte",language:{code:"fr"}},{name:"'Grabungsstätte'-Karte",language:{code:"de"}},{name:"발굴터 지도(Excavation Map)",language:{code:"ko"}},{name:"Mapa: Escavação",language:{code:"pt"}},{name:"Карта раскопок",language:{code:"ru"}},{name:"Mapa de Excavación",language:{code:"es"}},{name:"Excavation Map",language:{code:"th"}}],region:6},{id:396,tier:13,tiers:[0,0,0,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Shore.png?scale=1&mn=11&mt=",names:[{name:"Shore Map",language:{code:"en"}},{name:"Littoral, Carte",language:{code:"fr"}},{name:"'Ufer'-Karte",language:{code:"de"}},{name:"바닷가 지도(Shore Map)",language:{code:"ko"}},{name:"Mapa: Litoral",language:{code:"pt"}},{name:"Карта берега",language:{code:"ru"}},{name:"Mapa de Orilla",language:{code:"es"}},{name:"Shore Map",language:{code:"th"}}],region:2},{id:346,tier:5,tiers:[5,8,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/CitySquare.png?scale=1&mn=11&mt=",names:[{name:"City Square Map",language:{code:"en"}},{name:"Grand-place, Carte",language:{code:"fr"}},{name:"'Stadtplatz'-Karte",language:{code:"de"}},{name:"도시 광장 지도(City Square Map)",language:{code:"ko"}},{name:"Mapa: Praça da Cidade",language:{code:"pt"}},{name:"Карта городской площади",language:{code:"ru"}},{name:"Mapa de Plaza de Ciudad",language:{code:"es"}},{name:"City Square Map",language:{code:"th"}}],region:3},{id:458,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Reef.png?scale=1&mn=11&mt=",names:[{name:"Reef Map",language:{code:"en"}},{name:"Récif, Carte",language:{code:"fr"}},{name:"'Riff'-Karte",language:{code:"de"}},{name:"암초 지도(Reef Map)",language:{code:"ko"}},{name:"Mapa: Recife",language:{code:"pt"}},{name:"Карта рифа",language:{code:"ru"}},{name:"Mapa de Arrecife",language:{code:"es"}},{name:"Reef Map",language:{code:"th"}}],region:4},{id:347,tier:11,tiers:[0,0,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Antiquary.png?scale=1&mn=11&mt=",names:[{name:"Relic Chambers Map",language:{code:"en"}},{name:"Chambres reliquaires, Carte",language:{code:"fr"}},{name:"'Reliktkammern'-Karte",language:{code:"de"}},{name:"유물의 방 지도(Relic Chambers Map)",language:{code:"ko"}},{name:"Mapa: Câmaras de Relíquias",language:{code:"pt"}},{name:"Карта палаты древностей",language:{code:"ru"}},{name:"Mapa de las Cámaras de Reliquias",language:{code:"es"}},{name:"Relic Chambers Map",language:{code:"th"}}],region:0},{id:752,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/MarakethFragment.png",names:[{name:"Timeless Maraketh Emblem",language:{code:"en"}},{name:"Emblème intemporel des Marakeths",language:{code:"fr"}},{name:"Immerwährendes Emblem der Maraketh",language:{code:"de"}},{name:"무궁한 마라케스 상징",language:{code:"ko"}},{name:"Emblema Atemporal Maraketh",language:{code:"pt"}},{name:"Вневременной знак маракетов",language:{code:"ru"}},{name:"Emblema atemporal maraketh",language:{code:"es"}},{name:"Timeless Maraketh Emblem",language:{code:"th"}}],region:-1},{id:402,tier:14,tiers:[0,0,0,0,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/WastePool.png?scale=1&mn=11&mt=",names:[{name:"Waste Pool Map",language:{code:"en"}},{name:"Cloaque, Carte",language:{code:"fr"}},{name:"'Ödes Becken'-Karte",language:{code:"de"}},{name:"황폐한 웅덩이 지도(Waste Pool Map)",language:{code:"ko"}},{name:"Mapa: Lago Poluído",language:{code:"pt"}},{name:"Карта помойного пруда",language:{code:"ru"}},{name:"Mapa de Charca de Desechos",language:{code:"es"}},{name:"Waste Pool Map",language:{code:"th"}}],region:6},{id:623,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/SynthesisColdGuardianMap.png",names:[{name:"Altered Distant Memory",language:{code:"en"}},{name:"Souvenir lointain altéré",language:{code:"fr"}},{name:"Veränderte entfernte Erinnerung",language:{code:"de"}},{name:"뒤바뀐 희미한 기억(Altered Distant Memory)",language:{code:"ko"}},{name:"Memória Distante Alterada",language:{code:"pt"}},{name:"Изменённое отдалённое воспоминание",language:{code:"ru"}},{name:"Memoria Lejana Alterada",language:{code:"es"}},{name:"ความทรงจำที่ห่างไกลที่ถูกแก้ไข",language:{code:"th"}}],region:-1},{id:378,tier:11,tiers:[0,0,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/CorpseTrench.png?scale=1&mn=11&mt=",names:[{name:"Coral Ruins Map",language:{code:"en"}},{name:"Ruines coralliennes, Carte",language:{code:"fr"}},{name:"'Korallenruinen'-Karte",language:{code:"de"}},{name:"산호 유적 지도(Coral Ruins Map)",language:{code:"ko"}},{name:"Mapa: Ruínas de Coral",language:{code:"pt"}},{name:"Карта коралловых руин",language:{code:"ru"}},{name:"Mapa de Ruinas de Coral",language:{code:"es"}},{name:"Coral Ruins Map",language:{code:"th"}}],region:7},{id:432,tier:2,tiers:[2,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/OvergrownShrine.png?scale=1&mn=11&mt=",names:[{name:"Overgrown Shrine Map",language:{code:"en"}},{name:"Sanctuaire abandonné, Carte",language:{code:"fr"}},{name:"'Verwilderter Schrein'-Karte",language:{code:"de"}},{name:"무성한 성소 지도(Overgrown Shrine Map)",language:{code:"ko"}},{name:"Mapa: Santuário Denso",language:{code:"pt"}},{name:"Карта заросшей обители",language:{code:"ru"}},{name:"Mapa de Santuario Descuidado",language:{code:"es"}},{name:"Overgrown Shrine Map",language:{code:"th"}}],region:1},{id:855,tier:12,tiers:[0,0,0,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/RobotTunnelSilo.png?scale=1&mn=11&mt=",names:[{name:"Silo Map",language:{code:"en"}},{name:"Silo Map",language:{code:"fr"}},{name:"Silo Map",language:{code:"de"}},{name:"Silo Map",language:{code:"ko"}},{name:"Silo Map",language:{code:"pt"}},{name:"Silo Map",language:{code:"ru"}},{name:"Silo Map",language:{code:"es"}},{name:"Silo Map",language:{code:"th"}}],region:2},{id:425,tier:13,tiers:[0,0,0,13,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Coves.png?scale=1&mn=11&mt=",names:[{name:"Coves Map",language:{code:"en"}},{name:"Crique, Carte",language:{code:"fr"}},{name:"'Buchten'-Karte",language:{code:"de"}},{name:"만 지도(Coves Map)",language:{code:"ko"}},{name:"Mapa: Enseadas",language:{code:"pt"}},{name:"Карта бухты",language:{code:"ru"}},{name:"Mapa de Caletas",language:{code:"es"}},{name:"Coves Map",language:{code:"th"}}],region:2},{id:390,tier:15,tiers:[0,0,0,0,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/OvergrownRuin.png?scale=1&mn=11&mt=",names:[{name:"Overgrown Ruin Map",language:{code:"en"}},{name:"Ruine abandonnée, Carte",language:{code:"fr"}},{name:"'Verwilderte Ruine'-Karte",language:{code:"de"}},{name:"무성한 유적 지도(Overgrown Ruin Map)",language:{code:"ko"}},{name:"Mapa: Ruína Coberta",language:{code:"pt"}},{name:"Карта заросших руин",language:{code:"ru"}},{name:"Mapa de Ruina Descuidada",language:{code:"es"}},{name:"Overgrown Ruin Map",language:{code:"th"}}],region:3},{id:454,tier:4,tiers:[4,8,11,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Palace.png?scale=1&mn=11&mt=",names:[{name:"Palace Map",language:{code:"en"}},{name:"Palais, Carte",language:{code:"fr"}},{name:"'Palast'-Karte",language:{code:"de"}},{name:"궁전 지도(Palace Map)",language:{code:"ko"}},{name:"Mapa: Palácio",language:{code:"pt"}},{name:"Карта дворца",language:{code:"ru"}},{name:"Mapa de Palacio",language:{code:"es"}},{name:"Palace Map",language:{code:"th"}}],region:4},{id:743,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/EshsEnrichedBreachstone.png",names:[{name:"Esh's Enriched Breachstone",language:{code:"en"}},{name:"Pierre de Brèche enrichie d'Esh",language:{code:"fr"}},{name:"Eshs angereicherter Riss-Stein",language:{code:"de"}},{name:"에쉬의 풍부한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Enriquecida de Esh",language:{code:"pt"}},{name:"Обогащённый камень Разлома Иш",language:{code:"ru"}},{name:"Piedra de Fisura Enriquecida de Esh",language:{code:"es"}},{name:"Esh's Enriched Breachstone",language:{code:"th"}}],region:-1},{id:350,tier:5,tiers:[5,9,12,14,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Chateau.png?scale=1&mn=11&mt=",names:[{name:"Chateau Map",language:{code:"en"}},{name:"Grand château, Carte",language:{code:"fr"}},{name:"'Herrensitz'-Karte",language:{code:"de"}},{name:"대저택 지도(Chateau Map)",language:{code:"ko"}},{name:"Mapa: Castelo",language:{code:"pt"}},{name:"Карта усадьбы",language:{code:"ru"}},{name:"Mapa de Palacete",language:{code:"es"}},{name:"Chateau Map",language:{code:"th"}}],region:0},{id:710,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt01.png",names:[{name:"Eber's Key",language:{code:"en"}},{name:"Clé d'Eber",language:{code:"fr"}},{name:"Ebers Schlüssel",language:{code:"de"}},{name:"에버의 열쇠",language:{code:"ko"}},{name:"Chave de Eber",language:{code:"pt"}},{name:"Ключ Эвера",language:{code:"ru"}},{name:"Llave de Eber",language:{code:"es"}},{name:"Eber's Key",language:{code:"th"}}],region:-1},{id:445,tier:2,tiers:[2,5,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Arsenal.png?scale=1&mn=11&mt=",names:[{name:"Arsenal Map",language:{code:"en"}},{name:"Arsenal, Carte",language:{code:"fr"}},{name:"'Arsenal'-Karte",language:{code:"de"}},{name:"병기창 지도(Arsenal Map)",language:{code:"ko"}},{name:"Mapa: Arsenal",language:{code:"pt"}},{name:"Карта арсенала",language:{code:"ru"}},{name:"Mapa de Arsenal",language:{code:"es"}},{name:"Arsenal Map",language:{code:"th"}}],region:6},{id:342,tier:7,tiers:[0,7,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Quay.png?scale=1&mn=11&mt=",names:[{name:"Port Map",language:{code:"en"}},{name:"Port, Carte",language:{code:"fr"}},{name:"'Port'-Karte",language:{code:"de"}},{name:"항만 지도(Port Map)",language:{code:"ko"}},{name:"Mapa: Porto",language:{code:"pt"}},{name:"Карта порта",language:{code:"ru"}},{name:"Mapa de Puerto",language:{code:"es"}},{name:"Port Map",language:{code:"th"}}],region:6},{id:716,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentMinotaur.png",names:[{name:"Fragment of the Minotaur",language:{code:"en"}},{name:"Fragment du Minotaure",language:{code:"fr"}},{name:"Fragment des Minotauren",language:{code:"de"}},{name:"미노타우로스의 지도 조각",language:{code:"ko"}},{name:"Fragmento do Minotauro",language:{code:"pt"}},{name:"Фрагмент Минотавра",language:{code:"ru"}},{name:"Fragmento del Minotauro",language:{code:"es"}},{name:"Fragment of the Minotaur",language:{code:"th"}}],region:-1},{id:760,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/LabyrinthHarvestInfused2.png",names:[{name:"Dedication to the Goddess",language:{code:"en"}},{name:"Dévouement à la déesse",language:{code:"fr"}},{name:"Hingabe an die Göttin",language:{code:"de"}},{name:"여신에게 바치는 헌신",language:{code:"ko"}},{name:"Dedicação à Deusa",language:{code:"pt"}},{name:"Посвящение богине",language:{code:"ru"}},{name:"Consagración a la Diosa",language:{code:"es"}},{name:"Dedication to the Goddess",language:{code:"th"}}],region:-1},{id:720,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMapGuardianFire.png",names:[{name:"Fragment of Enslavement",language:{code:"en"}},{name:"Fragment de l'Asservissement",language:{code:"fr"}},{name:"Fragment der Versklavung",language:{code:"de"}},{name:"예속의 조각",language:{code:"ko"}},{name:"Fragmento do Escravisador",language:{code:"pt"}},{name:"Фрагмент порабощения",language:{code:"ru"}},{name:"Fragmento de esclavitud",language:{code:"es"}},{name:"Fragment of Enslavement",language:{code:"th"}}],region:-1},{id:389,tier:3,tiers:[3,7,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Infestation.png?scale=1&mn=11&mt=",names:[{name:"Infested Valley Map",language:{code:"en"}},{name:"Vallée infestée, Carte",language:{code:"fr"}},{name:"'Verseuchtes Tal'-Karte",language:{code:"de"}},{name:"감염된 계곡 지도(Infested Valley Map)",language:{code:"ko"}},{name:"Mapa: Vale Infestado",language:{code:"pt"}},{name:"Карта заражённой долины",language:{code:"ru"}},{name:"Mapa de Valle Infestado",language:{code:"es"}},{name:"Infested Valley Map",language:{code:"th"}}],region:5},{id:362,tier:3,tiers:[3,7,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/VaalCity.png?scale=1&mn=11&mt=",names:[{name:"Ancient City Map",language:{code:"en"}},{name:"Cité antique, Carte",language:{code:"fr"}},{name:"'Antike Stadt'-Karte",language:{code:"de"}},{name:"고대 도시 지도(Ancient City Map)",language:{code:"ko"}},{name:"Mapa: Cidade Antiga",language:{code:"pt"}},{name:"Карта древнего города",language:{code:"ru"}},{name:"Mapa de Ciudad Antigua",language:{code:"es"}},{name:"Ancient City Map",language:{code:"th"}}],region:6},{id:422,tier:11,tiers:[0,0,0,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Colonnade.png?scale=1&mn=11&mt=",names:[{name:"Colonnade Map",language:{code:"en"}},{name:"Colonnades, Carte",language:{code:"fr"}},{name:"'Kolonnade'-Karte",language:{code:"de"}},{name:"가로수 지도(Colonnade Map)",language:{code:"ko"}},{name:"Mapa: Colunata",language:{code:"pt"}},{name:"Карта колоннады",language:{code:"ru"}},{name:"Mapa de Columnata",language:{code:"es"}},{name:"Colonnade Map",language:{code:"th"}}],region:2},{id:438,tier:3,tiers:[3,6,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Racecourse.png?scale=1&mn=11&mt=",names:[{name:"Racecourse Map",language:{code:"en"}},{name:"Champ de courses, Carte",language:{code:"fr"}},{name:"'Rennbahn'-Karte",language:{code:"de"}},{name:"경주장 지도(Racecourse Map)",language:{code:"ko"}},{name:"Mapa: Hipódromo",language:{code:"pt"}},{name:"Карта ипподрома",language:{code:"ru"}},{name:"Mapa de Estadio",language:{code:"es"}},{name:"Racecourse Map",language:{code:"th"}}],region:2},{id:737,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/TulsChargedBreachstone.png",names:[{name:"Tul's Charged Breachstone",language:{code:"en"}},{name:"Pierre de Brèche chargée de Tul",language:{code:"fr"}},{name:"Tuls geladener Riss-Stein",language:{code:"de"}},{name:"툴의 충전된 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Energizada de Tul",language:{code:"pt"}},{name:"Заряженный камень Разлома Тул",language:{code:"ru"}},{name:"Piedra de Fisura Cargada de Tul",language:{code:"es"}},{name:"Tul's Charged Breachstone",language:{code:"th"}}],region:-1},{id:399,tier:3,tiers:[3,7,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/LunarisTemple.png?scale=1&mn=11&mt=",names:[{name:"Moon Temple Map",language:{code:"en"}},{name:"Temple lunaire, Carte",language:{code:"fr"}},{name:"'Mondtempel'-Karte",language:{code:"de"}},{name:"달의 사원 지도(Moon Temple Map)",language:{code:"ko"}},{name:"Mapa: Templo Lunar",language:{code:"pt"}},{name:"Карта храма Луны",language:{code:"ru"}},{name:"Mapa de Templo de la Luna",language:{code:"es"}},{name:"Moon Temple Map",language:{code:"th"}}],region:0},{id:738,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/EshsChargedBreachstone.png",names:[{name:"Esh's Charged Breachstone",language:{code:"en"}},{name:"Pierre de Brèche chargée d'Esh",language:{code:"fr"}},{name:"Eshs geladener Riss-Stein",language:{code:"de"}},{name:"에쉬의 충전된 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Energizada de Esh",language:{code:"pt"}},{name:"Заряженный камень Разлома Иш",language:{code:"ru"}},{name:"Piedra de Fisura Cargada de Esh",language:{code:"es"}},{name:"Esh's Charged Breachstone",language:{code:"th"}}],region:-1},{id:428,tier:1,tiers:[1,4,8,10,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Mesa.png?scale=1&mn=11&mt=",names:[{name:"Mesa Map",language:{code:"en"}},{name:"Mesa, Carte",language:{code:"fr"}},{name:"'Hochebene'-Karte",language:{code:"de"}},{name:"메사 지도(Mesa Map)",language:{code:"ko"}},{name:"Mapa: Mesa",language:{code:"pt"}},{name:"Карта плоского холма",language:{code:"ru"}},{name:"Mapa de Mesa",language:{code:"es"}},{name:"Mesa Map",language:{code:"th"}}],region:2},{id:392,tier:2,tiers:[2,6,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Quarry.png?scale=1&mn=11&mt=",names:[{name:"Geode Map",language:{code:"en"}},{name:"Géode, Carte",language:{code:"fr"}},{name:"'Geode'-Karte",language:{code:"de"}},{name:"정동석 지도(Geode Map)",language:{code:"ko"}},{name:"Mapa: Geodo",language:{code:"pt"}},{name:"Карта жеоды",language:{code:"ru"}},{name:"Mapa de Geoda",language:{code:"es"}},{name:"Geode Map",language:{code:"th"}}],region:2},{id:366,tier:13,tiers:[0,0,0,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Mausoleum.png?scale=1&mn=11&mt=",names:[{name:"Mausoleum Map",language:{code:"en"}},{name:"Mausolée, Carte",language:{code:"fr"}},{name:"'Mausoleum'-Karte",language:{code:"de"}},{name:"능묘 지도(Mausoleum Map)",language:{code:"ko"}},{name:"Mapa: Mausoléu",language:{code:"pt"}},{name:"Карта мавзолея",language:{code:"ru"}},{name:"Mapa de Mausoleo",language:{code:"es"}},{name:"Mausoleum Map",language:{code:"th"}}],region:5},{id:361,tier:4,tiers:[4,7,11,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Sewer.png?scale=1&mn=11&mt=",names:[{name:"Toxic Sewer Map",language:{code:"en"}},{name:"Égouts toxiques, Carte",language:{code:"fr"}},{name:"'Giftige Kanalisation'-Karte",language:{code:"de"}},{name:"맹독성 하수도 지도(Toxic Sewer Map)",language:{code:"ko"}},{name:"Mapa: Esgoto Tóxico",language:{code:"pt"}},{name:"Карта клоаки",language:{code:"ru"}},{name:"Mapa de Alcantarilla Tóxica",language:{code:"es"}},{name:"Toxic Sewer Map",language:{code:"th"}}],region:0},{id:383,tier:4,tiers:[4,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Catacomb.png?scale=1&mn=11&mt=",names:[{name:"Bone Crypt Map",language:{code:"en"}},{name:"Crypte à ossements, Carte",language:{code:"fr"}},{name:"'Knochenkrypta'-Karte",language:{code:"de"}},{name:"뼈 지하실 지도(Bone Crypt Map)",language:{code:"ko"}},{name:"Mapa: Cripta de Ossos",language:{code:"pt"}},{name:"Карта гробницы",language:{code:"ru"}},{name:"Mapa de Cripta de Hueso",language:{code:"es"}},{name:"Bone Crypt Map",language:{code:"th"}}],region:4},{id:456,tier:3,tiers:[3,6,9,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Basilica.png?scale=1&mn=11&mt=",names:[{name:"Basilica Map",language:{code:"en"}},{name:"Basilique, Carte",language:{code:"fr"}},{name:"'Basilika'-Karte",language:{code:"de"}},{name:"교회당 지도(Basilica Map)",language:{code:"ko"}},{name:"Mapa: Basílica",language:{code:"pt"}},{name:"Карта базилики",language:{code:"ru"}},{name:"Mapa de Basílica",language:{code:"es"}},{name:"Basilica Map",language:{code:"th"}}],region:6},{id:602,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/UndeadSiege.png",names:[{name:"The Coward's Trial",language:{code:"en"}},{name:"L'Épreuve du couard",language:{code:"fr"}},{name:"Die Prüfung des Feiglings",language:{code:"de"}},{name:"겁쟁이의 시험(The Coward's Trial)",language:{code:"ko"}},{name:"Julgamento do Covarde",language:{code:"pt"}},{name:"Испытание труса",language:{code:"ru"}},{name:"La Prueba del Cobarde",language:{code:"es"}},{name:"The Coward's Trial",language:{code:"th"}}],region:-1},{id:615,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PutridCloister.png",names:[{name:"The Putrid Cloister",language:{code:"en"}},{name:"Le Cloître putride",language:{code:"fr"}},{name:"Das faulige Kloster",language:{code:"de"}},{name:"악취 나는 수도원(The Putrid Cloister)",language:{code:"ko"}},{name:"O Claustro Pútrido",language:{code:"pt"}},{name:"Тлетворная обитель",language:{code:"ru"}},{name:"El Claustro Pútrido",language:{code:"es"}},{name:"The Putrid Cloister",language:{code:"th"}}],region:-1},{id:606,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/oba.png",names:[{name:"Oba's Cursed Trove",language:{code:"en"}},{name:"Le Trésor maudit d'Oba",language:{code:"fr"}},{name:"Obas verfluchter Schatz",language:{code:"de"}},{name:"오바의 저주받은 전리품(Oba's Cursed Trove)",language:{code:"ko"}},{name:"Tesouro Maldito de Oba",language:{code:"pt"}},{name:"Проклятый клад Обы",language:{code:"ru"}},{name:"Tesoro Embrujado de Oba",language:{code:"es"}},{name:"Oba's Cursed Trove",language:{code:"th"}}],region:-1},{id:756,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/DeliriumFragment.png",names:[{name:"Simulacrum",language:{code:"en"}},{name:"Simulacre",language:{code:"fr"}},{name:"Simulacrum",language:{code:"de"}},{name:"복제된 영토",language:{code:"ko"}},{name:"Simulacrum",language:{code:"pt"}},{name:"Симулякр",language:{code:"ru"}},{name:"Simulacro",language:{code:"es"}},{name:"Simulacrum",language:{code:"th"}}],region:-1},{id:413,tier:3,tiers:[3,6,10,12,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Arachnid.png?scale=1&mn=11&mt=",names:[{name:"Arachnid Tomb Map",language:{code:"en"}},{name:"Tombeau arachnide, Carte",language:{code:"fr"}},{name:"'Arachnidengruft'-Karte",language:{code:"de"}},{name:"거미류 무덤 지도(Arachnid Tomb Map)",language:{code:"ko"}},{name:"Mapa: Tumba Aracnídea",language:{code:"pt"}},{name:"Карта паучьей гробницы",language:{code:"ru"}},{name:"Mapa de Tumba Arácnida",language:{code:"es"}},{name:"Arachnid Tomb Map",language:{code:"th"}}],region:2},{id:437,tier:3,tiers:[3,6,10,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Necropolis.png?scale=1&mn=11&mt=",names:[{name:"Necropolis Map",language:{code:"en"}},{name:"Nécropole, Carte",language:{code:"fr"}},{name:"'Totenstadt'-Karte",language:{code:"de"}},{name:"매장지 지도(Necropolis Map)",language:{code:"ko"}},{name:"Mapa: Necrópole",language:{code:"pt"}},{name:"Карта некрополя",language:{code:"ru"}},{name:"Mapa de Necrópolis",language:{code:"es"}},{name:"Necropolis Map",language:{code:"th"}}],region:1},{id:721,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMapGuardianLightning.png",names:[{name:"Fragment of Eradication",language:{code:"en"}},{name:"Fragment de l'Éradication",language:{code:"fr"}},{name:"Fragment der Vernichtung",language:{code:"de"}},{name:"절멸의 조각",language:{code:"ko"}},{name:"Fragmento do Erradicador",language:{code:"pt"}},{name:"Фрагмент искоренения",language:{code:"ru"}},{name:"Fragmento de erradicación",language:{code:"es"}},{name:"Fragment of Eradication",language:{code:"th"}}],region:-1},{id:369,tier:12,tiers:[0,0,0,12,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Phantasmagoria.png?scale=1&mn=11&mt=",names:[{name:"Phantasmagoria Map",language:{code:"en"}},{name:"Fantasmagorie, Carte",language:{code:"fr"}},{name:"'Phantasmagorie'-Karte",language:{code:"de"}},{name:"환영 지도(Phantasmagoria Map)",language:{code:"ko"}},{name:"Mapa: Fantasmagoria",language:{code:"pt"}},{name:"Карта фантасмагории",language:{code:"ru"}},{name:"Mapa de Fantasmagoria",language:{code:"es"}},{name:"Phantasmagoria Map",language:{code:"th"}}],region:3},{id:431,tier:3,tiers:[3,6,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Summit.png?scale=1&mn=11&mt=",names:[{name:"Summit Map",language:{code:"en"}},{name:"Sommet, Carte",language:{code:"fr"}},{name:"'Gipfel'-Karte",language:{code:"de"}},{name:"꼭대기 지도(Summit Map)",language:{code:"ko"}},{name:"Mapa: Cume",language:{code:"pt"}},{name:"Карта вершины",language:{code:"ru"}},{name:"Mapa de Cima",language:{code:"es"}},{name:"Summit Map",language:{code:"th"}}],region:5},{id:700,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal01.png",names:[{name:"Sacrifice at Midnight",language:{code:"en"}},{name:"Sacrifice de minuit",language:{code:"fr"}},{name:"Opfergabe bei Mittnacht",language:{code:"de"}},{name:"심야의 희생",language:{code:"ko"}},{name:"Sacrifício à Meia-Noite",language:{code:"pt"}},{name:"Жертва в полночь",language:{code:"ru"}},{name:"Sacrificio a Medianoche",language:{code:"es"}},{name:"Sacrifice at Midnight",language:{code:"th"}}],region:-1},{id:364,tier:4,tiers:[4,8,11,13,15],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/SpiderLair.png?scale=1&mn=11&mt=",names:[{name:"Spider Lair Map",language:{code:"en"}},{name:"Antre d'araignées, Carte",language:{code:"fr"}},{name:"'Spinnenhöhle'-Karte",language:{code:"de"}},{name:"거미 소굴 지도(Spider Lair Map)",language:{code:"ko"}},{name:"Mapa: Covil da Aranha",language:{code:"pt"}},{name:"Карта паучьего логова",language:{code:"ru"}},{name:"Mapa de Guarida de la Araña",language:{code:"es"}},{name:"Spider Lair Map",language:{code:"th"}}],region:7},{id:746,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/XophsPureBreachstone.png",names:[{name:"Xoph's Pure Breachstone",language:{code:"en"}},{name:"Pierre de Brèche pure de Xoph",language:{code:"fr"}},{name:"Xophs purer Riss-Stein",language:{code:"de"}},{name:"조프의 순수한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Pura de Xoph",language:{code:"pt"}},{name:"Очищенный камень Разлома Ксофа",language:{code:"ru"}},{name:"Piedra de Fisura Pura de Xoph",language:{code:"es"}},{name:"Xoph's Pure Breachstone",language:{code:"th"}}],region:-1},{id:745,tier:100,tiers:[100],img:"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/ChayulasEnrichedBreachstone.png",names:[{name:"Chayula's Enriched Breachstone",language:{code:"en"}},{name:"Pierre de Brèche enrichie de Chayula",language:{code:"fr"}},{name:"Chayulas angereicherter Riss-Stein",language:{code:"de"}},{name:"차율라의 풍부한 균열석",language:{code:"ko"}},{name:"Pedra de Fenda Enriquecida de Chayula",language:{code:"pt"}},{name:"Обогащённый камень Разлома Чаюлы",language:{code:"ru"}},{name:"Piedra de Fisura Enriquecida de Chayula",language:{code:"es"}},{name:"Chayula's Enriched Breachstone",language:{code:"th"}}],region:-1},{id:434,tier:16,tiers:[0,0,0,0,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/CrystalOre.png?scale=1&mn=11&mt=",names:[{name:"Crystal Ore Map",language:{code:"en"}},{name:"Gisement de cristal, Carte",language:{code:"fr"}},{name:"'Kristallmine'-Karte",language:{code:"de"}},{name:"수정 광석 지도(Crystal Ore Map)",language:{code:"ko"}},{name:"Mapa: Reserva de Cristal",language:{code:"pt"}},{name:"Карта кристальной шахты",language:{code:"ru"}},{name:"Mapa de Mina de Cristal",language:{code:"es"}},{name:"Crystal Ore Map",language:{code:"th"}}],region:4},{id:344,tier:16,tiers:[0,0,0,0,16],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Cells.png?scale=1&mn=11&mt=",names:[{name:"Cells Map",language:{code:"en"}},{name:"Cellules, Carte",language:{code:"fr"}},{name:"'Zellen'-Karte",language:{code:"de"}},{name:"감방 지도(Cells Map)",language:{code:"ko"}},{name:"Mapa: Celas",language:{code:"pt"}},{name:"Карта камер",language:{code:"ru"}},{name:"Mapa de Celdas",language:{code:"es"}},{name:"Cells Map",language:{code:"th"}}],region:0},{id:622,tier:90,tiers:[90],img:"https://web.poecdn.com/image/Art/2DItems/Maps/PillarsOfVastiri.png",names:[{name:"Pillars of Arun",language:{code:"en"}},{name:"Les Piliers d'Arun",language:{code:"fr"}},{name:"Säulen von Arun",language:{code:"de"}},{name:"아룬의 기둥(Pillars of Arun)",language:{code:"ko"}},{name:"Pilares de Arun",language:{code:"pt"}},{name:"Столпы Арун",language:{code:"ru"}},{name:"Pilares de Arun",language:{code:"es"}},{name:"Pillars of Arun",language:{code:"th"}}],region:-1},{id:370,tier:3,tiers:[3,7,10,11,14],img:"https://web.poecdn.com/image/Art/2DItems/Maps/Atlas2Maps/New/Academy.png?scale=1&mn=11&mt=",names:[{name:"Academy Map",language:{code:"en"}},{name:"Académie, Carte",language:{code:"fr"}},{name:"'Akademie'-Karte",language:{code:"de"}},{name:"학술원 지도(Academy Map)",language:{code:"ko"}},{name:"Mapa: Academia",language:{code:"pt"}},{name:"Карта академии",language:{code:"ru"}},{name:"Mapa de Academia",language:{code:"es"}},{name:"Academy Map",language:{code:"th"}}],region:6}]};
+  var namespace="ghost-scripter",ITEM_TYPES={},FIXED_CURRENCY_VALUES=JSON.parse('{"lines":[{"currencyTypeName":"Mirror of Kalandra","pay":{"id":0,"league_id":1,"pay_currency_id":22,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":0.0000300679,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":22,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":21,"value":34056,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"receiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":33657.03,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"lowConfidenceReceiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"mirror-of-kalandra"},{"currencyTypeName":"Eternal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":27,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.0000479443816,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":27,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":20480.064,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"chaosEquivalent":20668.78,"lowConfidencePaySparkLine":{"data":[0,0,20,20,20,-14.29,25.15],"totalChange":25.15},"lowConfidenceReceiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"detailsId":"eternal-orb"},{"currencyTypeName":"Mirror Shard","pay":{"id":0,"league_id":1,"pay_currency_id":81,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":0.00083,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":81,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":1729.2,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[null,null,null,0,null,null,null],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":1467.01,"lowConfidencePaySparkLine":{"data":[0,14.29,12.5,10.77,-13.25,-13.25,-13.25],"totalChange":-13.25},"lowConfidenceReceiveSparkLine":{"data":[0,0.29,0,0.76,0.76,-5.71,-5.71],"totalChange":-5.71},"detailsId":"mirror-shard"},{"currencyTypeName":"Blessing of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":65,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.00435,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":65,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":267.4375,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"chaosEquivalent":248.66,"lowConfidencePaySparkLine":{"data":[0,-1.52,-1.52,-3.47,-6.92,-10.34,-10.34],"totalChange":-10.34},"lowConfidenceReceiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"detailsId":"blessing-of-chayula"},{"currencyTypeName":"Exalted Orb","pay":{"id":0,"league_id":1,"pay_currency_id":2,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.00769,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":2,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":80,"value":132,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"receiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":131.02,"lowConfidencePaySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"lowConfidenceReceiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"exalted-orb"},{"currencyTypeName":"Divine Orb","pay":{"id":0,"league_id":1,"pay_currency_id":3,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.03965841379310345,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":3,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":56,"value":26,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"receiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"chaosEquivalent":25.61,"lowConfidencePaySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"lowConfidenceReceiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"detailsId":"divine-orb"},{"currencyTypeName":"Harbinger\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":76,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":0.04860216494845361,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":76,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":24.439393939393938,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"receiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"chaosEquivalent":22.51,"lowConfidencePaySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"detailsId":"harbingers-orb"},{"currencyTypeName":"Ancient Orb","pay":{"id":0,"league_id":1,"pay_currency_id":78,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":0.05,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":78,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":48,"value":22,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"receiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"chaosEquivalent":21,"lowConfidencePaySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"lowConfidenceReceiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"detailsId":"ancient-orb"},{"currencyTypeName":"Orb of Annulment","pay":{"id":0,"league_id":1,"pay_currency_id":73,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.06667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":73,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":44,"value":18.8588,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"receiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"chaosEquivalent":16.93,"lowConfidencePaySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"lowConfidenceReceiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"detailsId":"orb-of-annulment"},{"currencyTypeName":"Blessing of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":64,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":64,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":9.350515463917526,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"chaosEquivalent":7.68,"lowConfidencePaySparkLine":{"data":[null,null,0,33.33,66.66,66.66,99.99],"totalChange":99.99},"lowConfidenceReceiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"detailsId":"blessing-of-uul-netol"},{"currencyTypeName":"Exalted Shard","pay":{"id":0,"league_id":1,"pay_currency_id":80,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":80,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":11,"value":7,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,null,0,0,0],"totalChange":0},"receiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"chaosEquivalent":6.5,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"detailsId":"exalted-shard"},{"currencyTypeName":"Master Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":48,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.24879285714285715,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":48,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":64,"value":4.911668875,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"receiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"chaosEquivalent":4.47,"lowConfidencePaySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"detailsId":"master-cartographers-sextant"},{"currencyTypeName":"Blessing of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":63,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":63,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":4,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":3,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"blessing-of-esh"},{"currencyTypeName":"Journeyman Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":47,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.4230887878787879,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":47,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":2.918542857142857,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"receiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"chaosEquivalent":2.64,"lowConfidencePaySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"lowConfidenceReceiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"detailsId":"journeyman-cartographers-sextant"},{"currencyTypeName":"Blessing of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":61,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":61,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":2.483673469387755,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"chaosEquivalent":2.24,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"detailsId":"blessing-of-xoph"},{"currencyTypeName":"Annulment Shard","pay":{"id":0,"league_id":1,"pay_currency_id":79,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":1.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":79,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":3.8,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":2.23,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,-9.09,-9.09,1718.18,1718.18,245.45],"totalChange":245.45},"detailsId":"annulment-shard"},{"currencyTypeName":"Blessing of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":62,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":62,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":2,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"chaosEquivalent":2,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"detailsId":"blessing-of-tul"},{"currencyTypeName":"Vaal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":8,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":40,"value":0.5834604444444444,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":8,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":81,"value":1.7833907142857144,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"receiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"chaosEquivalent":1.75,"lowConfidencePaySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"lowConfidenceReceiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"detailsId":"vaal-orb"},{"currencyTypeName":"Orb of Horizons","pay":{"id":0,"league_id":1,"pay_currency_id":75,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.958204,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":75,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":31,"value":1.79100045,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"chaosEquivalent":1.42,"lowConfidencePaySparkLine":{"data":[0,-0.33,0.72,4.29,0.72,-3.63,4.36],"totalChange":4.36},"lowConfidenceReceiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"detailsId":"orb-of-horizons"},{"currencyTypeName":"Splinter of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":60,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":0.83333,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":60,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":46,"value":1.5,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"chaosEquivalent":1.35,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"detailsId":"splinter-of-chayula"},{"currencyTypeName":"Gemcutter\'s Prism","pay":{"id":0,"league_id":1,"pay_currency_id":15,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.7885894949494949,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":15,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":74,"value":1.3104130434782608,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"receiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"chaosEquivalent":1.29,"lowConfidencePaySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"lowConfidenceReceiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"detailsId":"gemcutters-prism"},{"currencyTypeName":"Apprentice Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":46,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.9750981212121212,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":46,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":52,"value":1,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":1.01,"lowConfidencePaySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"apprentice-cartographers-sextant"},{"currencyTypeName":"Orb of Regret","pay":{"id":0,"league_id":1,"pay_currency_id":9,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":18,"value":1.0964574468085106,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":9,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":92,"value":1.0004330666666668,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"receiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"chaosEquivalent":0.96,"lowConfidencePaySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"detailsId":"orb-of-regret"},{"currencyTypeName":"Regal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":7,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":1.3920958247422681,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":7,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":73,"value":0.8269064536082474,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"receiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"chaosEquivalent":0.77,"lowConfidencePaySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"lowConfidenceReceiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"detailsId":"regal-orb"},{"currencyTypeName":"Engineer\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":77,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":2.605612244897959,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":77,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.8584277931034483,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"chaosEquivalent":0.62,"lowConfidencePaySparkLine":{"data":[0,2,11.98,11.98,30.74,30.74,30.49],"totalChange":30.49},"lowConfidenceReceiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"detailsId":"engineers-orb"},{"currencyTypeName":"Orb of Fusing","pay":{"id":0,"league_id":1,"pay_currency_id":5,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":1.95,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":5,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.55044,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"receiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"chaosEquivalent":0.53,"lowConfidencePaySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"lowConfidenceReceiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"detailsId":"orb-of-fusing"},{"currencyTypeName":"Orb of Scouring","pay":{"id":0,"league_id":1,"pay_currency_id":14,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":2.1,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":14,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.5354012105263158,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"receiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"chaosEquivalent":0.51,"lowConfidencePaySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"detailsId":"orb-of-scouring"},{"currencyTypeName":"Cartographer\'s Chisel","pay":{"id":0,"league_id":1,"pay_currency_id":10,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":2.4,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":10,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":58,"value":0.46549529545454543,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"receiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"chaosEquivalent":0.44,"lowConfidencePaySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"lowConfidenceReceiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"detailsId":"cartographers-chisel"},{"currencyTypeName":"Orb of Alchemy","pay":{"id":0,"league_id":1,"pay_currency_id":4,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":2.841666666666667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":4,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":65,"value":0.35714,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"receiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"chaosEquivalent":0.35,"lowConfidencePaySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"lowConfidenceReceiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"detailsId":"orb-of-alchemy"},{"currencyTypeName":"Silver Coin","pay":{"id":0,"league_id":1,"pay_currency_id":12,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":3.6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":12,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.3146063292682927,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"receiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"chaosEquivalent":0.3,"lowConfidencePaySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"lowConfidenceReceiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"detailsId":"silver-coin"},{"currencyTypeName":"Blessed Orb","pay":{"id":0,"league_id":1,"pay_currency_id":18,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":3.7901630434782607,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":18,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.32171585542168674,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"receiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"chaosEquivalent":0.29,"lowConfidencePaySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"lowConfidenceReceiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"detailsId":"blessed-orb"},{"currencyTypeName":"Chromatic Orb","pay":{"id":0,"league_id":1,"pay_currency_id":17,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":30,"value":3.900757575757576,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":17,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.27702283333333333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"receiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"chaosEquivalent":0.27,"lowConfidencePaySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"lowConfidenceReceiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"detailsId":"chromatic-orb"},{"currencyTypeName":"Orb of Binding","pay":{"id":0,"league_id":1,"pay_currency_id":74,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":74,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":28,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":0.25,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"orb-of-binding"},{"currencyTypeName":"Splinter of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":56,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":56,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"chaosEquivalent":0.23,"lowConfidencePaySparkLine":{"data":[null,null,0,14.29,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"detailsId":"splinter-of-xoph"},{"currencyTypeName":"Splinter of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":59,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":15,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":59,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"chaosEquivalent":0.2,"lowConfidencePaySparkLine":{"data":[null,null,0,50,50,50,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"detailsId":"splinter-of-uul-netol"},{"currencyTypeName":"Orb of Alteration","pay":{"id":0,"league_id":1,"pay_currency_id":6,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":32,"value":6.897234042553191,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":6,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":61,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"receiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"chaosEquivalent":0.14,"lowConfidencePaySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"lowConfidenceReceiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"detailsId":"orb-of-alteration"},{"currencyTypeName":"Jeweller\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":11,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":7.8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":11,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":75,"value":0.13261883720930231,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"receiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"chaosEquivalent":0.13,"lowConfidencePaySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"lowConfidenceReceiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"detailsId":"jewellers-orb"},{"currencyTypeName":"Orb of Chance","pay":{"id":0,"league_id":1,"pay_currency_id":16,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":8.64997340425532,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":16,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":76,"value":0.11111,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"receiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"chaosEquivalent":0.11,"lowConfidencePaySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"lowConfidenceReceiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"detailsId":"orb-of-chance"},{"currencyTypeName":"Glassblower\'s Bauble","pay":{"id":0,"league_id":1,"pay_currency_id":19,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":15.31340206185567,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":19,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":51,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[0,0,-1.94,3.94,3.9,3.9,9.05],"totalChange":9.05},"lowConfidenceReceiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"detailsId":"glassblowers-bauble"},{"currencyTypeName":"Splinter of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":57,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":57,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":0.14089376744186047,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"detailsId":"splinter-of-tul"},{"currencyTypeName":"Splinter of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":58,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":58,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.1326773181818182,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"chaosEquivalent":0.09,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"detailsId":"splinter-of-esh"},{"currencyTypeName":"Orb of Augmentation","pay":{"id":0,"league_id":1,"pay_currency_id":20,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":5,"value":42.121212121212125,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":20,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.035082486842105264,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,null,null,null,0],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"chaosEquivalent":0.03,"lowConfidencePaySparkLine":{"data":[0,-45.46,-46.56,-41.35,-39.88,-39.88,-42.9],"totalChange":-42.9},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"detailsId":"orb-of-augmentation"},{"currencyTypeName":"Blacksmith\'s Whetstone","pay":{"id":0,"league_id":1,"pay_currency_id":25,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":137.4747474747475,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":25,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.024965935064935066,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"receiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"chaosEquivalent":0.02,"lowConfidencePaySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"lowConfidenceReceiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"detailsId":"blacksmiths-whetstone"},{"currencyTypeName":"Perandus Coin","pay":{"id":0,"league_id":1,"pay_currency_id":13,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":200,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":13,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.011368279569892474,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0.22,-2.43,-4.97,-4.97,2.72,2.72],"totalChange":2.72},"lowConfidenceReceiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"detailsId":"perandus-coin"},{"currencyTypeName":"Orb of Transmutation","pay":{"id":0,"league_id":1,"pay_currency_id":21,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":196.62,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":21,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.01613,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,21.78,21.78,null,null],"totalChange":21.78},"receiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,-1.33,21.78,21.78,22.08,22.06],"totalChange":22.06},"lowConfidenceReceiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"detailsId":"orb-of-transmutation"},{"currencyTypeName":"Portal Scroll","pay":{"id":0,"league_id":1,"pay_currency_id":24,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":364.8484848484849,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":24,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.014209822916666667,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,-23.5,14.82,46.05,46.05,52.82,76.13],"totalChange":76.13},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"detailsId":"portal-scroll"},{"currencyTypeName":"Armourer\'s Scrap","pay":{"id":0,"league_id":1,"pay_currency_id":26,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":197.55050505050505,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":26,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.02,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,0,0,null,4.57],"totalChange":4.57},"receiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,1.53,0.71,0.71,1.73,5.31],"totalChange":5.31},"lowConfidenceReceiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"detailsId":"armourers-scrap"}],"currencyDetails":[{"id":1,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?scale=1&w=1&h=1","name":"Chaos Orb","poeTradeId":4},{"id":2,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToRare.png?scale=1&w=1&h=1","name":"Exalted Orb","poeTradeId":6},{"id":3,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyModValues.png?scale=1&w=1&h=1","name":"Divine Orb","poeTradeId":15},{"id":4,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeToRare.png?scale=1&w=1&h=1","name":"Orb of Alchemy","poeTradeId":3},{"id":5,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketLinks.png?scale=1&w=1&h=1","name":"Orb of Fusing","poeTradeId":2},{"id":6,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollMagic.png?scale=1&w=1&h=1","name":"Orb of Alteration","poeTradeId":1},{"id":7,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeMagicToRare.png?scale=1&w=1&h=1","name":"Regal Orb","poeTradeId":14},{"id":8,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyVaal.png?scale=1&w=1&h=1","name":"Vaal Orb","poeTradeId":16},{"id":9,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyPassiveSkillRefund.png?scale=1&w=1&h=1","name":"Orb of Regret","poeTradeId":13},{"id":10,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyMapQuality.png?scale=1&w=1&h=1","name":"Cartographer\'s Chisel","poeTradeId":10},{"id":11,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketNumbers.png?scale=1&w=1&h=1","name":"Jeweller\'s Orb","poeTradeId":8},{"id":12,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SilverObol.png?scale=1&w=1&h=1","name":"Silver Coin","poeTradeId":35},{"id":13,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyCoin.png?scale=1&w=1&h=1","name":"Perandus Coin","poeTradeId":26},{"id":14,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyConvertToNormal.png?scale=1&w=1&h=1","name":"Orb of Scouring","poeTradeId":11},{"id":15,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyGemQuality.png?scale=1&w=1&h=1","name":"Gemcutter\'s Prism","poeTradeId":5},{"id":16,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeRandomly.png?scale=1&w=1&h=1","name":"Orb of Chance","poeTradeId":9},{"id":17,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollSocketColours.png?scale=1&w=1&h=1","name":"Chromatic Orb","poeTradeId":7},{"id":18,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImplicitMod.png?scale=1&w=1&h=1","name":"Blessed Orb","poeTradeId":12},{"id":19,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyFlaskQuality.png?scale=1&w=1&h=1","name":"Glassblower\'s Bauble","poeTradeId":21},{"id":20,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyAddModToMagic.png?scale=1&w=1&h=1","name":"Orb of Augmentation","poeTradeId":23},{"id":21,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyUpgradeToMagic.png?scale=1&w=1&h=1","name":"Orb of Transmutation","poeTradeId":22},{"id":22,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyDuplicate.png?scale=1&w=1&h=1","name":"Mirror of Kalandra","poeTradeId":24},{"id":23,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyIdentification.png?scale=1&w=1&h=1","name":"Scroll of Wisdom","poeTradeId":17},{"id":24,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyPortal.png?scale=1&w=1&h=1","name":"Portal Scroll","poeTradeId":18},{"id":25,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyWeaponQuality.png?scale=1&w=1&h=1","name":"Blacksmith\'s Whetstone","poeTradeId":20},{"id":26,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyArmourQuality.png?scale=1&w=1&h=1","name":"Armourer\'s Scrap","poeTradeId":19},{"id":27,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImprintOrb.png?scale=1&w=1&h=1","name":"Eternal Orb","poeTradeId":25},{"id":28,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal04.png?scale=1&scaleIndex=0&w=1&h=1","name":"Sacrifice at Dusk","poeTradeId":27},{"id":29,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal01.png?scale=1&w=1&h=1&v=3b21ce0cd4c0b9e8cf5db6257daf831a3","name":"Sacrifice at Midnight","poeTradeId":28},{"id":30,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal02.png?scale=1&w=1&h=1&v=3ead6455599ec6c303f54ba98d6f8eb23","name":"Sacrifice at Dawn","poeTradeId":29},{"id":31,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Vaal03.png?scale=1&w=1&h=1&v=ba374d543316349b87de121039c3cc6f3","name":"Sacrifice at Noon","poeTradeId":30},{"id":32,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal04.png?scale=1&w=1&h=1&v=735839ceae0fc45d15ec69555e9314133","name":"Mortal Grief","poeTradeId":31},{"id":33,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal01.png?scale=1&w=1&h=1&v=9336df5d7d0befd5963b71e7a68479ce3","name":"Mortal Rage","poeTradeId":32},{"id":34,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal03.png?scale=1&w=1&h=1&v=9fb218dad337a4627a59f74bfa2d6c863","name":"Mortal Ignorance","poeTradeId":34},{"id":35,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/UberVaal02.png?scale=1&w=1&h=1&v=db5b529a8425bd2b9fd7bee9fca2e0183","name":"Mortal Hope","poeTradeId":33},{"id":36,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt01.png?scale=1&w=1&h=1&v=044cbdae1e06e621585eaa627c2162db3","name":"Eber\'s Key","poeTradeId":36},{"id":37,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt02.png?scale=1&w=1&h=1&v=757829336b7239c4b1e398c203f0cca03","name":"Yriel\'s Key","poeTradeId":37},{"id":38,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt03.png?scale=1&w=1&h=1&v=6e43b636847d46b560ef0518869a72943","name":"Inya\'s Key","poeTradeId":38},{"id":39,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/PaleCourt04.png?scale=1&w=1&h=1&v=5c3afc6bad631a50f9fe5ccb570aeb363","name":"Volkuur\'s Key","poeTradeId":39},{"id":40,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentHydra.png?scale=1&w=1&h=1&v=fd37e4be7672c0db8b549a1b16ad489d3","name":"Fragment of the Hydra","poeTradeId":41},{"id":41,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentPhoenix.png?scale=1&w=1&h=1&v=8f76720ab06bb40a6d6f75730f92e4a73","name":"Fragment of the Phoenix","poeTradeId":42},{"id":42,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentMinotaur.png?scale=1&w=1&h=1&v=e0e3f5e7daf32736d63fc3df1ba981223","name":"Fragment of the Minotaur","poeTradeId":43},{"id":43,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/AtlasMaps/FragmentChimera.png?scale=1&w=1&h=1&v=15bd6ba80e1853c22ae3acf40abf64283","name":"Fragment of the Chimera","poeTradeId":44},{"id":44,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/Labyrinth.png?scale=1&w=1&h=1&v=ef005aef5d2f9135d6922f4b1b912f783","name":"Offering to the Goddess","poeTradeId":40},{"id":45,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyImprintOrb.png?scale=1&w=1&h=1","name":"Stacked Deck","poeTradeId":-1},{"id":46,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusWhite.png?scale=1&w=1&h=1","name":"Apprentice Cartographer\'s Sextant","poeTradeId":45},{"id":47,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusYellow.png?scale=1&w=1&h=1","name":"Journeyman Cartographer\'s Sextant","poeTradeId":46},{"id":48,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AtlasRadiusRed.png?scale=1&w=1&h=1","name":"Master Cartographer\'s Sextant","poeTradeId":47},{"id":49,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealWhite.png?scale=1&w=1&h=1","name":"Apprentice Cartographer\'s Seal","poeTradeId":-1},{"id":50,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealYellow.png?scale=1&w=1&h=1","name":"Journeyman Cartographer\'s Seal","poeTradeId":-1},{"id":51,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Master Cartographer\'s Seal","poeTradeId":-1},{"id":52,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Sacrifice Set","poeTradeId":48},{"id":53,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Mortal Set","poeTradeId":49},{"id":54,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Pale Court Set","poeTradeId":50},{"id":55,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/SealRed.png?scale=1&w=1&h=1","name":"Shaper Set","poeTradeId":51},{"id":56,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Xoph","poeTradeId":52},{"id":57,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Tul","poeTradeId":53},{"id":58,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Esh","poeTradeId":54},{"id":59,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Uul-Netol","poeTradeId":55},{"id":60,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachShardChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Splinter of Chayula","poeTradeId":56},{"id":61,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Xoph","poeTradeId":57},{"id":62,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Tul","poeTradeId":58},{"id":63,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Esh","poeTradeId":59},{"id":64,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Uul-Netol","poeTradeId":60},{"id":65,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachUpgraderChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Blessing of Chayula","poeTradeId":61},{"id":66,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Breachstone","poeTradeId":62},{"id":67,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Breachstone","poeTradeId":63},{"id":68,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Breachstone","poeTradeId":64},{"id":69,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Breachstone","poeTradeId":65},{"id":70,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Breachstone","poeTradeId":66},{"id":71,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/VaultMap.png?scale=1&scaleIndex=0&w=1&h=1","name":"Ancient Reliquary Key","poeTradeId":494},{"id":72,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/SinFlaskEmpty.png?scale=1&scaleIndex=0&w=1&h=2","name":"Divine Vessel","poeTradeId":512},{"id":73,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AnnullOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Annulment","poeTradeId":513},{"id":74,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/BindingOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Binding","poeTradeId":514},{"id":75,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/HorizonOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Orb of Horizons","poeTradeId":515},{"id":76,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/HarbingerOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Harbinger\'s Orb","poeTradeId":516},{"id":77,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/EngineersOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Engineer\'s Orb","poeTradeId":517},{"id":78,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AncientOrb.png?scale=1&scaleIndex=0&w=1&h=1","name":"Ancient Orb","poeTradeId":518},{"id":79,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/AnnullShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Annulment Shard","poeTradeId":519},{"id":80,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/ExaltedShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Exalted Shard","poeTradeId":521},{"id":81,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/MirrorShard.png?scale=1&scaleIndex=0&w=1&h=1","name":"Mirror Shard","poeTradeId":520},{"id":82,"icon":"https://web.poecdn.com/image/Art/2DItems/Maps/VaultMap3.png?scale=1&scaleIndex=0&w=1&h=1","name":"Timeworn Reliquary Key","poeTradeId":-1},{"id":83,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Charged Breachstone","poeTradeId":-1},{"id":84,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Charged Breachstone","poeTradeId":-1},{"id":85,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Charged Breachstone","poeTradeId":-1},{"id":86,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Charged Breachstone","poeTradeId":-1},{"id":87,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Charged Breachstone","poeTradeId":-1},{"id":88,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Enriched Breachstone","poeTradeId":-1},{"id":89,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Enriched Breachstone","poeTradeId":-1},{"id":90,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Enriched Breachstone","poeTradeId":-1},{"id":91,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Enriched Breachstone","poeTradeId":-1},{"id":92,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Enriched Breachstone","poeTradeId":-1},{"id":93,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsFire.png?scale=1&scaleIndex=0&w=1&h=1","name":"Xoph\'s Pure Breachstone","poeTradeId":-1},{"id":94,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsCold.png?scale=1&scaleIndex=0&w=1&h=1","name":"Tul\'s Pure Breachstone","poeTradeId":-1},{"id":95,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsLightning.png?scale=1&scaleIndex=0&w=1&h=1","name":"Esh\'s Pure Breachstone","poeTradeId":-1},{"id":96,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsPhysical.png?scale=1&scaleIndex=0&w=1&h=1","name":"Uul-Netol\'s Pure Breachstone","poeTradeId":-1},{"id":97,"icon":"https://web.poecdn.com/image/Art/2DItems/Currency/Breach/BreachFragmentsChaos.png?scale=1&scaleIndex=0&w=1&h=1","name":"Chayula\'s Pure Breachstone","poeTradeId":-1}],"map":{"Mirror of Kalandra":{"currencyTypeName":"Mirror of Kalandra","pay":{"id":0,"league_id":1,"pay_currency_id":22,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":0.0000300679,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":22,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":21,"value":34056,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"receiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":33657.03,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,-0.23],"totalChange":-0.23},"lowConfidenceReceiveSparkLine":{"data":[0,0.28,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"mirror-of-kalandra"},"Eternal Orb":{"currencyTypeName":"Eternal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":27,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.0000479443816,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":27,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":20480.064,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"chaosEquivalent":20668.78,"lowConfidencePaySparkLine":{"data":[0,0,20,20,20,-14.29,25.15],"totalChange":25.15},"lowConfidenceReceiveSparkLine":{"data":[0,-0.06,-1.41,-6.03,-7.56,-4.16,-8.1],"totalChange":-8.1},"detailsId":"eternal-orb"},"Mirror Shard":{"currencyTypeName":"Mirror Shard","pay":{"id":0,"league_id":1,"pay_currency_id":81,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":0.00083,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":81,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":1729.2,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[null,null,null,0,null,null,null],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":1467.01,"lowConfidencePaySparkLine":{"data":[0,14.29,12.5,10.77,-13.25,-13.25,-13.25],"totalChange":-13.25},"lowConfidenceReceiveSparkLine":{"data":[0,0.29,0,0.76,0.76,-5.71,-5.71],"totalChange":-5.71},"detailsId":"mirror-shard"},"Blessing of Chayula":{"currencyTypeName":"Blessing of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":65,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.00435,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":65,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":267.4375,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"chaosEquivalent":248.66,"lowConfidencePaySparkLine":{"data":[0,-1.52,-1.52,-3.47,-6.92,-10.34,-10.34],"totalChange":-10.34},"lowConfidenceReceiveSparkLine":{"data":[0,3.11,5,2.59,0.7,0.93,2.08],"totalChange":2.08},"detailsId":"blessing-of-chayula"},"Exalted Orb":{"currencyTypeName":"Exalted Orb","pay":{"id":0,"league_id":1,"pay_currency_id":2,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.00769,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":2,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":80,"value":132,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"receiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"chaosEquivalent":131.02,"lowConfidencePaySparkLine":{"data":[0,0.65,0.78,0.78,0.78,0.78,0.78],"totalChange":0.78},"lowConfidenceReceiveSparkLine":{"data":[0,0.27,0.13,0.57,0.76,0.76,0.76],"totalChange":0.76},"detailsId":"exalted-orb"},"Divine Orb":{"currencyTypeName":"Divine Orb","pay":{"id":0,"league_id":1,"pay_currency_id":3,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.03965841379310345,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":3,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":56,"value":26,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"receiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"chaosEquivalent":25.61,"lowConfidencePaySparkLine":{"data":[0,1.21,2.33,0.7,4.18,4.18,5.07],"totalChange":5.07},"lowConfidenceReceiveSparkLine":{"data":[0,3.85,0.09,0.4,1.85,0,0],"totalChange":0},"detailsId":"divine-orb"},"Harbinger\'s Orb":{"currencyTypeName":"Harbinger\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":76,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":0.04860216494845361,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":76,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":24.439393939393938,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"receiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"chaosEquivalent":22.51,"lowConfidencePaySparkLine":{"data":[0,-0.18,0.4,0.88,1.97,6.26,3.33],"totalChange":3.33},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,-2.24],"totalChange":-2.24},"detailsId":"harbingers-orb"},"Ancient Orb":{"currencyTypeName":"Ancient Orb","pay":{"id":0,"league_id":1,"pay_currency_id":78,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":0.05,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":78,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":48,"value":22,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"receiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"chaosEquivalent":21,"lowConfidencePaySparkLine":{"data":[0,5.26,5.26,5.26,5.26,5.26,5.26],"totalChange":5.26},"lowConfidenceReceiveSparkLine":{"data":[0,-0.38,4.82,3.56,0.27,0.27,0.27],"totalChange":0.27},"detailsId":"ancient-orb"},"Orb of Annulment":{"currencyTypeName":"Orb of Annulment","pay":{"id":0,"league_id":1,"pay_currency_id":73,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.06667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":73,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":44,"value":18.8588,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"receiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"chaosEquivalent":16.93,"lowConfidencePaySparkLine":{"data":[0,1.8,7.28,3.94,4.94,14.29,7.14],"totalChange":7.14},"lowConfidenceReceiveSparkLine":{"data":[0,3.62,15.44,15.81,15.24,15.81,14.95],"totalChange":14.95},"detailsId":"orb-of-annulment"},"Blessing of Uul-Netol":{"currencyTypeName":"Blessing of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":64,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":64,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":9,"value":9.350515463917526,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"chaosEquivalent":7.68,"lowConfidencePaySparkLine":{"data":[null,null,0,33.33,66.66,66.66,99.99],"totalChange":99.99},"lowConfidenceReceiveSparkLine":{"data":[0,-30.77,-34,-15.58,-29.53,-24.46,-28.07],"totalChange":-28.07},"detailsId":"blessing-of-uul-netol"},"Exalted Shard":{"currencyTypeName":"Exalted Shard","pay":{"id":0,"league_id":1,"pay_currency_id":80,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":0.16667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":80,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":11,"value":7,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,null,0,0,0],"totalChange":0},"receiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"chaosEquivalent":6.5,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-11.74,-11.79,2.91,2.91,2.91,2.91],"totalChange":2.91},"detailsId":"exalted-shard"},"Master Cartographer\'s Sextant":{"currencyTypeName":"Master Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":48,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":20,"value":0.24879285714285715,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":48,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":64,"value":4.911668875,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"receiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"chaosEquivalent":4.47,"lowConfidencePaySparkLine":{"data":[0,3.39,3.39,3.39,3.39,3.39,3.89],"totalChange":3.89},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,18.72,22.5,15.17,22.79],"totalChange":22.79},"detailsId":"master-cartographers-sextant"},"Blessing of Esh":{"currencyTypeName":"Blessing of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":63,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":63,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":4,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":3,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"blessing-of-esh"},"Journeyman Cartographer\'s Sextant":{"currencyTypeName":"Journeyman Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":47,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.4230887878787879,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":47,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":2.918542857142857,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"receiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"chaosEquivalent":2.64,"lowConfidencePaySparkLine":{"data":[0,0.13,0.05,0.37,0.41,1.71,2.08],"totalChange":2.08},"lowConfidenceReceiveSparkLine":{"data":[0,-2.76,-16.27,-10.35,0.42,3.99,4.66],"totalChange":4.66},"detailsId":"journeyman-cartographers-sextant"},"Blessing of Xoph":{"currencyTypeName":"Blessing of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":61,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":61,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":2.483673469387755,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"chaosEquivalent":2.24,"lowConfidencePaySparkLine":{"data":[null,null,0,100,100,100,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,-33.33,-33.33,-33.33,-33.33,-9.93,-17.21],"totalChange":-17.21},"detailsId":"blessing-of-xoph"},"Annulment Shard":{"currencyTypeName":"Annulment Shard","pay":{"id":0,"league_id":1,"pay_currency_id":79,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":1.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":79,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":3.8,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[],"totalChange":0},"chaosEquivalent":2.23,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,-9.09,-9.09,1718.18,1718.18,245.45],"totalChange":245.45},"detailsId":"annulment-shard"},"Blessing of Tul":{"currencyTypeName":"Blessing of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":62,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":0.5,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":62,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":2,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"chaosEquivalent":2,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,100],"totalChange":100},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,22.91,0,0,0],"totalChange":0},"detailsId":"blessing-of-tul"},"Vaal Orb":{"currencyTypeName":"Vaal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":8,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":40,"value":0.5834604444444444,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":8,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":81,"value":1.7833907142857144,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"receiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"chaosEquivalent":1.75,"lowConfidencePaySparkLine":{"data":[0,3.03,3.03,3.03,3.03,3.03,3.87],"totalChange":3.87},"lowConfidenceReceiveSparkLine":{"data":[0,4.08,2.53,1.19,4.08,4.08,3.12],"totalChange":3.12},"detailsId":"vaal-orb"},"Orb of Horizons":{"currencyTypeName":"Orb of Horizons","pay":{"id":0,"league_id":1,"pay_currency_id":75,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":2,"value":0.958204,"data_point_count":1,"includes_secondary":true},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":75,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":31,"value":1.79100045,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"chaosEquivalent":1.42,"lowConfidencePaySparkLine":{"data":[0,-0.33,0.72,4.29,0.72,-3.63,4.36],"totalChange":4.36},"lowConfidenceReceiveSparkLine":{"data":[0,-6.68,5.03,-3.73,-4.13,-2.13,-4.61],"totalChange":-4.61},"detailsId":"orb-of-horizons"},"Splinter of Chayula":{"currencyTypeName":"Splinter of Chayula","pay":{"id":0,"league_id":1,"pay_currency_id":60,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":0.83333,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":60,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":46,"value":1.5,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"chaosEquivalent":1.35,"lowConfidencePaySparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,5.26,-9.67,0.7,-21.05,-21.05,-21.05],"totalChange":-21.05},"detailsId":"splinter-of-chayula"},"Gemcutter\'s Prism":{"currencyTypeName":"Gemcutter\'s Prism","pay":{"id":0,"league_id":1,"pay_currency_id":15,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.7885894949494949,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":15,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":74,"value":1.3104130434782608,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"receiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"chaosEquivalent":1.29,"lowConfidencePaySparkLine":{"data":[0,-0.9,-0.9,-1.01,4.44,-0.9,4.73],"totalChange":4.73},"lowConfidenceReceiveSparkLine":{"data":[0,4.2,4.37,1.67,5.04,1.93,1.19],"totalChange":1.19},"detailsId":"gemcutters-prism"},"Apprentice Cartographer\'s Sextant":{"currencyTypeName":"Apprentice Cartographer\'s Sextant","pay":{"id":0,"league_id":1,"pay_currency_id":46,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":14,"value":0.9750981212121212,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":46,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":52,"value":1,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":1.01,"lowConfidencePaySparkLine":{"data":[0,-5.02,-6.61,-3.17,-2.11,-3.38,-4.22],"totalChange":-4.22},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"apprentice-cartographers-sextant"},"Orb of Regret":{"currencyTypeName":"Orb of Regret","pay":{"id":0,"league_id":1,"pay_currency_id":9,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":18,"value":1.0964574468085106,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":9,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":92,"value":1.0004330666666668,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"receiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"chaosEquivalent":0.96,"lowConfidencePaySparkLine":{"data":[0,0,0.84,0.94,0.31,0.11,0.32],"totalChange":0.32},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,1.51,0,0.04],"totalChange":0.04},"detailsId":"orb-of-regret"},"Regal Orb":{"currencyTypeName":"Regal Orb","pay":{"id":0,"league_id":1,"pay_currency_id":7,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":1.3920958247422681,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":7,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":73,"value":0.8269064536082474,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"receiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"chaosEquivalent":0.77,"lowConfidencePaySparkLine":{"data":[0,0.04,0,0,0,0.12,0.57],"totalChange":0.57},"lowConfidenceReceiveSparkLine":{"data":[0,-0.09,-2.23,0.79,-1.6,1.46,0.7],"totalChange":0.7},"detailsId":"regal-orb"},"Engineer\'s Orb":{"currencyTypeName":"Engineer\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":77,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":3,"value":2.605612244897959,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":77,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":17,"value":0.8584277931034483,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"chaosEquivalent":0.62,"lowConfidencePaySparkLine":{"data":[0,2,11.98,11.98,30.74,30.74,30.49],"totalChange":30.49},"lowConfidenceReceiveSparkLine":{"data":[0,18.02,26.46,12.78,12.41,12.81,11.17],"totalChange":11.17},"detailsId":"engineers-orb"},"Orb of Fusing":{"currencyTypeName":"Orb of Fusing","pay":{"id":0,"league_id":1,"pay_currency_id":5,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":1.95,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":5,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":100,"value":0.55044,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"receiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"chaosEquivalent":0.53,"lowConfidencePaySparkLine":{"data":[0,0,0.78,0.62,0.54,2.53,2.56],"totalChange":2.56},"lowConfidenceReceiveSparkLine":{"data":[0,-0.93,-2.39,-0.55,-1.99,-1,-0.92],"totalChange":-0.92},"detailsId":"orb-of-fusing"},"Orb of Scouring":{"currencyTypeName":"Orb of Scouring","pay":{"id":0,"league_id":1,"pay_currency_id":14,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":2.1,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":14,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.5354012105263158,"data_point_count":1,"includes_secondary":true},"paySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"receiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"chaosEquivalent":0.51,"lowConfidencePaySparkLine":{"data":[0,4.55,4.55,4.55,5.09,8.71,9.52],"totalChange":9.52},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,-0.56,7.08],"totalChange":7.08},"detailsId":"orb-of-scouring"},"Cartographer\'s Chisel":{"currencyTypeName":"Cartographer\'s Chisel","pay":{"id":0,"league_id":1,"pay_currency_id":10,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":2.4,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":10,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":58,"value":0.46549529545454543,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"receiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"chaosEquivalent":0.44,"lowConfidencePaySparkLine":{"data":[0,-3.14,-3.14,0.9,0.9,0.9,0.9],"totalChange":0.9},"lowConfidenceReceiveSparkLine":{"data":[0,0.97,-2.18,1.69,-2.38,-1.15,-0.13],"totalChange":-0.13},"detailsId":"cartographers-chisel"},"Orb of Alchemy":{"currencyTypeName":"Orb of Alchemy","pay":{"id":0,"league_id":1,"pay_currency_id":4,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":25,"value":2.841666666666667,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":4,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":65,"value":0.35714,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"receiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"chaosEquivalent":0.35,"lowConfidencePaySparkLine":{"data":[0,-0.63,0.07,6.42,6.41,2.75,4.86],"totalChange":4.86},"lowConfidenceReceiveSparkLine":{"data":[0,2.66,-5.08,-7.82,-6.04,-6.22,-14.4],"totalChange":-14.4},"detailsId":"orb-of-alchemy"},"Silver Coin":{"currencyTypeName":"Silver Coin","pay":{"id":0,"league_id":1,"pay_currency_id":12,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":15,"value":3.6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":12,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.3146063292682927,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"receiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"chaosEquivalent":0.3,"lowConfidencePaySparkLine":{"data":[0,5.33,2.76,0.91,2.92,3.72,3.72],"totalChange":3.72},"lowConfidenceReceiveSparkLine":{"data":[0,-8.82,-8.94,-8.94,-8.94,2.68,0.27],"totalChange":0.27},"detailsId":"silver-coin"},"Blessed Orb":{"currencyTypeName":"Blessed Orb","pay":{"id":0,"league_id":1,"pay_currency_id":18,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":10,"value":3.7901630434782607,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":18,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.32171585542168674,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"receiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"chaosEquivalent":0.29,"lowConfidencePaySparkLine":{"data":[0,0.1,0.06,0.06,0.7,0.23,0.25],"totalChange":0.25},"lowConfidenceReceiveSparkLine":{"data":[0,0,-1.04,-1.47,-1.55,0,-3.48],"totalChange":-3.48},"detailsId":"blessed-orb"},"Chromatic Orb":{"currencyTypeName":"Chromatic Orb","pay":{"id":0,"league_id":1,"pay_currency_id":17,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":30,"value":3.900757575757576,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":17,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":91,"value":0.27702283333333333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"receiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"chaosEquivalent":0.27,"lowConfidencePaySparkLine":{"data":[0,-1.17,-1.9,-0.9,-0.75,0.03,0.01],"totalChange":0.01},"lowConfidenceReceiveSparkLine":{"data":[0,-1.38,-1.35,-2.08,-2.08,-2.08,-2.35],"totalChange":-2.35},"detailsId":"chromatic-orb"},"Orb of Binding":{"currencyTypeName":"Orb of Binding","pay":{"id":0,"league_id":1,"pay_currency_id":74,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":6,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":74,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":28,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"chaosEquivalent":0.25,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,0,0],"totalChange":0},"detailsId":"orb-of-binding"},"Splinter of Xoph":{"currencyTypeName":"Splinter of Xoph","pay":{"id":0,"league_id":1,"pay_currency_id":56,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":56,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"chaosEquivalent":0.23,"lowConfidencePaySparkLine":{"data":[null,null,0,14.29,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,-5.08,-14.97,8.86,-18.21,-14.21,-20.82],"totalChange":-20.82},"detailsId":"splinter-of-xoph"},"Splinter of Uul-Netol":{"currencyTypeName":"Splinter of Uul-Netol","pay":{"id":0,"league_id":1,"pay_currency_id":59,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":15,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":59,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":26,"value":0.33333,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"chaosEquivalent":0.2,"lowConfidencePaySparkLine":{"data":[null,null,0,50,50,50,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,1.07,1.07,1.07,1.07,1.07,1.07],"totalChange":1.07},"detailsId":"splinter-of-uul-netol"},"Orb of Alteration":{"currencyTypeName":"Orb of Alteration","pay":{"id":0,"league_id":1,"pay_currency_id":6,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":32,"value":6.897234042553191,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":6,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":61,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"receiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"chaosEquivalent":0.14,"lowConfidencePaySparkLine":{"data":[0,3.09,4.16,5.69,9.14,5.69,4.2],"totalChange":4.2},"lowConfidenceReceiveSparkLine":{"data":[0,-0.03,-0.5,-0.41,-0.73,0,0],"totalChange":0},"detailsId":"orb-of-alteration"},"Jeweller\'s Orb":{"currencyTypeName":"Jeweller\'s Orb","pay":{"id":0,"league_id":1,"pay_currency_id":11,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":24,"value":7.8,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":11,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":75,"value":0.13261883720930231,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"receiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"chaosEquivalent":0.13,"lowConfidencePaySparkLine":{"data":[0,0.3,1.86,3.61,3.33,4.92,6.27],"totalChange":6.27},"lowConfidenceReceiveSparkLine":{"data":[0,-1.86,1.35,-2.11,-3.08,-1.86,-2.39],"totalChange":-2.39},"detailsId":"jewellers-orb"},"Orb of Chance":{"currencyTypeName":"Orb of Chance","pay":{"id":0,"league_id":1,"pay_currency_id":16,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":7,"value":8.64997340425532,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":16,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":76,"value":0.11111,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"receiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"chaosEquivalent":0.11,"lowConfidencePaySparkLine":{"data":[0,-3.04,0.02,0.72,-0.25,-0.36,7.21],"totalChange":7.21},"lowConfidenceReceiveSparkLine":{"data":[0,0,1.83,0,-2.24,0,-5.56],"totalChange":-5.56},"detailsId":"orb-of-chance"},"Glassblower\'s Bauble":{"currencyTypeName":"Glassblower\'s Bauble","pay":{"id":0,"league_id":1,"pay_currency_id":19,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":15.31340206185567,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":19,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":51,"value":0.14286,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[0,0,-1.94,3.94,3.9,3.9,9.05],"totalChange":9.05},"lowConfidenceReceiveSparkLine":{"data":[0,-0.12,0,1.2,2.08,3.07,3.07],"totalChange":3.07},"detailsId":"glassblowers-bauble"},"Splinter of Tul":{"currencyTypeName":"Splinter of Tul","pay":{"id":0,"league_id":1,"pay_currency_id":57,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":57,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":23,"value":0.14089376744186047,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"chaosEquivalent":0.1,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,4.1,4.81,5.81,5.86,9.04,18.99],"totalChange":18.99},"detailsId":"splinter-of-tul"},"Splinter of Esh":{"currencyTypeName":"Splinter of Esh","pay":{"id":0,"league_id":1,"pay_currency_id":58,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":1,"value":20,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":58,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":29,"value":0.1326773181818182,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"chaosEquivalent":0.09,"lowConfidencePaySparkLine":{"data":[null,null,0,0,0,0,0],"totalChange":0},"lowConfidenceReceiveSparkLine":{"data":[0,0.47,0.74,8.18,8.18,8.18,0.47],"totalChange":0.47},"detailsId":"splinter-of-esh"},"Orb of Augmentation":{"currencyTypeName":"Orb of Augmentation","pay":{"id":0,"league_id":1,"pay_currency_id":20,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":5,"value":42.121212121212125,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":20,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":47,"value":0.035082486842105264,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,null,null,null,0],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"chaosEquivalent":0.03,"lowConfidencePaySparkLine":{"data":[0,-45.46,-46.56,-41.35,-39.88,-39.88,-42.9],"totalChange":-42.9},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,0,0,1.83,5.26],"totalChange":5.26},"detailsId":"orb-of-augmentation"},"Blacksmith\'s Whetstone":{"currencyTypeName":"Blacksmith\'s Whetstone","pay":{"id":0,"league_id":1,"pay_currency_id":25,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":8,"value":137.4747474747475,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":25,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.024965935064935066,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"receiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"chaosEquivalent":0.02,"lowConfidencePaySparkLine":{"data":[0,21.31,20.44,18.01,21.49,17.2,20.28],"totalChange":20.28},"lowConfidenceReceiveSparkLine":{"data":[0,-12.72,-18.33,-18.7,-16.53,-16.53,-16.64],"totalChange":-16.64},"detailsId":"blacksmiths-whetstone"},"Perandus Coin":{"currencyTypeName":"Perandus Coin","pay":{"id":0,"league_id":1,"pay_currency_id":13,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":200,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":13,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.011368279569892474,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0.22,-2.43,-4.97,-4.97,2.72,2.72],"totalChange":2.72},"lowConfidenceReceiveSparkLine":{"data":[0,2.35,-7.37,-12.56,-16.67,-10.22,-4.79],"totalChange":-4.79},"detailsId":"perandus-coin"},"Orb of Transmutation":{"currencyTypeName":"Orb of Transmutation","pay":{"id":0,"league_id":1,"pay_currency_id":21,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":196.62,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":21,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":53,"value":0.01613,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[0,0,null,21.78,21.78,null,null],"totalChange":21.78},"receiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,-1.33,21.78,21.78,22.08,22.06],"totalChange":22.06},"lowConfidenceReceiveSparkLine":{"data":[0,0,-0.42,-0.12,-2.46,-5.76,-3.24],"totalChange":-3.24},"detailsId":"orb-of-transmutation"},"Portal Scroll":{"currencyTypeName":"Portal Scroll","pay":{"id":0,"league_id":1,"pay_currency_id":24,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":4,"value":364.8484848484849,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":24,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":38,"value":0.014209822916666667,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[],"totalChange":0},"receiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,-23.5,14.82,46.05,46.05,52.82,76.13],"totalChange":76.13},"lowConfidenceReceiveSparkLine":{"data":[0,0,0,-0.12,-4.8,-4.8,-14.76],"totalChange":-14.76},"detailsId":"portal-scroll"},"Armourer\'s Scrap":{"currencyTypeName":"Armourer\'s Scrap","pay":{"id":0,"league_id":1,"pay_currency_id":26,"get_currency_id":1,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":6,"value":197.55050505050505,"data_point_count":1,"includes_secondary":false},"receive":{"id":0,"league_id":1,"pay_currency_id":1,"get_currency_id":26,"sample_time_utc":"2019-01-22T14:16:18.5307166Z","count":34,"value":0.02,"data_point_count":1,"includes_secondary":false},"paySparkLine":{"data":[null,null,null,0,0,null,4.57],"totalChange":4.57},"receiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"chaosEquivalent":0.01,"lowConfidencePaySparkLine":{"data":[0,0,1.53,0.71,0.71,1.73,5.31],"totalChange":5.31},"lowConfidenceReceiveSparkLine":{"data":[0,0.72,1.65,10.01,9.9,10.01,10.01],"totalChange":10.01},"detailsId":"armourers-scrap"}},"updated":1548166976379}'),FIXED_CURRENCY_VALUES2=JSON.parse('{"map":{"orb-of-alchemy":{"chaosEquivalent":0.3508771929824561,"currencyTypeName":"Orb of Alchemy","detailsId":"orb-of-alchemy"},"orb-of-annulment":{"chaosEquivalent":10,"currencyTypeName":"Orb of Annulment","detailsId":"orb-of-annulment"},"artificers-orb":{"chaosEquivalent":0.3846153846153846,"currencyTypeName":"Artificer\'s Orb","detailsId":"artificers-orb"},"orb-of-augmentation":{"chaosEquivalent":0.016666666666666666,"currencyTypeName":"Orb of Augmentation","detailsId":"orb-of-augmentation"},"glassblowers-bauble":{"chaosEquivalent":0.8333333333333334,"currencyTypeName":"Glassblower\'s Bauble","detailsId":"glassblowers-bauble"},"orb-of-chance":{"chaosEquivalent":5,"currencyTypeName":"Orb of Chance","detailsId":"orb-of-chance"},"chaos-orb":{"chaosEquivalent":3.9000000001560005,"currencyTypeName":"Chaos Orb","detailsId":"chaos-orb"},"divine-orb":{"chaosEquivalent":188.9999996787,"currencyTypeName":"Divine Orb","detailsId":"divine-orb"},"arcanists-etcher":{"chaosEquivalent":0.3333333333333333,"currencyTypeName":"Arcanist\'s Etcher","detailsId":"arcanists-etcher"},"exalted-orb":{"chaosEquivalent":1,"currencyTypeName":"Exalted Orb","detailsId":"exalted-orb"},"gemcutters-prism":{"chaosEquivalent":1.450000000029,"currencyTypeName":"Gemcutter\'s Prism","detailsId":"gemcutters-prism"},"mirror-of-kalandra":{"chaosEquivalent":30000.030000029998,"currencyTypeName":"Mirror of Kalandra","detailsId":"mirror-of-kalandra"},"regal-orb":{"chaosEquivalent":0.07692307692307693,"currencyTypeName":"Regal Orb","detailsId":"regal-orb"},"armourers-scrap":{"chaosEquivalent":0.5,"currencyTypeName":"Armourer\'s Scrap","detailsId":"armourers-scrap"},"orb-of-transmutation":{"chaosEquivalent":0.01818181818181818,"currencyTypeName":"Orb of Transmutation","detailsId":"orb-of-transmutation"},"vaal-orb":{"chaosEquivalent":0.16666666666666666,"currencyTypeName":"Vaal Orb","detailsId":"vaal-orb"},"blacksmiths-whetstone":{"chaosEquivalent":0.5,"currencyTypeName":"Blacksmith\'s Whetstone","detailsId":"blacksmiths-whetstone"},"scroll-of-wisdom":{"chaosEquivalent":0.9000000000089999,"currencyTypeName":"Scroll of Wisdom","detailsId":"scroll-of-wisdom"}},"lines":[{"chaosEquivalent":30000.030000029998,"currencyTypeName":"Mirror of Kalandra","detailsId":"mirror-of-kalandra"},{"chaosEquivalent":188.9999996787,"currencyTypeName":"Divine Orb","detailsId":"divine-orb"},{"chaosEquivalent":10,"currencyTypeName":"Orb of Annulment","detailsId":"orb-of-annulment"},{"chaosEquivalent":5,"currencyTypeName":"Orb of Chance","detailsId":"orb-of-chance"},{"chaosEquivalent":3.9000000001560005,"currencyTypeName":"Chaos Orb","detailsId":"chaos-orb"},{"chaosEquivalent":1.450000000029,"currencyTypeName":"Gemcutter\'s Prism","detailsId":"gemcutters-prism"},{"chaosEquivalent":1,"currencyTypeName":"Exalted Orb","detailsId":"exalted-orb"},{"chaosEquivalent":0.9000000000089999,"currencyTypeName":"Scroll of Wisdom","detailsId":"scroll-of-wisdom"},{"chaosEquivalent":0.8333333333333334,"currencyTypeName":"Glassblower\'s Bauble","detailsId":"glassblowers-bauble"},{"chaosEquivalent":0.5,"currencyTypeName":"Armourer\'s Scrap","detailsId":"armourers-scrap"},{"chaosEquivalent":0.5,"currencyTypeName":"Blacksmith\'s Whetstone","detailsId":"blacksmiths-whetstone"},{"chaosEquivalent":0.3846153846153846,"currencyTypeName":"Artificer\'s Orb","detailsId":"artificers-orb"},{"chaosEquivalent":0.3508771929824561,"currencyTypeName":"Orb of Alchemy","detailsId":"orb-of-alchemy"},{"chaosEquivalent":0.3333333333333333,"currencyTypeName":"Arcanist\'s Etcher","detailsId":"arcanists-etcher"},{"chaosEquivalent":0.16666666666666666,"currencyTypeName":"Vaal Orb","detailsId":"vaal-orb"},{"chaosEquivalent":0.07692307692307693,"currencyTypeName":"Regal Orb","detailsId":"regal-orb"},{"chaosEquivalent":0.01818181818181818,"currencyTypeName":"Orb of Transmutation","detailsId":"orb-of-transmutation"},{"chaosEquivalent":0.016666666666666666,"currencyTypeName":"Orb of Augmentation","detailsId":"orb-of-augmentation"}],"currencyDetails":[{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlVG9SYXJlIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/9b80b44821/CurrencyUpgradeToRare.png","id":0,"name":"Orb of Alchemy","tradeId":"alch"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQW5udWxsT3JiIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/2daba8ccca/AnnullOrb.png","id":1,"name":"Orb of Annulment","tradeId":"annul"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRFcXVpcG1lbnRTb2NrZXQiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/5131fd4774/CurrencyAddEquipmentSocket.png","id":2,"name":"Artificer\'s Orb","tradeId":"artificers"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRNb2RUb01hZ2ljIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/c8ad0ddc84/CurrencyAddModToMagic.png","id":3,"name":"Orb of Augmentation","tradeId":"aug"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lGbGFza1F1YWxpdHkiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/1cec279e01/CurrencyFlaskQuality.png","id":4,"name":"Glassblower\'s Bauble","tradeId":"bauble"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlVG9VbmlxdWUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/93c6cc8d5b/CurrencyUpgradeToUnique.png","id":5,"name":"Orb of Chance","tradeId":"chance"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lSZXJvbGxSYXJlIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/c0ca392a78/CurrencyRerollRare.png","id":6,"name":"Chaos Orb","tradeId":"chaos"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lNb2RWYWx1ZXMiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/2986e220b3/CurrencyModValues.png","id":7,"name":"Divine Orb","tradeId":"divine"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lXZWFwb25NYWdpY1F1YWxpdHkiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/516e8f1131/CurrencyWeaponMagicQuality.png","id":8,"name":"Arcanist\'s Etcher","tradeId":"etcher"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRNb2RUb1JhcmUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/ad7c366789/CurrencyAddModToRare.png","id":9,"name":"Exalted Orb","tradeId":"exalted"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lHZW1RdWFsaXR5Iiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/f4bace18d7/CurrencyGemQuality.png","id":10,"name":"Gemcutter\'s Prism","tradeId":"gcp"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lEdXBsaWNhdGUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/26bc31680e/CurrencyDuplicate.png","id":11,"name":"Mirror of Kalandra","tradeId":"mirror"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlTWFnaWNUb1JhcmUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/e8fb148e80/CurrencyUpgradeMagicToRare.png","id":12,"name":"Regal Orb","tradeId":"regal"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBcm1vdXJRdWFsaXR5Iiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/d5868f596d/CurrencyArmourQuality.png","id":13,"name":"Armourer\'s Scrap","tradeId":"scrap"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lVcGdyYWRlVG9NYWdpYyIsInNjYWxlIjoxLCJyZWFsbSI6InBvZTIifV0/2f8e1ff9f8/CurrencyUpgradeToMagic.png","id":14,"name":"Orb of Transmutation","tradeId":"transmute"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lWYWFsIiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/72bc84396c/CurrencyVaal.png","id":15,"name":"Vaal Orb","tradeId":"vaal"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lXZWFwb25RdWFsaXR5Iiwic2NhbGUiOjEsInJlYWxtIjoicG9lMiJ9XQ/18715ea7be/CurrencyWeaponQuality.png","id":16,"name":"Blacksmith\'s Whetstone","tradeId":"whetstone"},{"icon":"https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lJZGVudGlmaWNhdGlvbiIsInNjYWxlIjoxLCJyZWFsbSI6InBvZTIifV0/884f7bc58b/CurrencyIdentification.png","id":17,"name":"Scroll of Wisdom","tradeId":"wisdom"}],"updated":1737725366755}');
   var DEBUG = false;
   
   var DELAY = 0;
+  var poe2 = isPoe2(window.location);
+  var currFailed = false;
 
   var fontsCSS = GM_getResourceText ("fontsCSS");
   GM_addStyle (fontsCSS);
-  GM_addStyle(`.gs-style-enabler .gs-frame,.gs-style-enabler .gs-style{background-color:#e8eff2;border:1px dashed #111;border-radius:5px;padding:5px}.gs-style-enabler .gs-style{background-color:#e8eff2;color:#222;padding:1px 2px}.gs-style-enabler .gs-style a{color:#09c;text-decoration:underline dashed}.gs-style-enabler .gs-style.gs-warning{color:#856404;background-color:#fff3cd;border-color:#856404}.gs-style-enabler .gs-style-light{font-size:.8em;font-style:italic;opacity:.9;background-color:#fff;line-height:1.2em}.gs-style-enabler .gs-style-light.gs-style{padding:1px 5px}.gs-style a,a.gs-style{cursor:pointer}.gs-style.gs-button{margin-right:5px;padding:2px 5px}body.frame-setting-frame{background-color:#e8eff2}.gs-clickable,a i.fas{cursor:pointer}.gs-frame{width:90%;min-height:300px;max-width:900px;height:85%;position:fixed;left:50%;transform:translateX(-50%);top:7.5%;z-index:100001}.gs-backdrop{width:100%;min-height:300px;height:100%;position:fixed;left:0;top:0;z-index:100000;background:rgba(255,255,255,.3)}.hide{display:none}.nowrap{white-space:nowrap}.gs-pull-right{float:right}.gs-pull-left{float:left}.tippy-content a{color:#222}.patreon-button img{height:47px;border-radius:1.5rem}.paypal-form{padding-bottom:0;margin-bottom:-6px}#saved-alert{position:fixed;z-index:0;padding-left:0;padding-right:30px}.modal-dialog.modal-xl{max-width:90%}.gs-loading{width:300px;height:300px;position:fixed;left:50%;top:50%;z-index:100001;transform:translateX(-50%) translateY(-50%)}@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}.gs-loading-spinner{width:30px;height:30px;position:fixed;left:135px;top:135px;z-index:100001;-webkit-animation-duration:.75s;-moz-animation-duration:.75s;animation-duration:.75s;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-iteration-count:infinite;-webkit-animation-name:rotate-forever;-moz-animation-name:rotate-forever;animation-name:rotate-forever;-webkit-animation-timing-function:linear;-moz-animation-timing-function:linear;animation-timing-function:linear;border:8px solid #222;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;display:inline-block}.gs-loading-spinner.gs-loaded-half{border-right-color:#222}.gs-loading-spinner.gs-loaded-three-quarters{border-right-color:#222;border-bottom-color:#222}.gs-loading-spinner.gs-loaded-full{border-right-color:#222;border-bottom-color:#222;border-left-color:#222}.gs-loading-counter,.gs-loading-title{position:fixed;width:296px;padding:0 5px;text-align:center;font-weight:700;font-style:italic}.gs-loading-title{top:10px}.gs-loading-counter{bottom:10px}.gs-removable:hover{text-decoration:line-through}.gs-badge-with-icon i{margin-left:4px}.gs-badge-with-icon:not(:hover) i.gs-clickable{color:#6c757d!important}`);
-  GM_addStyle(`body,html{height:100%}.currencyClicked{font-style:italic}.item .real-sort:hover{background:#000}.grouped-only,.proplist li.grouped-only{display:none}.grouped .grouped-only,.grouped .proplist li.grouped-only{display:inline}.marg-b-5{margin-bottom:5px}.marg-l-5{margin-left:5px}.marg-r-5{margin-right:5px}.marg-lr-8{margin-left:8px;margin-right:8px}.title a.gs-style{padding:3px 5px;font-size:12px;line-height:12px;top:-6px;position:relative}.chaosEquiv,.gs-item-handle{margin-left:5px;padding:1px 2px;border:1px solid #fff;border-radius:5px;white-space:nowrap}.grouped .resultset .row.gs-group-member{display:none}.gs-style-enabler .title a.gs-style{color:#222}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle,.gs-style-enabler .tippy-backdrop{background-color:#e8eff2;border:1px dashed #111;border-radius:5px}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle,.gs-style-enabler .tippy-content{background-color:#e8eff2;color:#222}.gs-style-enabler a.gs-style:focus,.gs-style-enabler a.gs-style:hover{color:#222}.gs-style-enabler .gs-style{padding:1px 2px}.gs-style-enabler .gs-style.wiki-link{padding:0 2px}.gs-style-enabler .gs-style,.gs-style-enabler .tippy-content{font-family:Roboto,sans-serif}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle{font-family:Oswald,sans-serif}.gs-style-enabler .item .real-sort.gs-style:hover{color:#fff}.gs-style-enabler tr.cell-second td.gs-style,.gs-style-enabler tr.cell-second th.gs-style{background-color:#e8eff2}.gs-style-enabler tr.cell-second th.gs-style{border-bottom:none;border-bottom-left-radius:0;border-bottom-right-radius:0}.gs-style-enabler tr.cell-second td.gs-style{border-top:none;border-top-left-radius:0;border-top-right-radius:0}.gs-style-enabler .hide{display:none}.gs-style-enabler .nowrap{white-space:nowrap}.gs-style-enabler .tippy-content a{color:#222}.gs-style-enabler .form-group.disabled label{color:#6c757d}.gs-load.gs-style,.gs-map-selector.gs-style,.gs-multi.gs-style,.gs-offer-map-selector.gs-style,.gs-save.gs-style{margin-left:7px}.live-search-box.alert-box .gs-load.gs-style,.live-search-box.alert-box .gs-multi.gs-style,.live-search-box.alert-box .gs-save.gs-style{margin-left:0;margin-right:7px}.gs-save.gs-style{padding:0 7px}.gs-load.gs-style{padding:0 5px}.gs-multi.gs-style{padding:0 6px}.gs-map-selector.gs-style,.gs-offer-map-selector.gs-style{padding:0 7px}.tippy-content a{color:#fff}.currencySettings .itemSettingsOnly,.itemSettings .currencySettingsOnly{display:none}.curr-table img{height:22px}.poeOffSite .alert-box.live-search{margin:3px 8px;font-weight:700}.poeOffSite.gs-style-enabler #trade .gs-style a,.poeOffSite.gs-style-enabler #trade .gs-style-light a{color:#09c}.poeOffSite.gs-style-enabler .gs-style-light{font-size:.9em}.poeOffSite.gs-style-enabler div.gs-wrapper{line-height:32px}.poeOffSite.gs-search-tab .gs-multi.hide{display:inline!important}.poeOffSite.gs-exchange-tab .copied{font-style:italic}.poeOffSite.gs-exchange-tab .copied:after{content:' copied'}.poeOffSite #trade .results .search-bar .details .price .gs-wrapper img,.poeOffSite .results #trade .search-bar .details .price .gs-wrapper img,.poeOffSite .results .row .details .price .gs-wrapper img{width:22px;height:22px;vertical-align:sub}.poeOffSite .linkBack{min-width:359px}.poeOffSite .nav-tabs .pteSettings{height:32px;float:right}.poeOffSite .chaosEquiv,.poeOffSite .gs-item-handle{padding:3px 7px;cursor:pointer}.poeOffSite .tippy-content{font-size:1.6em}.poeOffSite .tippy-content .currency-image img{width:22px}.poeOffSite .gs-load.gs-style,.poeOffSite .gs-multi.gs-style,.poeOffSite .gs-save.gs-style{cursor:pointer}.poeOffSite .controls .gs-load,.poeOffSite .controls .gs-multi,.poeOffSite .controls .gs-save{margin-left:0;margin-right:5px}.poeOffSite #trade .controls.saveManager .controls-left{width:25%!important}.poeOffSite #trade .controls.saveManager .controls-right{width:45%!important}.poeOffSite #trade .controls.saveManager .controls-center{width:30%!important}@media (max-width:800px){.poeOffSite #trade .controls.saveManager .controls-left{width:50%!important}.poeOffSite #trade .controls.saveManager .controls-right{width:100%!important}.poeOffSite #trade .controls.saveManager .controls-center{width:50%!important}}.poeOffSite .gs-wikiLink{float:right;position:absolute}.alert-box.live-search{padding:3px 5px}#ms-console-tip{text-align:left}.gs-danger{color:#dc3545!important}.gs-info{color:#17a2b8!important}.gs-warning{color:#856404!important}.gs-success{color:#28a745!important}.gs-quote{color:#6c757d!important;font-style:italic}.middle-list{padding-top:90px;padding-bottom:90px}.frame-load-frame .fixed-bottom,.frame-load-frame .fixed-top,.frame-multi-frame .fixed-bottom,.frame-multi-frame .fixed-top{background:rgba(255,255,255,.95)}.frame-load-frame .table-responsive,.frame-multi-frame .table-responsive{overflow-x:visible}.gs-check-toggler .fa-check-square{display:none}.gs-check-toggler .fa-square{display:inline-block}.gs-check-toggler.gs-checked .fa-check-square{display:inline-block}.gs-check-toggler.gs-checked .fa-square{display:none}.gs-finder-results{min-height:100px;padding-top:11px}.gs-style-enabler #trade a.gs-style{background-color:#e8eff2;color:#222}`);
-  GM_addStyle(`.colorPicker{width:16px;height:16px;position:relative;clear:both;margin:0}.colorPicker .track{background:#efefef url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png) no-repeat 50% 50%;background-image:url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png);height:150px;width:150px;padding:0;position:absolute;cursor:crosshair;float:left;left:-67px;top:-67px;display:none;border:1px solid #ccc;z-index:10;-webkit-border-radius:150px;-moz-border-radius:150px;border-radius:150px}.colorPicker .color{width:16px;height:16px;padding:0;border:1px solid #ccc;display:block;position:relative;z-index:11;background-color:#efefef;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px;cursor:pointer}.colorPicker .colorInner{width:14px;height:14px;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px}.colorPicker .dropdown{list-style:none;display:none;width:27px;position:absolute;top:28px;border:1px solid #ccc;left:0;z-index:1000}.colorPicker .dropdown li{height:25px;cursor:pointer}`);
+  GM_addStyle(`.gs-style-enabler .gs-frame,.gs-style-enabler .gs-style{background-color:#e8eff2;border:1px dashed #111;border-radius:5px;padding:5px}.gs-style-enabler .gs-style{background-color:#e8eff2;color:#222;padding:1px 2px}.gs-style-enabler .gs-style a{color:#09c;text-decoration:underline dashed}.gs-style-enabler .gs-style.gs-warning{color:#856404;background-color:#fff3cd;border-color:#856404}.gs-style-enabler .gs-style-light{font-size:.8em;font-style:italic;opacity:.9;background-color:#fff;line-height:1.2em}.gs-style-enabler .gs-style-light.gs-style{padding:1px 5px}.gs-style a,a.gs-style{cursor:pointer}.gs-style.gs-button{margin-right:5px;padding:2px 5px}body.frame-setting-frame{background-color:#e8eff2}.gs-clickable,a i.fas{cursor:pointer}.gs-frame{width:90%;min-height:300px;max-width:900px;height:85%;position:fixed;left:50%;transform:translateX(-50%);top:7.5%;z-index:100001}.gs-backdrop,.gs-framed-backdrop{width:100%;min-height:300px;height:100%;position:fixed;left:0;top:0;z-index:100000;background:rgba(255,255,255,.3)}.gs-framed-backdrop{z-index:100010;background:rgba(255,255,255,.7)}.hide{display:none}.nowrap{white-space:nowrap}.gs-pull-right{float:right}.gs-pull-left{float:left}.tippy-content a{color:#222}.patreon-button img{height:47px;border-radius:1.5rem}.paypal-form{padding-bottom:0;margin-bottom:-6px}#saved-alert{position:fixed;z-index:0;padding-left:0;padding-right:30px}.modal-dialog.modal-xl{max-width:90%}.gs-loading{width:300px;height:300px;position:fixed;left:50%;top:50%;z-index:100001;transform:translateX(-50%) translateY(-50%)}@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}.gs-loading-spinner{width:30px;height:30px;position:fixed;left:135px;top:135px;z-index:100001;-webkit-animation-duration:.75s;-moz-animation-duration:.75s;animation-duration:.75s;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-iteration-count:infinite;-webkit-animation-name:rotate-forever;-moz-animation-name:rotate-forever;animation-name:rotate-forever;-webkit-animation-timing-function:linear;-moz-animation-timing-function:linear;animation-timing-function:linear;border:8px solid #222;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;display:inline-block}.gs-loading-spinner.gs-loaded-half{border-right-color:#222}.gs-loading-spinner.gs-loaded-three-quarters{border-right-color:#222;border-bottom-color:#222}.gs-loading-spinner.gs-loaded-full{border-right-color:#222;border-bottom-color:#222;border-left-color:#222}.gs-loading-counter,.gs-loading-title{position:fixed;width:296px;padding:0 5px;text-align:center;font-weight:700;font-style:italic}.gs-loading-title{top:10px}.gs-loading-counter{bottom:10px}.gs-framed-style{color:#222;border:1px solid #000;border-radius:5px;background-color:#fff}.gs-framed-style.gs-loading{width:200px;height:200px}.gs-framed-style .gs-loading-spinner{left:85px;top:85px}.gs-framed-style .gs-loading-counter,.gs-framed-style .gs-loading-title{width:196px}.gs-framed-style .gs-loading-spinner{border-width:4px}.gs-removable:hover{text-decoration:line-through}.gs-badge-with-icon i{margin-left:4px}.gs-badge-with-icon:not(:hover) i.gs-clickable{color:#6c757d!important}.gs-bts-spinner{position:absolute;width:100%;top:50%;margin-left:-4em}.dropdown-menu.open{display:block}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover{width:9px;height:9px;padding:0;background-size:100%}.form-select-xs~.select2-container--bootstrap-5 .select2-selection__choice{height:min-content}.select2-selection__choice__display{white-space:nowrap}.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover{width:12px;height:12px;padding:0;background-size:100%}.select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover {
+  width: 9px;
+  height: 9px;
+  padding: 0px;
+  background-size: 100%;
+}
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection__choice {
+  height: min-content;
+}
+.select2-selection__choice__display {
+  white-space: nowrap;
+}
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover {
+  width: 12px;
+  height: 12px;
+  padding: 0px;
+  background-size: 100%;
+}
+`);
+  GM_addStyle(`html,
+body {
+  height: 100%;
+}
+.currencyClicked {
+  font-style: italic;
+}
+.item .real-sort:hover {
+  background: black;
+}
+.proplist li.grouped-only,
+.grouped-only {
+  display: none;
+}
+.grouped .proplist li.grouped-only,
+.grouped .grouped-only {
+  display: inline;
+}
+.marg-b-5 {
+  margin-bottom: 5px;
+}
+.marg-l-5 {
+  margin-left: 5px;
+}
+.marg-r-5 {
+  margin-right: 5px;
+}
+.marg-lr-8 {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.title a.gs-style {
+  padding: 3px 5px;
+  font-size: 12px;
+  line-height: 12px;
+  top: -6px;
+  position: relative;
+}
+.chaosEquiv,
+.gs-item-handle {
+  margin-left: 5px;
+  padding: 1px 2px;
+  border: 1px solid white;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.grouped .resultset .row.gs-group-member {
+  display: none;
+}
+.gs-style-enabler .title a.gs-style {
+  color: #222;
+}
+.gs-style-enabler .tippy-backdrop,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  border: 1px dashed #111;
+  border-radius: 5px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  color: #222;
+}
+.gs-style-enabler a.gs-style:hover,
+.gs-style-enabler a.gs-style:focus {
+  color: #222;
+}
+.gs-style-enabler .gs-style {
+  padding: 2px 5px;
+}
+.gs-style-enabler .gs-style.wiki-link {
+  padding: 2px 9px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .gs-style,
+.gs-style-enabler .gs-framed-style {
+  font-family: 'Roboto', sans-serif;
+}
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  font-family: 'Oswald', sans-serif;
+}
+.gs-style-enabler .item .real-sort.gs-style:hover {
+  color: white;
+}
+.gs-style-enabler tr.cell-second th.gs-style,
+.gs-style-enabler tr.cell-second td.gs-style {
+  background-color: #e8eff2;
+}
+.gs-style-enabler tr.cell-second th.gs-style {
+  border-bottom: none;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.gs-style-enabler tr.cell-second td.gs-style {
+  border-top: none;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+.gs-style-enabler .hide {
+  display: none;
+}
+.gs-style-enabler .nowrap {
+  white-space: nowrap;
+}
+.gs-style-enabler .tippy-content a {
+  color: #222;
+}
+.gs-style-enabler .form-group.disabled label {
+  color: #6c757d;
+}
+.gs-trigger.gs-style {
+  margin-left: 7px;
+}
+.live-search-box.alert-box .gs-trigger.gs-style {
+  margin-left: 0px;
+  margin-right: 7px;
+}
+.filter-group-header .gs-trigger.gs-style {
+  font-size: 10px;
+  margin-left: 3px;
+  padding: 2px 5px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.gs-save.gs-style {
+  padding: 0px 7px;
+}
+.gs-load.gs-style {
+  padding: 0px 5px;
+}
+.gs-multi.gs-style {
+  padding: 0px 6px;
+}
+.gs-map-selector.gs-style,
+.gs-offer-map-selector.gs-style {
+  padding: 0px 7px;
+}
+.tippy-content a {
+  color: white;
+}
+.itemSettings .currencySettingsOnly,
+.currencySettings .itemSettingsOnly {
+  display: none;
+}
+.curr-table img {
+  height: 22px;
+}
+.poeOffSite .alert-box.live-search {
+  margin: 3px 8px;
+  font-weight: bold;
+}
+.poeOffSite.gs-style-enabler #trade .gs-style-light a,
+.poeOffSite.gs-style-enabler #trade .gs-style a {
+  color: #09c;
+}
+.poeOffSite.gs-style-enabler .gs-style-light {
+  font-size: 0.9em;
+}
+.poeOffSite.gs-style-enabler div.gs-wrapper {
+  line-height: 32px;
+}
+.poeOffSite.gs-style-enabler .input-group-btn .gs-style {
+  font-size: 10px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.poeOffSite.gs-search-tab .gs-multi.hide {
+  display: inline !important;
+}
+.poeOffSite.gs-exchange-tab .copied {
+  font-style: italic;
+}
+.poeOffSite.gs-exchange-tab .copied:after {
+  content: ' copied';
+}
+.poeOffSite .results .row .details .price .gs-wrapper img,
+.poeOffSite .results #trade .search-bar .details .price .gs-wrapper img,
+.poeOffSite #trade .results .search-bar .details .price .gs-wrapper img {
+  width: 22px;
+  height: 22px;
+  vertical-align: sub;
+}
+.poeOffSite .linkBack {
+  min-width: 359px;
+}
+.poeOffSite .nav-tabs .pteSettings {
+  height: 32px;
+  float: right;
+}
+.poeOffSite .chaosEquiv,
+.poeOffSite .gs-item-handle {
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.poeOffSite .tippy-content {
+  font-size: 1.6em;
+}
+.poeOffSite .tippy-content .currency-image img {
+  width: 22px;
+}
+.poeOffSite .gs-save.gs-style,
+.poeOffSite .gs-load.gs-style,
+.poeOffSite .gs-multi.gs-style {
+  cursor: pointer;
+}
+.poeOffSite .controls .gs-save,
+.poeOffSite .controls .gs-load,
+.poeOffSite .controls .gs-multi {
+  margin-left: 0px;
+  margin-right: 5px;
+}
+.poeOffSite #trade .controls.saveManager .controls-left {
+  width: 25% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-right {
+  width: 45% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-center {
+  width: 30% !important;
+}
+@media (max-width: 800px) {
+  .poeOffSite #trade .controls.saveManager .controls-left {
+    width: 50% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-right {
+    width: 100% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-center {
+    width: 50% !important;
+  }
+}
+.poeOffSite .gs-wikiLink {
+  float: right;
+  position: absolute;
+}
+.alert-box.live-search {
+  padding: 3px 5px;
+}
+#ms-console-tip {
+  text-align: left;
+}
+.gs-danger {
+  color: #dc3545 !important;
+}
+.gs-info {
+  color: #17a2b8 !important;
+}
+.gs-warning {
+  color: #856404 !important;
+}
+.gs-success {
+  color: #28a745 !important;
+}
+.gs-quote {
+  color: #6c757d !important;
+  font-style: italic;
+}
+.middle-list {
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+.frame-multi-frame .fixed-top,
+.frame-load-frame .fixed-top,
+.frame-multi-frame .fixed-bottom,
+.frame-load-frame .fixed-bottom {
+  background: rgba(255, 255, 255, 0.95);
+}
+.frame-multi-frame .table-responsive,
+.frame-load-frame .table-responsive {
+  overflow-x: visible;
+}
+.frame-multi-frame .table-responsive .col-md-1,
+.frame-load-frame .table-responsive .col-md-1 {
+  width: 8.33%;
+}
+.frame-multi-frame .table-responsive .col-md-2,
+.frame-load-frame .table-responsive .col-md-2 {
+  width: 16.66%;
+}
+.frame-multi-frame .table-responsive .col-md-3,
+.frame-load-frame .table-responsive .col-md-3 {
+  width: 25%;
+}
+.frame-multi-frame .table-responsive .col-md-4,
+.frame-load-frame .table-responsive .col-md-4 {
+  width: 33.33%;
+}
+.frame-multi-frame .table-responsive .col-md-5,
+.frame-load-frame .table-responsive .col-md-5 {
+  width: 41.66%;
+}
+.frame-multi-frame .table-responsive .col-md-6,
+.frame-load-frame .table-responsive .col-md-6 {
+  width: 50%;
+}
+.frame-multi-frame .table-responsive .col-md-7,
+.frame-load-frame .table-responsive .col-md-7 {
+  width: 58.33%;
+}
+.frame-multi-frame .table-responsive .col-md-8,
+.frame-load-frame .table-responsive .col-md-8 {
+  width: 66.66%;
+}
+.frame-multi-frame .table-responsive .col-md-9,
+.frame-load-frame .table-responsive .col-md-9 {
+  width: 75%;
+}
+.frame-multi-frame .table-responsive .col-md-10,
+.frame-load-frame .table-responsive .col-md-10 {
+  width: 83.33%;
+}
+.frame-multi-frame .table-responsive .col-md-11,
+.frame-load-frame .table-responsive .col-md-11 {
+  width: 91.66%;
+}
+.poe1only,
+.poe2only {
+  display: none;
+}
+.poe1 .poe1only {
+  display: initial;
+}
+.poe2 .poe2only {
+  display: initial;
+}
+.gs-check-toggler .fa-check-square {
+  display: none;
+}
+.gs-check-toggler .fa-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-check-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-square {
+  display: none;
+}
+.gs-finder-results {
+  min-height: 100px;
+  padding-top: 11px;
+}
+.gs-style-enabler #trade a.gs-style {
+  background-color: #e8eff2;
+  color: #222;
+}
+.frame-mods-selector-frame .affixRow .affixTier,
+.frame-mods-selector-frame .tier-toggler .fa-caret-down {
+  display: none;
+}
+.frame-mods-selector-frame a.tier-toggler {
+  text-decoration: none;
+}
+.frame-mods-selector-frame .affixRow .affixTier {
+  font-size: small;
+}
+.frame-mods-selector-frame .affix.container {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.frame-mods-selector-frame .affixTier:hover,
+.frame-mods-selector-frame .affixName:hover {
+  background-color: rgba(0, 0, 0, 0.075);
+}
+.frame-mods-selector-frame .affixTier.bg-info-subtle:hover,
+.frame-mods-selector-frame .affixName.bg-info-subtle:hover {
+  background-color: rgba(190, 229, 235, 0.5);
+}
+.frame-mods-selector-frame .affixTier {
+  border-bottom: 1px solid #ccc;
+}
+.frame-mods-selector-frame .affixRow {
+  border-bottom: 1px solid #000;
+}
+@media (min-width: 768px) {
+  .frame-mods-selector-frame .middle-list {
+    padding-top: 124px;
+    padding-bottom: 60px;
+  }
+}
+.frame-mods-selector-frame .middle-list {
+  padding-top: 160px;
+  padding-bottom: 60px;
+}
+.frame-mods-selector-frame .show-tiers .affixTier {
+  display: flex;
+}
+.frame-mods-selector-frame .show-tiers .affixTier.hide {
+  display: none;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-down {
+  display: block;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-right {
+  display: none;
+}
+.frame-mods-selector-frame .tier-toggler i.fas {
+  font-size: 22px;
+}
+.frame-mods-selector-frame .fixed-bottom,
+.frame-mods-selector-frame .fixed-top {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+.frame-mods-selector-frame .filterable .select2 .select2-selection {
+  display: flex;
+  height: 62px;
+  max-height: 62px;
+  overflow: hidden;
+}
+.frame-mods-selector-frame .affix-counter {
+  font-size: smaller;
+  font-weight: normal;
+}
+.frame-mods-selector-frame .affix-counter::before {
+  content: "(";
+}
+.frame-mods-selector-frame .affix-counter::after {
+  content: ")";
+}
+`);
+  GM_addStyle(`.colorPicker{width:16px;height:16px;position:relative;clear:both;margin:0}.colorPicker .track{background:#efefef url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png) no-repeat 50% 50%;background-image:url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png);height:150px;width:150px;padding:0;position:absolute;cursor:crosshair;float:left;left:-67px;top:-67px;display:none;border:1px solid #ccc;z-index:10;-webkit-border-radius:150px;-moz-border-radius:150px;border-radius:150px}.colorPicker .color{width:16px;height:16px;padding:0;border:1px solid #ccc;display:block;position:relative;z-index:11;background-color:#efefef;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px;cursor:pointer}.colorPicker .colorInner{width:14px;height:14px;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px}.colorPicker .dropdown{list-style:none;display:none;width:27px;position:absolute;top:28px;border:1px solid #ccc;left:0;z-index:1000}.colorPicker .dropdown li{height:25px;cursor:pointer}-radius: 27px;
+}
+.colorPicker .dropdown {
+  list-style: none;
+  display: none;
+  width: 27px;
+  position: absolute;
+  top: 28px;
+  border: 1px solid #ccc;
+  left: 0;
+  z-index: 1000;
+}
+.colorPicker .dropdown li {
+  height: 25px;
+  cursor: pointer;
+}
+`);
 
   var ITEM_SEARCH_CONTAINER = '#search-results-first', ITEM_SEARCH_SELECTOR = 'tbody.item', CURR_SEARCH_CONTAINER = '#content', CURR_SEARCH_SELECTOR = 'div.displayoffer';
-var resources = [], cssUrls = ["https://use.fontawesome.com/releases/v5.6.0/css/all.css"], jsUrls = [];
+var resources = [], cssUrls = ["https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.6.0/css/all.min.css"], jsUrls = [
 /*"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js",
 "https://unpkg.com/tippy.js@3/dist/tippy.all.min.js",
 "https://code.jquery.com/jquery-1.11.3.min.js",
 "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js",
-"https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"*/
+"https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js",
+"https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"*/
+];
 var settingsIcon;
 
 var addSettingsIconAndCommonInit = function(loc) {
@@ -59,8 +521,8 @@ var addSettingsIconAndCommonInit = function(loc) {
 
 var shortDescriptionParagraph = /* html */`
 <p class="lead">
-  <strong>Adds tons of usefull features to pathofexile.com/trade, from a very easy to use save manager to save and laod your searches and even live search them all in one page, to an auto sort by real currency values (from poe.ninja), passing from gems max quality cost and more. I have some other very good idea for features to add, I'll gladly push them forward if I see people start using this.</strong>
-  <br /><em><a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer">github page</a></em>
+  <strong>Enhance your Path of Exile and Path of Exile 2 trading experience with powerful QoL features! An intuitive search save manager to save and load full searches or individual filter groups effortlessly. A new affix selector that dynamically displays only the mods available for the selected item type. Automatic sorting by real currency values (via poe.ninja) for better price comparisons. Quickly check gem max-quality costs and other useful enhancements. More features are on the way—if players find this useful, I'll keep expanding it!</strong>
+  <br /><em><a href="https://github.com/ghostscript3r/poe-trade-official-site-enhancer" target="_blank">github page</a></em>
 </p>
 `
 
@@ -68,10 +530,9 @@ var roadmapParagraph = /* html */`
 <div class="">
   <h3 class="">Roadmap</h3>
   <p class="lead">
-    I'd like to see some votes before starting on new features. I already put some ideas there, but I'd like to see more from you. If nothing appens there, the next thing will probably be a smart mod and ranges selector based on poe.affix values, because choosing a mod that gives no results because the mod for the type of item I'm searching is spelled slightly differente is one of the things I find more frustrating of this interface.
-    <br />
-    <br />
+    <p>I’m glad to see so many people interested in this script! While I’ve kept the <strong>feature voting system</strong> and <strong>GitHub issue tracking</strong>, I’ll be honest—I haven’t been great at keeping up with requests in the past, and with limited support, that’s unlikely to change.</p><p>For now, I’ll keep working on this at my own pace, mostly adding things I personally find useful. I have some cool ideas, but they’re probably a bit too ambitious for a one-person side project.</p><p>That said, if you have suggestions, feel free to drop them in! Just know that new features will happen <strong>if and when I have the time and motivation.</strong> Either way, I appreciate everyone who’s found this useful!</p>
     <a href="https://www.tricider.com/admin/36HWcTk5RhZ/DawSV0oQX7b" target="_blank">New features request and vote</a>
+    <br />
     <br />
     <a href="https://trello.com/b/x77l2HzX/poe-trade-enhancer" target="_blank">Project board</a>
   </p>
@@ -114,72 +575,991 @@ var repositoriesParagraph = /* html */`
 
 var ghostscripterParagraph = /* html */`
 <div class="">
-  <h2 class="">GhostScripter</h2>
-  <p>I started enhancing pages using Userscripts (Tampermonkey/Greasemonkey) for myself and some friends. I always found very frustrating when a site I use very often makes me click around for tasks that should be done with one click. And since I'm a web developer discovering that I could easily enhance all those sites has literally opened a new world to me.</p>
-  <p>First works where crude but very effective in solving minor problems and unusabilities of various sites and apps.</p>
-  <p>Now I decided to polish and publish the most usefull of them and start taking request on larger scale.</p>
-  <p>Basically I want to fight frustration, a big monster that permeates the internet.</p>
-  <p>Basically if there's a site or web application with some annoying behaviours (5 clicks when you would like to do just 1, that sort of things), <a href="https://www.tricider.com/admin/35BH7CcohrB/EFXf0Ei7SjR" target="_blank">try to ask for a new userscript here</a>. It might be much easier then you think. Obviously patron and supporters requests will "bear more weight"... I do not guarantee that if you donate I will answer your request ASAP. Many factors will determine what to do next, like complexity of the request, prioritization of bugfixes, personal life, etcetera... But I'm pretty sure that any supporter request will be given a lot of attention. For this reason if you are a patron you would probably do better by directly writing to me at <a href="mailto:ghostscript3r@gmail.com">ghostscript3r@gmail.com</a>.</p>
-  <p>For a list of all projects published or planned visit <a href="https://www.patreon.com/ghostscripter" target="_blank">my patreon page</a>.</p>
+<h3>GhostScripter</h3>
+
+<p>I started making <strong>Userscripts</strong> (Tampermonkey/Greasemonkey) to fix little annoyances on websites I use daily.
+You know the feeling—when a site makes you click five times for something that should take one?
+As a web developer, realizing I could <strong>just fix those frustrations</strong> was a game-changer.</p>
+
+<p>My first scripts were rough but effective, and over time, I polished some and decided to share them.
+While this project hasn’t gained much traction, I still enjoy tweaking things and making life a little easier where I can.</p>
+
+<p>If there’s a site or web app that drives you nuts, feel free to suggest a script—I can’t promise I’ll take every request,
+but if it’s simple and interesting, who knows? Supporters do get a little extra consideration, but there are no guarantees—this
+is still a side project, and life tends to get in the way!</p>
+
+<p>For a list of published or planned projects, check out my <strong><a href="https://www.patreon.com/ghostscripter" target="_blank">Patreon page</a></strong>.</p>
 </div>
 `
 var donateParagraph = /* html */`
 <p class="mt-3 mb-0 plr-1 text-center text-info font-italic">
-  If you like this script and wish it's kept working or wish new features to be added, consider contributing somehow.<br />
-  Consider that by nature UserScripts need maintenance. I will never have any control on how or when the site I'm modifing will change. I try to develop theese scripts as smart as possible so that if anything changes they at least don't make the original unusable, but as the site changes the script will need to adapt to continue working. So if you find this usefull and wish to continue using it, really consider supporting me. If no one will, I'm pretty sure I will abandon theese projects sooner or later, and after that it's only a matter of time before it stop working.<br />
-  If not with a donation you can contribute by reccomending it to your friends, or even just by requesting new features or scripts, that might in turn attract new users.<br />
-  Check my page on <a target="_top" href="https://www.patreon.com/ghostscripter">Patreon</a> and follow directions from there on how to request new features.
+  <p><strong>Enjoying the script? Buy me a beer! 🍻</strong></p>
+  <p>I'm updating this now because I'm loving <strong>Path of Exile 2</strong> and want the best trading experience for myself. If you find it useful too, consider <strong>tossing a coin my way</strong>—it helps keep it working longer.</p>
+  <p>That said, since there wasn’t much support in the past, I don’t expect to keep adding new features beyond what I personally need. But hey, if enough people start using it and showing support, who knows?</p>
+  <p>No pressure—if you like it, you can <strong>donate, spread the word, or just enjoy the script!</strong> Cheers! 😃</p>
 </p>
 `
 
 var frameTemplate = /* html */`
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald|Roboto" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.0/css/all.css" crossorigin="anonymous" />
-  <script>
-    var fr = document.getElementById('settings-frame');
-    var doc = document;
-    if (fr) doc = fr.document || fr.contentDocument || fr.contentWindow.document;
-    var scripts = [
-      // "https://code.jquery.com/jquery-1.11.3.min.js",
-      // "https://greasyfork.org/scripts/387585-jqueryeditable/code/jqueryeditable.js?version=717975",
-      // "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js",
-      // "https://unpkg.com/tippy.js@3/dist/tippy.all.min.js",
-      // "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.2.1/js/bootstrap.min.js"
-    ];
-    var i = 0;
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.6.0/css/all.min.css" crossorigin="anonymous" />
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://unpkg.com/tippy.js@3/dist/tippy.all.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
 
-    var writeScript = function() {
-      var s = doc.createElement("script");
-      s.type = "text/javascript";
-      s.src = scripts[i];
-      i++;
-      s.onload = loop;
-      doc.head.appendChild(s);
-    }
-    var loop = function() {
-      // console.log(window);
-      if (i < scripts.length) {
-        writeScript();
-      } else {
-        // setTimeout(function(){
-        //   console.log("END");
-        //   console.log(window);
-        //   console.log(typeof $().modal);
-        // }, 3000);
-      }
-    };
-    loop();
-  </script>
-  <style>.gs-style-enabler .gs-frame,.gs-style-enabler .gs-style{background-color:#e8eff2;border:1px dashed #111;border-radius:5px;padding:5px}.gs-style-enabler .gs-style{background-color:#e8eff2;color:#222;padding:1px 2px}.gs-style-enabler .gs-style a{color:#09c;text-decoration:underline dashed}.gs-style-enabler .gs-style.gs-warning{color:#856404;background-color:#fff3cd;border-color:#856404}.gs-style-enabler .gs-style-light{font-size:.8em;font-style:italic;opacity:.9;background-color:#fff;line-height:1.2em}.gs-style-enabler .gs-style-light.gs-style{padding:1px 5px}.gs-style a,a.gs-style{cursor:pointer}.gs-style.gs-button{margin-right:5px;padding:2px 5px}body.frame-setting-frame{background-color:#e8eff2}.gs-clickable,a i.fas{cursor:pointer}.gs-frame{width:90%;min-height:300px;max-width:900px;height:85%;position:fixed;left:50%;transform:translateX(-50%);top:7.5%;z-index:100001}.gs-backdrop{width:100%;min-height:300px;height:100%;position:fixed;left:0;top:0;z-index:100000;background:rgba(255,255,255,.3)}.hide{display:none}.nowrap{white-space:nowrap}.gs-pull-right{float:right}.gs-pull-left{float:left}.tippy-content a{color:#222}.patreon-button img{height:47px;border-radius:1.5rem}.paypal-form{padding-bottom:0;margin-bottom:-6px}#saved-alert{position:fixed;z-index:0;padding-left:0;padding-right:30px}.modal-dialog.modal-xl{max-width:90%}.gs-loading{width:300px;height:300px;position:fixed;left:50%;top:50%;z-index:100001;transform:translateX(-50%) translateY(-50%)}@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}.gs-loading-spinner{width:30px;height:30px;position:fixed;left:135px;top:135px;z-index:100001;-webkit-animation-duration:.75s;-moz-animation-duration:.75s;animation-duration:.75s;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-iteration-count:infinite;-webkit-animation-name:rotate-forever;-moz-animation-name:rotate-forever;animation-name:rotate-forever;-webkit-animation-timing-function:linear;-moz-animation-timing-function:linear;animation-timing-function:linear;border:8px solid #222;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;display:inline-block}.gs-loading-spinner.gs-loaded-half{border-right-color:#222}.gs-loading-spinner.gs-loaded-three-quarters{border-right-color:#222;border-bottom-color:#222}.gs-loading-spinner.gs-loaded-full{border-right-color:#222;border-bottom-color:#222;border-left-color:#222}.gs-loading-counter,.gs-loading-title{position:fixed;width:296px;padding:0 5px;text-align:center;font-weight:700;font-style:italic}.gs-loading-title{top:10px}.gs-loading-counter{bottom:10px}.gs-removable:hover{text-decoration:line-through}.gs-badge-with-icon i{margin-left:4px}.gs-badge-with-icon:not(:hover) i.gs-clickable{color:#6c757d!important}</style>
-  <style>body,html{height:100%}.currencyClicked{font-style:italic}.item .real-sort:hover{background:#000}.grouped-only,.proplist li.grouped-only{display:none}.grouped .grouped-only,.grouped .proplist li.grouped-only{display:inline}.marg-b-5{margin-bottom:5px}.marg-l-5{margin-left:5px}.marg-r-5{margin-right:5px}.marg-lr-8{margin-left:8px;margin-right:8px}.title a.gs-style{padding:3px 5px;font-size:12px;line-height:12px;top:-6px;position:relative}.chaosEquiv,.gs-item-handle{margin-left:5px;padding:1px 2px;border:1px solid #fff;border-radius:5px;white-space:nowrap}.grouped .resultset .row.gs-group-member{display:none}.gs-style-enabler .title a.gs-style{color:#222}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle,.gs-style-enabler .tippy-backdrop{background-color:#e8eff2;border:1px dashed #111;border-radius:5px}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle,.gs-style-enabler .tippy-content{background-color:#e8eff2;color:#222}.gs-style-enabler a.gs-style:focus,.gs-style-enabler a.gs-style:hover{color:#222}.gs-style-enabler .gs-style{padding:1px 2px}.gs-style-enabler .gs-style.wiki-link{padding:0 2px}.gs-style-enabler .gs-style,.gs-style-enabler .tippy-content{font-family:Roboto,sans-serif}.gs-style-enabler .chaosEquiv,.gs-style-enabler .gs-item-handle{font-family:Oswald,sans-serif}.gs-style-enabler .item .real-sort.gs-style:hover{color:#fff}.gs-style-enabler tr.cell-second td.gs-style,.gs-style-enabler tr.cell-second th.gs-style{background-color:#e8eff2}.gs-style-enabler tr.cell-second th.gs-style{border-bottom:none;border-bottom-left-radius:0;border-bottom-right-radius:0}.gs-style-enabler tr.cell-second td.gs-style{border-top:none;border-top-left-radius:0;border-top-right-radius:0}.gs-style-enabler .hide{display:none}.gs-style-enabler .nowrap{white-space:nowrap}.gs-style-enabler .tippy-content a{color:#222}.gs-style-enabler .form-group.disabled label{color:#6c757d}.gs-load.gs-style,.gs-map-selector.gs-style,.gs-multi.gs-style,.gs-offer-map-selector.gs-style,.gs-save.gs-style{margin-left:7px}.live-search-box.alert-box .gs-load.gs-style,.live-search-box.alert-box .gs-multi.gs-style,.live-search-box.alert-box .gs-save.gs-style{margin-left:0;margin-right:7px}.gs-save.gs-style{padding:0 7px}.gs-load.gs-style{padding:0 5px}.gs-multi.gs-style{padding:0 6px}.gs-map-selector.gs-style,.gs-offer-map-selector.gs-style{padding:0 7px}.tippy-content a{color:#fff}.currencySettings .itemSettingsOnly,.itemSettings .currencySettingsOnly{display:none}.curr-table img{height:22px}.poeOffSite .alert-box.live-search{margin:3px 8px;font-weight:700}.poeOffSite.gs-style-enabler #trade .gs-style a,.poeOffSite.gs-style-enabler #trade .gs-style-light a{color:#09c}.poeOffSite.gs-style-enabler .gs-style-light{font-size:.9em}.poeOffSite.gs-style-enabler div.gs-wrapper{line-height:32px}.poeOffSite.gs-search-tab .gs-multi.hide{display:inline!important}.poeOffSite.gs-exchange-tab .copied{font-style:italic}.poeOffSite.gs-exchange-tab .copied:after{content:' copied'}.poeOffSite #trade .results .search-bar .details .price .gs-wrapper img,.poeOffSite .results #trade .search-bar .details .price .gs-wrapper img,.poeOffSite .results .row .details .price .gs-wrapper img{width:22px;height:22px;vertical-align:sub}.poeOffSite .linkBack{min-width:359px}.poeOffSite .nav-tabs .pteSettings{height:32px;float:right}.poeOffSite .chaosEquiv,.poeOffSite .gs-item-handle{padding:3px 7px;cursor:pointer}.poeOffSite .tippy-content{font-size:1.6em}.poeOffSite .tippy-content .currency-image img{width:22px}.poeOffSite .gs-load.gs-style,.poeOffSite .gs-multi.gs-style,.poeOffSite .gs-save.gs-style{cursor:pointer}.poeOffSite .controls .gs-load,.poeOffSite .controls .gs-multi,.poeOffSite .controls .gs-save{margin-left:0;margin-right:5px}.poeOffSite #trade .controls.saveManager .controls-left{width:25%!important}.poeOffSite #trade .controls.saveManager .controls-right{width:45%!important}.poeOffSite #trade .controls.saveManager .controls-center{width:30%!important}@media (max-width:800px){.poeOffSite #trade .controls.saveManager .controls-left{width:50%!important}.poeOffSite #trade .controls.saveManager .controls-right{width:100%!important}.poeOffSite #trade .controls.saveManager .controls-center{width:50%!important}}.poeOffSite .gs-wikiLink{float:right;position:absolute}.alert-box.live-search{padding:3px 5px}#ms-console-tip{text-align:left}.gs-danger{color:#dc3545!important}.gs-info{color:#17a2b8!important}.gs-warning{color:#856404!important}.gs-success{color:#28a745!important}.gs-quote{color:#6c757d!important;font-style:italic}.middle-list{padding-top:90px;padding-bottom:90px}.frame-load-frame .fixed-bottom,.frame-load-frame .fixed-top,.frame-multi-frame .fixed-bottom,.frame-multi-frame .fixed-top{background:rgba(255,255,255,.95)}.frame-load-frame .table-responsive,.frame-multi-frame .table-responsive{overflow-x:visible}.gs-check-toggler .fa-check-square{display:none}.gs-check-toggler .fa-square{display:inline-block}.gs-check-toggler.gs-checked .fa-check-square{display:inline-block}.gs-check-toggler.gs-checked .fa-square{display:none}.gs-finder-results{min-height:100px;padding-top:11px}.gs-style-enabler #trade a.gs-style{background-color:#e8eff2;color:#222}</style>
-  <style>.colorPicker{width:16px;height:16px;position:relative;clear:both;margin:0}.colorPicker .track{background:#efefef url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png) no-repeat 50% 50%;background-image:url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png);height:150px;width:150px;padding:0;position:absolute;cursor:crosshair;float:left;left:-67px;top:-67px;display:none;border:1px solid #ccc;z-index:10;-webkit-border-radius:150px;-moz-border-radius:150px;border-radius:150px}.colorPicker .color{width:16px;height:16px;padding:0;border:1px solid #ccc;display:block;position:relative;z-index:11;background-color:#efefef;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px;cursor:pointer}.colorPicker .colorInner{width:14px;height:14px;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px}.colorPicker .dropdown{list-style:none;display:none;width:27px;position:absolute;top:28px;border:1px solid #ccc;left:0;z-index:1000}.colorPicker .dropdown li{height:25px;cursor:pointer}</style>
+  <style>.gs-style-enabler .gs-frame,.gs-style-enabler .gs-style{background-color:#e8eff2;border:1px dashed #111;border-radius:5px;padding:5px}.gs-style-enabler .gs-style{background-color:#e8eff2;color:#222;padding:1px 2px}.gs-style-enabler .gs-style a{color:#09c;text-decoration:underline dashed}.gs-style-enabler .gs-style.gs-warning{color:#856404;background-color:#fff3cd;border-color:#856404}.gs-style-enabler .gs-style-light{font-size:.8em;font-style:italic;opacity:.9;background-color:#fff;line-height:1.2em}.gs-style-enabler .gs-style-light.gs-style{padding:1px 5px}.gs-style a,a.gs-style{cursor:pointer}.gs-style.gs-button{margin-right:5px;padding:2px 5px}body.frame-setting-frame{background-color:#e8eff2}.gs-clickable,a i.fas{cursor:pointer}.gs-frame{width:90%;min-height:300px;max-width:900px;height:85%;position:fixed;left:50%;transform:translateX(-50%);top:7.5%;z-index:100001}.gs-backdrop,.gs-framed-backdrop{width:100%;min-height:300px;height:100%;position:fixed;left:0;top:0;z-index:100000;background:rgba(255,255,255,.3)}.gs-framed-backdrop{z-index:100010;background:rgba(255,255,255,.7)}.hide{display:none}.nowrap{white-space:nowrap}.gs-pull-right{float:right}.gs-pull-left{float:left}.tippy-content a{color:#222}.patreon-button img{height:47px;border-radius:1.5rem}.paypal-form{padding-bottom:0;margin-bottom:-6px}#saved-alert{position:fixed;z-index:0;padding-left:0;padding-right:30px}.modal-dialog.modal-xl{max-width:90%}.gs-loading{width:300px;height:300px;position:fixed;left:50%;top:50%;z-index:100001;transform:translateX(-50%) translateY(-50%)}@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}.gs-loading-spinner{width:30px;height:30px;position:fixed;left:135px;top:135px;z-index:100001;-webkit-animation-duration:.75s;-moz-animation-duration:.75s;animation-duration:.75s;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-iteration-count:infinite;-webkit-animation-name:rotate-forever;-moz-animation-name:rotate-forever;animation-name:rotate-forever;-webkit-animation-timing-function:linear;-moz-animation-timing-function:linear;animation-timing-function:linear;border:8px solid #222;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;display:inline-block}.gs-loading-spinner.gs-loaded-half{border-right-color:#222}.gs-loading-spinner.gs-loaded-three-quarters{border-right-color:#222;border-bottom-color:#222}.gs-loading-spinner.gs-loaded-full{border-right-color:#222;border-bottom-color:#222;border-left-color:#222}.gs-loading-counter,.gs-loading-title{position:fixed;width:296px;padding:0 5px;text-align:center;font-weight:700;font-style:italic}.gs-loading-title{top:10px}.gs-loading-counter{bottom:10px}.gs-framed-style{color:#222;border:1px solid #000;border-radius:5px;background-color:#fff}.gs-framed-style.gs-loading{width:200px;height:200px}.gs-framed-style .gs-loading-spinner{left:85px;top:85px}.gs-framed-style .gs-loading-counter,.gs-framed-style .gs-loading-title{width:196px}.gs-framed-style .gs-loading-spinner{border-width:4px}.gs-removable:hover{text-decoration:line-through}.gs-badge-with-icon i{margin-left:4px}.gs-badge-with-icon:not(:hover) i.gs-clickable{color:#6c757d!important}.gs-bts-spinner{position:absolute;width:100%;top:50%;margin-left:-4em}.dropdown-menu.open{display:block}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover{width:9px;height:9px;padding:0;background-size:100%}.form-select-xs~.select2-container--bootstrap-5 .select2-selection__choice{height:min-content}.select2-selection__choice__display{white-space:nowrap}.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover{width:12px;height:12px;padding:0;background-size:100%}.select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover {
+  width: 9px;
+  height: 9px;
+  padding: 0px;
+  background-size: 100%;
+}
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection__choice {
+  height: min-content;
+}
+.select2-selection__choice__display {
+  white-space: nowrap;
+}
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover {
+  width: 12px;
+  height: 12px;
+  padding: 0px;
+  background-size: 100%;
+}
+</style>
+  <style>html,
+body {
+  height: 100%;
+}
+.currencyClicked {
+  font-style: italic;
+}
+.item .real-sort:hover {
+  background: black;
+}
+.proplist li.grouped-only,
+.grouped-only {
+  display: none;
+}
+.grouped .proplist li.grouped-only,
+.grouped .grouped-only {
+  display: inline;
+}
+.marg-b-5 {
+  margin-bottom: 5px;
+}
+.marg-l-5 {
+  margin-left: 5px;
+}
+.marg-r-5 {
+  margin-right: 5px;
+}
+.marg-lr-8 {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.title a.gs-style {
+  padding: 3px 5px;
+  font-size: 12px;
+  line-height: 12px;
+  top: -6px;
+  position: relative;
+}
+.chaosEquiv,
+.gs-item-handle {
+  margin-left: 5px;
+  padding: 1px 2px;
+  border: 1px solid white;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.grouped .resultset .row.gs-group-member {
+  display: none;
+}
+.gs-style-enabler .title a.gs-style {
+  color: #222;
+}
+.gs-style-enabler .tippy-backdrop,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  border: 1px dashed #111;
+  border-radius: 5px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  color: #222;
+}
+.gs-style-enabler a.gs-style:hover,
+.gs-style-enabler a.gs-style:focus {
+  color: #222;
+}
+.gs-style-enabler .gs-style {
+  padding: 2px 5px;
+}
+.gs-style-enabler .gs-style.wiki-link {
+  padding: 2px 9px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .gs-style,
+.gs-style-enabler .gs-framed-style {
+  font-family: 'Roboto', sans-serif;
+}
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  font-family: 'Oswald', sans-serif;
+}
+.gs-style-enabler .item .real-sort.gs-style:hover {
+  color: white;
+}
+.gs-style-enabler tr.cell-second th.gs-style,
+.gs-style-enabler tr.cell-second td.gs-style {
+  background-color: #e8eff2;
+}
+.gs-style-enabler tr.cell-second th.gs-style {
+  border-bottom: none;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.gs-style-enabler tr.cell-second td.gs-style {
+  border-top: none;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+.gs-style-enabler .hide {
+  display: none;
+}
+.gs-style-enabler .nowrap {
+  white-space: nowrap;
+}
+.gs-style-enabler .tippy-content a {
+  color: #222;
+}
+.gs-style-enabler .form-group.disabled label {
+  color: #6c757d;
+}
+.gs-trigger.gs-style {
+  margin-left: 7px;
+}
+.live-search-box.alert-box .gs-trigger.gs-style {
+  margin-left: 0px;
+  margin-right: 7px;
+}
+.filter-group-header .gs-trigger.gs-style {
+  font-size: 10px;
+  margin-left: 3px;
+  padding: 2px 5px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.gs-save.gs-style {
+  padding: 0px 7px;
+}
+.gs-load.gs-style {
+  padding: 0px 5px;
+}
+.gs-multi.gs-style {
+  padding: 0px 6px;
+}
+.gs-map-selector.gs-style,
+.gs-offer-map-selector.gs-style {
+  padding: 0px 7px;
+}
+.tippy-content a {
+  color: white;
+}
+.itemSettings .currencySettingsOnly,
+.currencySettings .itemSettingsOnly {
+  display: none;
+}
+.curr-table img {
+  height: 22px;
+}
+.poeOffSite .alert-box.live-search {
+  margin: 3px 8px;
+  font-weight: bold;
+}
+.poeOffSite.gs-style-enabler #trade .gs-style-light a,
+.poeOffSite.gs-style-enabler #trade .gs-style a {
+  color: #09c;
+}
+.poeOffSite.gs-style-enabler .gs-style-light {
+  font-size: 0.9em;
+}
+.poeOffSite.gs-style-enabler div.gs-wrapper {
+  line-height: 32px;
+}
+.poeOffSite.gs-style-enabler .input-group-btn .gs-style {
+  font-size: 10px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.poeOffSite.gs-search-tab .gs-multi.hide {
+  display: inline !important;
+}
+.poeOffSite.gs-exchange-tab .copied {
+  font-style: italic;
+}
+.poeOffSite.gs-exchange-tab .copied:after {
+  content: ' copied';
+}
+.poeOffSite .results .row .details .price .gs-wrapper img,
+.poeOffSite .results #trade .search-bar .details .price .gs-wrapper img,
+.poeOffSite #trade .results .search-bar .details .price .gs-wrapper img {
+  width: 22px;
+  height: 22px;
+  vertical-align: sub;
+}
+.poeOffSite .linkBack {
+  min-width: 359px;
+}
+.poeOffSite .nav-tabs .pteSettings {
+  height: 32px;
+  float: right;
+}
+.poeOffSite .chaosEquiv,
+.poeOffSite .gs-item-handle {
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.poeOffSite .tippy-content {
+  font-size: 1.6em;
+}
+.poeOffSite .tippy-content .currency-image img {
+  width: 22px;
+}
+.poeOffSite .gs-save.gs-style,
+.poeOffSite .gs-load.gs-style,
+.poeOffSite .gs-multi.gs-style {
+  cursor: pointer;
+}
+.poeOffSite .controls .gs-save,
+.poeOffSite .controls .gs-load,
+.poeOffSite .controls .gs-multi {
+  margin-left: 0px;
+  margin-right: 5px;
+}
+.poeOffSite #trade .controls.saveManager .controls-left {
+  width: 25% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-right {
+  width: 45% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-center {
+  width: 30% !important;
+}
+@media (max-width: 800px) {
+  .poeOffSite #trade .controls.saveManager .controls-left {
+    width: 50% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-right {
+    width: 100% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-center {
+    width: 50% !important;
+  }
+}
+.poeOffSite .gs-wikiLink {
+  float: right;
+  position: absolute;
+}
+.alert-box.live-search {
+  padding: 3px 5px;
+}
+#ms-console-tip {
+  text-align: left;
+}
+.gs-danger {
+  color: #dc3545 !important;
+}
+.gs-info {
+  color: #17a2b8 !important;
+}
+.gs-warning {
+  color: #856404 !important;
+}
+.gs-success {
+  color: #28a745 !important;
+}
+.gs-quote {
+  color: #6c757d !important;
+  font-style: italic;
+}
+.middle-list {
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+.frame-multi-frame .fixed-top,
+.frame-load-frame .fixed-top,
+.frame-multi-frame .fixed-bottom,
+.frame-load-frame .fixed-bottom {
+  background: rgba(255, 255, 255, 0.95);
+}
+.frame-multi-frame .table-responsive,
+.frame-load-frame .table-responsive {
+  overflow-x: visible;
+}
+.frame-multi-frame .table-responsive .col-md-1,
+.frame-load-frame .table-responsive .col-md-1 {
+  width: 8.33%;
+}
+.frame-multi-frame .table-responsive .col-md-2,
+.frame-load-frame .table-responsive .col-md-2 {
+  width: 16.66%;
+}
+.frame-multi-frame .table-responsive .col-md-3,
+.frame-load-frame .table-responsive .col-md-3 {
+  width: 25%;
+}
+.frame-multi-frame .table-responsive .col-md-4,
+.frame-load-frame .table-responsive .col-md-4 {
+  width: 33.33%;
+}
+.frame-multi-frame .table-responsive .col-md-5,
+.frame-load-frame .table-responsive .col-md-5 {
+  width: 41.66%;
+}
+.frame-multi-frame .table-responsive .col-md-6,
+.frame-load-frame .table-responsive .col-md-6 {
+  width: 50%;
+}
+.frame-multi-frame .table-responsive .col-md-7,
+.frame-load-frame .table-responsive .col-md-7 {
+  width: 58.33%;
+}
+.frame-multi-frame .table-responsive .col-md-8,
+.frame-load-frame .table-responsive .col-md-8 {
+  width: 66.66%;
+}
+.frame-multi-frame .table-responsive .col-md-9,
+.frame-load-frame .table-responsive .col-md-9 {
+  width: 75%;
+}
+.frame-multi-frame .table-responsive .col-md-10,
+.frame-load-frame .table-responsive .col-md-10 {
+  width: 83.33%;
+}
+.frame-multi-frame .table-responsive .col-md-11,
+.frame-load-frame .table-responsive .col-md-11 {
+  width: 91.66%;
+}
+.poe1only,
+.poe2only {
+  display: none;
+}
+.poe1 .poe1only {
+  display: initial;
+}
+.poe2 .poe2only {
+  display: initial;
+}
+.gs-check-toggler .fa-check-square {
+  display: none;
+}
+.gs-check-toggler .fa-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-check-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-square {
+  display: none;
+}
+.gs-finder-results {
+  min-height: 100px;
+  padding-top: 11px;
+}
+.gs-style-enabler #trade a.gs-style {
+  background-color: #e8eff2;
+  color: #222;
+}
+.frame-mods-selector-frame .affixRow .affixTier,
+.frame-mods-selector-frame .tier-toggler .fa-caret-down {
+  display: none;
+}
+.frame-mods-selector-frame a.tier-toggler {
+  text-decoration: none;
+}
+.frame-mods-selector-frame .affixRow .affixTier {
+  font-size: small;
+}
+.frame-mods-selector-frame .affix.container {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.frame-mods-selector-frame .affixTier:hover,
+.frame-mods-selector-frame .affixName:hover {
+  background-color: rgba(0, 0, 0, 0.075);
+}
+.frame-mods-selector-frame .affixTier.bg-info-subtle:hover,
+.frame-mods-selector-frame .affixName.bg-info-subtle:hover {
+  background-color: rgba(190, 229, 235, 0.5);
+}
+.frame-mods-selector-frame .affixTier {
+  border-bottom: 1px solid #ccc;
+}
+.frame-mods-selector-frame .affixRow {
+  border-bottom: 1px solid #000;
+}
+@media (min-width: 768px) {
+  .frame-mods-selector-frame .middle-list {
+    padding-top: 124px;
+    padding-bottom: 60px;
+  }
+}
+.frame-mods-selector-frame .middle-list {
+  padding-top: 160px;
+  padding-bottom: 60px;
+}
+.frame-mods-selector-frame .show-tiers .affixTier {
+  display: flex;
+}
+.frame-mods-selector-frame .show-tiers .affixTier.hide {
+  display: none;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-down {
+  display: block;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-right {
+  display: none;
+}
+.frame-mods-selector-frame .tier-toggler i.fas {
+  font-size: 22px;
+}
+.frame-mods-selector-frame .fixed-bottom,
+.frame-mods-selector-frame .fixed-top {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+.frame-mods-selector-frame .filterable .select2 .select2-selection {
+  display: flex;
+  height: 62px;
+  max-height: 62px;
+  overflow: hidden;
+}
+.frame-mods-selector-frame .affix-counter {
+  font-size: smaller;
+  font-weight: normal;
+}
+.frame-mods-selector-frame .affix-counter::before {
+  content: "(";
+}
+.frame-mods-selector-frame .affix-counter::after {
+  content: ")";
+}
+</style>
+  <style>.colorPicker{width:16px;height:16px;position:relative;clear:both;margin:0}.colorPicker .track{background:#efefef url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png) no-repeat 50% 50%;background-image:url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png);height:150px;width:150px;padding:0;position:absolute;cursor:crosshair;float:left;left:-67px;top:-67px;display:none;border:1px solid #ccc;z-index:10;-webkit-border-radius:150px;-moz-border-radius:150px;border-radius:150px}.colorPicker .color{width:16px;height:16px;padding:0;border:1px solid #ccc;display:block;position:relative;z-index:11;background-color:#efefef;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px;cursor:pointer}.colorPicker .colorInner{width:14px;height:14px;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px}.colorPicker .dropdown{list-style:none;display:none;width:27px;position:absolute;top:28px;border:1px solid #ccc;left:0;z-index:1000}.colorPicker .dropdown li{height:25px;cursor:pointer}-radius: 27px;
+}
+.colorPicker .dropdown {
+  list-style: none;
+  display: none;
+  width: 27px;
+  position: absolute;
+  top: 28px;
+  border: 1px solid #ccc;
+  left: 0;
+  z-index: 1000;
+}
+.colorPicker .dropdown li {
+  height: 25px;
+  cursor: pointer;
+}
+</style>
+`;
+
+var frameTemplateSelect = /* html */`
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Oswald|Roboto" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.6.0/css/all.min.css" crossorigin="anonymous" />
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://unpkg.com/tippy.js@3/dist/tippy.all.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-3-typeahead/4.0.2/bootstrap3-typeahead.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+  <style>.gs-style-enabler .gs-frame,.gs-style-enabler .gs-style{background-color:#e8eff2;border:1px dashed #111;border-radius:5px;padding:5px}.gs-style-enabler .gs-style{background-color:#e8eff2;color:#222;padding:1px 2px}.gs-style-enabler .gs-style a{color:#09c;text-decoration:underline dashed}.gs-style-enabler .gs-style.gs-warning{color:#856404;background-color:#fff3cd;border-color:#856404}.gs-style-enabler .gs-style-light{font-size:.8em;font-style:italic;opacity:.9;background-color:#fff;line-height:1.2em}.gs-style-enabler .gs-style-light.gs-style{padding:1px 5px}.gs-style a,a.gs-style{cursor:pointer}.gs-style.gs-button{margin-right:5px;padding:2px 5px}body.frame-setting-frame{background-color:#e8eff2}.gs-clickable,a i.fas{cursor:pointer}.gs-frame{width:90%;min-height:300px;max-width:900px;height:85%;position:fixed;left:50%;transform:translateX(-50%);top:7.5%;z-index:100001}.gs-backdrop,.gs-framed-backdrop{width:100%;min-height:300px;height:100%;position:fixed;left:0;top:0;z-index:100000;background:rgba(255,255,255,.3)}.gs-framed-backdrop{z-index:100010;background:rgba(255,255,255,.7)}.hide{display:none}.nowrap{white-space:nowrap}.gs-pull-right{float:right}.gs-pull-left{float:left}.tippy-content a{color:#222}.patreon-button img{height:47px;border-radius:1.5rem}.paypal-form{padding-bottom:0;margin-bottom:-6px}#saved-alert{position:fixed;z-index:0;padding-left:0;padding-right:30px}.modal-dialog.modal-xl{max-width:90%}.gs-loading{width:300px;height:300px;position:fixed;left:50%;top:50%;z-index:100001;transform:translateX(-50%) translateY(-50%)}@-webkit-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@-moz-keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}@keyframes rotate-forever{0%{-webkit-transform:rotate(0);-moz-transform:rotate(0);-ms-transform:rotate(0);-o-transform:rotate(0);transform:rotate(0)}100%{-webkit-transform:rotate(360deg);-moz-transform:rotate(360deg);-ms-transform:rotate(360deg);-o-transform:rotate(360deg);transform:rotate(360deg)}}.gs-loading-spinner{width:30px;height:30px;position:fixed;left:135px;top:135px;z-index:100001;-webkit-animation-duration:.75s;-moz-animation-duration:.75s;animation-duration:.75s;-webkit-animation-iteration-count:infinite;-moz-animation-iteration-count:infinite;animation-iteration-count:infinite;-webkit-animation-name:rotate-forever;-moz-animation-name:rotate-forever;animation-name:rotate-forever;-webkit-animation-timing-function:linear;-moz-animation-timing-function:linear;animation-timing-function:linear;border:8px solid #222;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent;border-radius:50%;display:inline-block}.gs-loading-spinner.gs-loaded-half{border-right-color:#222}.gs-loading-spinner.gs-loaded-three-quarters{border-right-color:#222;border-bottom-color:#222}.gs-loading-spinner.gs-loaded-full{border-right-color:#222;border-bottom-color:#222;border-left-color:#222}.gs-loading-counter,.gs-loading-title{position:fixed;width:296px;padding:0 5px;text-align:center;font-weight:700;font-style:italic}.gs-loading-title{top:10px}.gs-loading-counter{bottom:10px}.gs-framed-style{color:#222;border:1px solid #000;border-radius:5px;background-color:#fff}.gs-framed-style.gs-loading{width:200px;height:200px}.gs-framed-style .gs-loading-spinner{left:85px;top:85px}.gs-framed-style .gs-loading-counter,.gs-framed-style .gs-loading-title{width:196px}.gs-framed-style .gs-loading-spinner{border-width:4px}.gs-removable:hover{text-decoration:line-through}.gs-badge-with-icon i{margin-left:4px}.gs-badge-with-icon:not(:hover) i.gs-clickable{color:#6c757d!important}.gs-bts-spinner{position:absolute;width:100%;top:50%;margin-left:-4em}.dropdown-menu.open{display:block}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection{font-size:.675rem}.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,.form-select-xs~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover{width:9px;height:9px;padding:0;background-size:100%}.form-select-xs~.select2-container--bootstrap-5 .select2-selection__choice{height:min-content}.select2-selection__choice__display{white-space:nowrap}.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,.form-select-sm~.select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover{width:12px;height:12px;padding:0;background-size:100%}.select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove,
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__rendered .select2-selection__choice .select2-selection__choice__remove:hover {
+  width: 9px;
+  height: 9px;
+  padding: 0px;
+  background-size: 100%;
+}
+.form-select-xs ~ .select2-container--bootstrap-5 .select2-selection__choice {
+  height: min-content;
+}
+.select2-selection__choice__display {
+  white-space: nowrap;
+}
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__clear:hover,
+.form-select-sm ~ .select2-container--bootstrap-5 .select2-selection--single .select2-selection__clear:hover {
+  width: 12px;
+  height: 12px;
+  padding: 0px;
+  background-size: 100%;
+}
+</style>
+  <style>html,
+body {
+  height: 100%;
+}
+.currencyClicked {
+  font-style: italic;
+}
+.item .real-sort:hover {
+  background: black;
+}
+.proplist li.grouped-only,
+.grouped-only {
+  display: none;
+}
+.grouped .proplist li.grouped-only,
+.grouped .grouped-only {
+  display: inline;
+}
+.marg-b-5 {
+  margin-bottom: 5px;
+}
+.marg-l-5 {
+  margin-left: 5px;
+}
+.marg-r-5 {
+  margin-right: 5px;
+}
+.marg-lr-8 {
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.title a.gs-style {
+  padding: 3px 5px;
+  font-size: 12px;
+  line-height: 12px;
+  top: -6px;
+  position: relative;
+}
+.chaosEquiv,
+.gs-item-handle {
+  margin-left: 5px;
+  padding: 1px 2px;
+  border: 1px solid white;
+  border-radius: 5px;
+  white-space: nowrap;
+}
+.grouped .resultset .row.gs-group-member {
+  display: none;
+}
+.gs-style-enabler .title a.gs-style {
+  color: #222;
+}
+.gs-style-enabler .tippy-backdrop,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  border: 1px dashed #111;
+  border-radius: 5px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  background-color: #e8eff2;
+  color: #222;
+}
+.gs-style-enabler a.gs-style:hover,
+.gs-style-enabler a.gs-style:focus {
+  color: #222;
+}
+.gs-style-enabler .gs-style {
+  padding: 2px 5px;
+}
+.gs-style-enabler .gs-style.wiki-link {
+  padding: 2px 9px;
+}
+.gs-style-enabler .tippy-content,
+.gs-style-enabler .gs-style,
+.gs-style-enabler .gs-framed-style {
+  font-family: 'Roboto', sans-serif;
+}
+.gs-style-enabler .chaosEquiv,
+.gs-style-enabler .gs-item-handle {
+  font-family: 'Oswald', sans-serif;
+}
+.gs-style-enabler .item .real-sort.gs-style:hover {
+  color: white;
+}
+.gs-style-enabler tr.cell-second th.gs-style,
+.gs-style-enabler tr.cell-second td.gs-style {
+  background-color: #e8eff2;
+}
+.gs-style-enabler tr.cell-second th.gs-style {
+  border-bottom: none;
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+.gs-style-enabler tr.cell-second td.gs-style {
+  border-top: none;
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+.gs-style-enabler .hide {
+  display: none;
+}
+.gs-style-enabler .nowrap {
+  white-space: nowrap;
+}
+.gs-style-enabler .tippy-content a {
+  color: #222;
+}
+.gs-style-enabler .form-group.disabled label {
+  color: #6c757d;
+}
+.gs-trigger.gs-style {
+  margin-left: 7px;
+}
+.live-search-box.alert-box .gs-trigger.gs-style {
+  margin-left: 0px;
+  margin-right: 7px;
+}
+.filter-group-header .gs-trigger.gs-style {
+  font-size: 10px;
+  margin-left: 3px;
+  padding: 2px 5px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.gs-save.gs-style {
+  padding: 0px 7px;
+}
+.gs-load.gs-style {
+  padding: 0px 5px;
+}
+.gs-multi.gs-style {
+  padding: 0px 6px;
+}
+.gs-map-selector.gs-style,
+.gs-offer-map-selector.gs-style {
+  padding: 0px 7px;
+}
+.tippy-content a {
+  color: white;
+}
+.itemSettings .currencySettingsOnly,
+.currencySettings .itemSettingsOnly {
+  display: none;
+}
+.curr-table img {
+  height: 22px;
+}
+.poeOffSite .alert-box.live-search {
+  margin: 3px 8px;
+  font-weight: bold;
+}
+.poeOffSite.gs-style-enabler #trade .gs-style-light a,
+.poeOffSite.gs-style-enabler #trade .gs-style a {
+  color: #09c;
+}
+.poeOffSite.gs-style-enabler .gs-style-light {
+  font-size: 0.9em;
+}
+.poeOffSite.gs-style-enabler div.gs-wrapper {
+  line-height: 32px;
+}
+.poeOffSite.gs-style-enabler .input-group-btn .gs-style {
+  font-size: 10px;
+  position: relative;
+  top: 4px;
+  cursor: pointer;
+}
+.poeOffSite.gs-search-tab .gs-multi.hide {
+  display: inline !important;
+}
+.poeOffSite.gs-exchange-tab .copied {
+  font-style: italic;
+}
+.poeOffSite.gs-exchange-tab .copied:after {
+  content: ' copied';
+}
+.poeOffSite .results .row .details .price .gs-wrapper img,
+.poeOffSite .results #trade .search-bar .details .price .gs-wrapper img,
+.poeOffSite #trade .results .search-bar .details .price .gs-wrapper img {
+  width: 22px;
+  height: 22px;
+  vertical-align: sub;
+}
+.poeOffSite .linkBack {
+  min-width: 359px;
+}
+.poeOffSite .nav-tabs .pteSettings {
+  height: 32px;
+  float: right;
+}
+.poeOffSite .chaosEquiv,
+.poeOffSite .gs-item-handle {
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.poeOffSite .tippy-content {
+  font-size: 1.6em;
+}
+.poeOffSite .tippy-content .currency-image img {
+  width: 22px;
+}
+.poeOffSite .gs-save.gs-style,
+.poeOffSite .gs-load.gs-style,
+.poeOffSite .gs-multi.gs-style {
+  cursor: pointer;
+}
+.poeOffSite .controls .gs-save,
+.poeOffSite .controls .gs-load,
+.poeOffSite .controls .gs-multi {
+  margin-left: 0px;
+  margin-right: 5px;
+}
+.poeOffSite #trade .controls.saveManager .controls-left {
+  width: 25% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-right {
+  width: 45% !important;
+}
+.poeOffSite #trade .controls.saveManager .controls-center {
+  width: 30% !important;
+}
+@media (max-width: 800px) {
+  .poeOffSite #trade .controls.saveManager .controls-left {
+    width: 50% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-right {
+    width: 100% !important;
+  }
+  .poeOffSite #trade .controls.saveManager .controls-center {
+    width: 50% !important;
+  }
+}
+.poeOffSite .gs-wikiLink {
+  float: right;
+  position: absolute;
+}
+.alert-box.live-search {
+  padding: 3px 5px;
+}
+#ms-console-tip {
+  text-align: left;
+}
+.gs-danger {
+  color: #dc3545 !important;
+}
+.gs-info {
+  color: #17a2b8 !important;
+}
+.gs-warning {
+  color: #856404 !important;
+}
+.gs-success {
+  color: #28a745 !important;
+}
+.gs-quote {
+  color: #6c757d !important;
+  font-style: italic;
+}
+.middle-list {
+  padding-top: 90px;
+  padding-bottom: 90px;
+}
+.frame-multi-frame .fixed-top,
+.frame-load-frame .fixed-top,
+.frame-multi-frame .fixed-bottom,
+.frame-load-frame .fixed-bottom {
+  background: rgba(255, 255, 255, 0.95);
+}
+.frame-multi-frame .table-responsive,
+.frame-load-frame .table-responsive {
+  overflow-x: visible;
+}
+.frame-multi-frame .table-responsive .col-md-1,
+.frame-load-frame .table-responsive .col-md-1 {
+  width: 8.33%;
+}
+.frame-multi-frame .table-responsive .col-md-2,
+.frame-load-frame .table-responsive .col-md-2 {
+  width: 16.66%;
+}
+.frame-multi-frame .table-responsive .col-md-3,
+.frame-load-frame .table-responsive .col-md-3 {
+  width: 25%;
+}
+.frame-multi-frame .table-responsive .col-md-4,
+.frame-load-frame .table-responsive .col-md-4 {
+  width: 33.33%;
+}
+.frame-multi-frame .table-responsive .col-md-5,
+.frame-load-frame .table-responsive .col-md-5 {
+  width: 41.66%;
+}
+.frame-multi-frame .table-responsive .col-md-6,
+.frame-load-frame .table-responsive .col-md-6 {
+  width: 50%;
+}
+.frame-multi-frame .table-responsive .col-md-7,
+.frame-load-frame .table-responsive .col-md-7 {
+  width: 58.33%;
+}
+.frame-multi-frame .table-responsive .col-md-8,
+.frame-load-frame .table-responsive .col-md-8 {
+  width: 66.66%;
+}
+.frame-multi-frame .table-responsive .col-md-9,
+.frame-load-frame .table-responsive .col-md-9 {
+  width: 75%;
+}
+.frame-multi-frame .table-responsive .col-md-10,
+.frame-load-frame .table-responsive .col-md-10 {
+  width: 83.33%;
+}
+.frame-multi-frame .table-responsive .col-md-11,
+.frame-load-frame .table-responsive .col-md-11 {
+  width: 91.66%;
+}
+.poe1only,
+.poe2only {
+  display: none;
+}
+.poe1 .poe1only {
+  display: initial;
+}
+.poe2 .poe2only {
+  display: initial;
+}
+.gs-check-toggler .fa-check-square {
+  display: none;
+}
+.gs-check-toggler .fa-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-check-square {
+  display: inline-block;
+}
+.gs-check-toggler.gs-checked .fa-square {
+  display: none;
+}
+.gs-finder-results {
+  min-height: 100px;
+  padding-top: 11px;
+}
+.gs-style-enabler #trade a.gs-style {
+  background-color: #e8eff2;
+  color: #222;
+}
+.frame-mods-selector-frame .affixRow .affixTier,
+.frame-mods-selector-frame .tier-toggler .fa-caret-down {
+  display: none;
+}
+.frame-mods-selector-frame a.tier-toggler {
+  text-decoration: none;
+}
+.frame-mods-selector-frame .affixRow .affixTier {
+  font-size: small;
+}
+.frame-mods-selector-frame .affix.container {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.frame-mods-selector-frame .affixTier:hover,
+.frame-mods-selector-frame .affixName:hover {
+  background-color: rgba(0, 0, 0, 0.075);
+}
+.frame-mods-selector-frame .affixTier.bg-info-subtle:hover,
+.frame-mods-selector-frame .affixName.bg-info-subtle:hover {
+  background-color: rgba(190, 229, 235, 0.5);
+}
+.frame-mods-selector-frame .affixTier {
+  border-bottom: 1px solid #ccc;
+}
+.frame-mods-selector-frame .affixRow {
+  border-bottom: 1px solid #000;
+}
+@media (min-width: 768px) {
+  .frame-mods-selector-frame .middle-list {
+    padding-top: 124px;
+    padding-bottom: 60px;
+  }
+}
+.frame-mods-selector-frame .middle-list {
+  padding-top: 160px;
+  padding-bottom: 60px;
+}
+.frame-mods-selector-frame .show-tiers .affixTier {
+  display: flex;
+}
+.frame-mods-selector-frame .show-tiers .affixTier.hide {
+  display: none;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-down {
+  display: block;
+}
+.frame-mods-selector-frame .show-tiers .tier-toggler .fa-caret-right {
+  display: none;
+}
+.frame-mods-selector-frame .tier-toggler i.fas {
+  font-size: 22px;
+}
+.frame-mods-selector-frame .fixed-bottom,
+.frame-mods-selector-frame .fixed-top {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+.frame-mods-selector-frame .filterable .select2 .select2-selection {
+  display: flex;
+  height: 62px;
+  max-height: 62px;
+  overflow: hidden;
+}
+.frame-mods-selector-frame .affix-counter {
+  font-size: smaller;
+  font-weight: normal;
+}
+.frame-mods-selector-frame .affix-counter::before {
+  content: "(";
+}
+.frame-mods-selector-frame .affix-counter::after {
+  content: ")";
+}
+</style>
+  <style>.colorPicker{width:16px;height:16px;position:relative;clear:both;margin:0}.colorPicker .track{background:#efefef url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png) no-repeat 50% 50%;background-image:url(https://raw.githubusercontent.com/ghostscript3r/poe-trade-enhancer/master/images/text-color.png);height:150px;width:150px;padding:0;position:absolute;cursor:crosshair;float:left;left:-67px;top:-67px;display:none;border:1px solid #ccc;z-index:10;-webkit-border-radius:150px;-moz-border-radius:150px;border-radius:150px}.colorPicker .color{width:16px;height:16px;padding:0;border:1px solid #ccc;display:block;position:relative;z-index:11;background-color:#efefef;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px;cursor:pointer}.colorPicker .colorInner{width:14px;height:14px;-webkit-border-radius:27px;-moz-border-radius:27px;border-radius:27px}.colorPicker .dropdown{list-style:none;display:none;width:27px;position:absolute;top:28px;border:1px solid #ccc;left:0;z-index:1000}.colorPicker .dropdown li{height:25px;cursor:pointer}-radius: 27px;
+}
+.colorPicker .dropdown {
+  list-style: none;
+  display: none;
+  width: 27px;
+  position: absolute;
+  top: 28px;
+  border: 1px solid #ccc;
+  left: 0;
+  z-index: 1000;
+}
+.colorPicker .dropdown li {
+  height: 25px;
+  cursor: pointer;
+}
+</style>
 `;
 
 var donateTemplate = /* html */`
 <div class="card">
   <div class="card-body">
-    <h3 class="text-center card-title">Please consider donating</h3>
+    ${donateParagraph}
     <div class="row">
       <div class="col-sm-12 col-md-6 text-center">
         <div class="card border-primary">
@@ -205,14 +1585,13 @@ var donateTemplate = /* html */`
         </div>
       </div>
     </div>
-    ${donateParagraph}
   </div>
 </div>
 `;
 
 var frameContent = /* html */ `
-  <div class="container pt-1">
-    <nav class="navbar navbar-dark bg-dark navbar-expand">
+  <div class="container-fluid pt-1">
+    <nav class="navbar navbar-dark bg-dark navbar-expand ps-3 pe-3">
       <a class="navbar-brand" href onclick="return false;">Poe Trade Official Site Enhancer</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -237,7 +1616,7 @@ var frameContent = /* html */ `
     <div class="tab-content" id="myTabContent">
       <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
         <div class="">
-          <h2 class="">Poe Trade Official Site Enhancer <small class="text-secondary font-italic font-weight-light">v. 1.4.25</small></h2>
+          <h2 class="">Poe Trade Official Site Enhancer <small class="text-secondary font-italic font-weight-light">v. 1.5.7</small></h2>
           ${shortDescriptionParagraph}
           <hr class="my-4">
           ${donateTemplate}
@@ -250,6 +1629,11 @@ var frameContent = /* html */ `
         </div>
         <div class="">
         ${roadmapParagraph}
+          <h3>About Multi Live Search</h3>
+          <p>I know some people are wondering if <strong>multi live search</strong> will ever return. <strong>Short answer: No.</strong></p>
+          <p>It caused <strong>server load issues</strong>, which impacted the game itself, and honestly, it was mostly used for flipping—something this script wasn’t even designed for. You can still achieve the same result by opening multiple browser tabs, but you’ll quickly run into <strong>IP limitations</strong>, and the same would happen with multi live search.</p>
+          <p>If there's real demand for this, the right approach would be <strong>something like the old POE Sniper</strong>, targeting the public official API for premium public tabs. If someone wants to take that on, I’d be happy to collaborate by helping <strong>export searches in the right format</strong>, but <strong>multi live search won’t be coming from me again.</strong></p>
+          <p>Hope that clears things up! 😊</p>
         </div>
         <div class="">
         ${issueTrackingParagraph}
@@ -265,12 +1649,12 @@ var frameContent = /* html */ `
         </div>
     </div>
     <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-      <div class="container" id="saved-alert" style="opacity: 0;">
+      <div class="container-fluid d-none" id="saved-alert" style="opacity: 0;">
         <div class="alert alert-light" role="alert">
           all changes saved
         </div>
       </div>
-      <div class="container currencySettingsOnly">
+      <div class="container-fluid currencySettingsOnly">
         <div class="alert alert-warning" role="alert">
           Due to limitations on localstorage over different domains, currency and item search settings are completely separated
         </div>
@@ -287,8 +1671,8 @@ var frameContent = /* html */ `
           <a class="nav-link disabled" id="leagues-tab" data-toggle="tab" href="#leagues-pane" role="tab" aria-controls="leagues-pane" aria-selected="false">Leagues</a>
         </li>
       </ul>
-      <p class="preloaded-info">Using preloaded values corresponding to Standard league values at the moment of the last major release. You can change these values manually or reset them. It is highly reccomended to enable currency load from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b> in settings tab or disable any currency reordering so that the original poe.trade order is untouched.</p>
-      <p class="loaded-info d-none">Currency values loaded from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>. You can change them manually but they will be overwritten again the next time they are refreshed.</p>
+      <p class="preloaded-info">Using preloaded values corresponding to Standard league values at the moment of the last major release. You can change these values manually or reset them. It is highly reccomended to enable currency load from <b><a target="_blank" href="https://${poe2 ? 'orbwatch.trade' : 'poe.ninja'}/">${poe2 ? 'orbwatch.trade' : 'poe.ninja'}</a></b> in settings tab or disable any currency reordering so that the original poe.trade order is untouched.</p>
+      <p class="loaded-info d-none">Currency values loaded from <b><a target="_blank" href="https://${poe2 ? 'orbwatch.trade' : 'poe.ninja'}/">${poe2 ? 'orbwatch.trade' : 'poe.ninja'}</a></b>. You can change them manually but they will be overwritten again the next time they are refreshed.</p>
       <div class="tab-content" id="myCurrTabContent">
         <div class="tab-pane fade show active" id="preloaded-pane" role="tabpanel" aria-labelledby="preloaded-tab">
         </div>
@@ -304,9 +1688,7 @@ var frameContent = /* html */ `
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Features Showcase</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
+          <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
         </div>
@@ -320,8 +1702,9 @@ var frameContent = /* html */ `
 
 
   var paragraphs = {
-  parag1: {title: 'Item Search', featureTitle: 'Item Search enhancements', class: ''},
-  parag2: {title: 'Currency Search', featureTitle: 'Currency Search enhancements', class: ''}
+  parag1: {title: 'Item Search', featureTitle: 'Item Search enhancements', class: ''}
+  // ,
+  // parag2: {title: 'Currency Search', featureTitle: 'Currency Search enhancements', class: ''}
 }
 
 var settings = {
@@ -343,17 +1726,18 @@ var settings = {
     label:`Block UI while sorting`, info:`If this is enabled a loading modal window will block the UI until all data have been loaded.`
   },
   enableChaosEquiv: {
-    type: 'Boolean', default: true, paragraph: '', class: '',
-    label:`Convert all prices to chaos equivalent`, info:`If you disable this all PTE conversion related features will be disabled.`,
-    feature:`Sort item and currency searches on <b>pathofexile.com/trade</b> by current chaos equivalent using <b>poe.ninja</b> values.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/sort-real-curr-off.gif'
+    type: 'Boolean', default: true, paragraph: 'parag1', class: '',
+    label:`Convert all prices to <span class="poe1only">chaos</span><span class="poe2only">exalted</span> equivalent`, info:`If you disable this all PTE conversion related features will be disabled.`,
+    featureForReadMe: `Sort item and currency searches by current chaos/exalted equivalent using <b class="poe1only">poe.ninja</b> for PoE1 and <b class="poe2only">orbwatch.trade</b> values for PoE2.`,
+    feature:`Sort item and currency searches on <b class="poe1only">pathofexile.com/trade</b><b class="poe2only">pathofexile.com/trade2</b> by current chaos equivalent using <b class="poe1only">poe.ninja</b><b class="poe2only">orbwatch.trade</b> values.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/sort-real-curr-off.gif'
   },
   enableCurrencyLoad: {
     type: 'Boolean', default: true, paragraph: '', parent: 'enableChaosEquiv',
-    label:`Load currency values from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>`, info:`If you disable this PTE will use preloaded values corresponding to Standard league values at the moment of the last major release.`
+    label:`Load currency values from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>`, info:`If you disable this PTE will use preloaded values corresponding to Standard league values at the moment of the last major release.`
   },
   currencyMaxAge: {
     type: 'Number', min: 0, max: 12, default: 6, parent: 'enableCurrencyLoad', paragraph: '', renderer: 'bar',
-    label:`Max age for currency values: <b><span id="currencyMaxAge-val"></span> hr</b>`, info:`Maximum hours for which consider valide the currency values from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>. After that time they will be loaded again at first load. If set to zero they will never be loaded again and must be refreshed manually from Currency tab.`
+    label:`Max age for currency values: <b><span id="currencyMaxAge-val"></span> hr</b>`, info:`Maximum hours for which consider valide the currency values from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>. After that time they will be loaded again at first load. If set to zero they will never be loaded again and must be refreshed manually from Currency tab.`
   },
   secondarySortByStockSize: {
     type: 'Boolean', default: true, paragraph: '', class: 'enableChaosEquiv',
@@ -361,17 +1745,28 @@ var settings = {
   },
   autoSortByRealCurrency: {
     type: 'Boolean', default: false, paragraph: '', parent: 'enableCurrencyLoad',
-    label:`Auto sort by real currency value`, info:`If you enable this both item and currency searches will be sorted automatically after load by real currency values, from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b> or manually modified.`
+    label:`Auto sort by real currency value`, info:`If you enable this both item and currency searches will be sorted automatically after load by real currency values, from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b> or manually modified.`
   },
   useSaveManager: {
     type: 'Boolean', default: true, paragraph: 'parag1', class: '',
     label: `Enable save manager`, info:`Enabling this you'll be able to save and load searches.`,
-    feature: `Adds a save manager to easily save and reload any item search.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/save-man-off.gif'
+    feature: `Adds a save manager to easily save and reload any item search or even any filter group.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/save-man-off.gif'
   },
-  multiLiveSearch: {
-    paragraph: 'parag1', class: '',
-    feature: `Multi live-search. You can live-search any number of your saved searches in one page.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/multi-live-off.gif'
+  useModSelector: {
+    type: 'Boolean', default: true, paragraph: 'parag1', class: '',
+    label: `Enable affix selector`, info:`Enabling this you'll be able to use an affix selector using an item type filter based on <a class="poe1only" target="_blank" href="https://poedb.tw/">PoEDB</a><a class="poe2only" target="_blank" href="https://poe2db.tw/">PoE2DB</a> data.`,
+    featureForReadMe: `Adds an affix selector based on <a class="poe1only" target="_blank" href="https://poedb.tw/">PoEDB</a>/<a class="poe2only" target="_blank" href="https://poe2db.tw/">PoE2DB</a> data to easily select all actually possible affixes for the item type you are searching.`,
+    feature: `Adds an affix selector based on <a class="poe1only" target="_blank" href="https://poedb.tw/">PoEDB</a><a class="poe2only" target="_blank" href="https://poe2db.tw/">PoE2DB</a> data to easily select all actually possible affixes for the item type you are searching.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/mod-selector.gif'
   },
+  doDuplicateControls: {
+    type: 'Boolean', default: true, paragraph: 'parag1', class: '',
+    label: `Duplicate search buttons`, info:`Enabling this will duplicate search buttons on top.`,
+    feature: `Duplicates search button on top of search controls.`
+  },
+  // multiLiveSearch: {
+  //   paragraph: 'parag1', class: '',
+  //   feature: `Multi live-search. You can live-search any number of your saved searches in one page.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/multi-live-off.gif'
+  // },
   // enableCopyForPoB: {
   //   type: 'Boolean', default: true, paragraph: 'parag1', class: '',
   //   label: `Show copy for Path of Building button`, info:`Copies to clipboard a representation of the item ready to be imported in PoB.`,
@@ -384,37 +1779,38 @@ var settings = {
   },
   autoGroupSameUser: {
     type: 'Boolean', default: false, paragraph: 'parag1', parent: 'enableGroupedResults', class: '',
-    label:`Auto group results from the same user`, info:`If you enable this item search results will automatically be grouped by user and also sorted by average real currency value (from <b><a target="_blank" href="https://poe.ninja/">poe.ninja</a></b>) and quantity of items beeing sold. Usefull for maps and other "consumables", not for equipment search (but you can always ungoup results when needed).`
+    label:`Auto group results from the same user`, info:`If you enable this item search results will automatically be grouped by user and also sorted by average real currency value (from <b><a class="poe1only" target="_blank" href="https://poe.ninja/">poe.ninja</a><a class="poe2only" target="_blank" href="https://orbwatch.trade/">orbwatch.trade</a></b>) and quantity of items beeing sold. Usefull for maps and other "consumables", not for equipment search (but you can always ungoup results when needed).`
   },
   showGroupButtonOnZeroMoreFromSameUser: {
     type: 'Boolean', default: false, paragraph: 'parag1', parent: 'enableGroupedResults', class: '',
     label:`Show group by user button on all items`, info:`If you enable this the button that let you group results from the same user will be visible even on items that have no other items to group.`
   },
   enableMaxNormCost: {
-    type: 'Boolean', default: true, paragraph: 'parag1', class: '',
+    type: 'Boolean', default: true, paragraph: 'parag1', class: 'poe1only',
     label: `Show max tier normalized cost`, info:`If you enable this it will be shown the cost of max tier item for items with clear vendor recipes (essences and sextant).`,
     feature: `For tiered items (essences, sextants...) show the cost of reaching max tier, also enabling sorting by this value.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/max-tier-off.gif'
   },
   enableMaxQtCost: {
-    type: 'Boolean', default: true, paragraph: 'parag1', class: '',
+    type: 'Boolean', default: true, paragraph: 'parag1', class: 'poe1only',
     label: `Show max quality normalized cost for gems`, info:`If you enable this for gems it will be shown the total cost to buy the gem and bring it to max quality using actual gemcutter's cost.`,
     feature: `For gems show the cost of reaching max quality by buying the gem and the necessary gemcutter's prisms, also enabling sorting by this value.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/max-qt-off.gif'
   },
   addWikiLinks: {
     type: 'Boolean', default: true, paragraph: 'parag1', class: '',
-    label: `Add wiki links for each item`, 
+    label: `Add wiki links for each item`,
     feature: `Wiki links for additional items and types.`
-  },
-  trackContactedOnCurrencySearches: {
-    type: 'Boolean', default: true, paragraph: 'parag2', class: '',
-    label:`Track "contacted" also in currency searches`, info:`Track already contacted seller like for item searches.`,
-    feature:`Track "contacted" seller in currency searches like the app already does for item searches.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/contacted-off.gif'
-  },
-  customQuantitiesOnCurrencySearches: {
-    type: 'Boolean', default: true, paragraph: 'parag2', class: 'd-none',
-    label:`Change quantities freely`, info:`Enabling this you'll be able to manually change quantities as you wish. Just click on the quantity you want to change (buying/selling) and the other will be recalculated using the same ratio.`,
-    feature:`Change quantities in currency searches freely.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/change-qt-off.gif'
   }
+  // ,
+  // trackContactedOnCurrencySearches: {
+  //   type: 'Boolean', default: true, paragraph: 'parag2', class: 'd-none',
+  //   label:`Track "contacted" also in currency searches`, info:`Track already contacted seller like for item searches.`,
+  //   feature:`Track "contacted" seller in currency searches like the app already does for item searches.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/contacted-off.gif'
+  // },
+  // customQuantitiesOnCurrencySearches: {
+  //   type: 'Boolean', default: true, paragraph: 'parag2', class: 'd-none',
+  //   label:`Change quantities freely`, info:`Enabling this you'll be able to manually change quantities as you wish. Just click on the quantity you want to change (buying/selling) and the other will be recalculated using the same ratio.`,
+  //   feature:`Change quantities in currency searches freely.`, showcase: 'https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/images/change-qt-off.gif'
+  // }
 };
 
   try {
@@ -443,23 +1839,34 @@ function download(filename, text) {
 
   document.body.removeChild(element);
 }
-var debug = function(){}, info = function(){}, warn = function(){}, log = function(){};
+var trace = function(){}, debug = function(){}, info = function(){}, warn = function(){}, log = function(){};
 var setupDebugger = function(level) {
   if (level) {
     var lc = _.lowerCase(level)
-    if (level === true || lc == "debug") debug = console.debug.bind(window.console)
+    if (lc == "trace") trace = console.debug.bind(window.console);
+    else trace = function(){};
+    if (level === true || lc == "trace" || lc == "debug") debug = console.debug.bind(window.console)
     else debug = function(){};
-    if (level === true || lc == "debug" || lc == "info") info = console.info.bind(window.console)
+    if (level === true || lc == "trace" || lc == "debug" || lc == "info") info = console.info.bind(window.console)
     else info = function(){};
-    if (level === true || lc == "debug" || lc == "info" || lc == "log") log = console.log.bind(window.console)
+    if (level === true || lc == "trace" || lc == "debug" || lc == "info" || lc == "log") log = console.log.bind(window.console)
     else log = function(){};
-    if (level === true || lc == "debug" || lc == "info" || lc == "log" || lc == "warn") warn = console.warn.bind(window.console)
+    if (level === true || lc == "trace" || lc == "debug" || lc == "info" || lc == "log" || lc == "warn") warn = console.warn.bind(window.console)
     else warn = function(){};
   } else {
     debug = function(){}, info = function(){}, log = function(){}, warn = function(){};
   }
 };
 setupDebugger(DEBUG);
+
+function mapRec(el, fn, name, filterFn) {
+  if (!name) name = "ROOT";
+  if (Array.isArray(el))
+    return el.map(function(v, i) { mapRec(v, fn, `${name}[${i}]`, filterFn) });
+  if (el && typeof el === 'object')
+    return Object.fromEntries(Object.entries(el).map(([k, v]) => [k, (filterFn(v, k, el, name)) ? mapRec(v, fn, `${name}.${k}`, filterFn) : v]));
+  return fn(el, name);
+}
 
 function fallbackCopyTextToClipboard(text) {
   var textArea = document.createElement("textarea");
@@ -510,14 +1917,17 @@ var addResources = function(urlsToLoad, element, options, callback) {
 
 var frameBuilders = {};
 
-var openFrame = function(id) {
+var openFrame = function(id, handle, data) {
   if ($(`#${id}`).length == 0 && frameBuilders[id]) {
     buildIframe(frameBuilders[id], function() {
-      jQuery.event.trigger(`${id}-frame-open`, []);
+      jQuery.event.trigger(`${id}-frame-open`, [handle]);
       $(`#${id},.${id}-backdrop`).removeClass("hide");
-    });
+    }, data);
   } else {
-    jQuery.event.trigger(`${id}-frame-open`, []);
+    if (data) {
+      $(`#${id}`).data(data);
+    }
+    jQuery.event.trigger(`${id}-frame-open`, [handle]);
     $(`#${id},.${id}-backdrop`).removeClass("hide");
   }
 };
@@ -527,11 +1937,12 @@ var closeFrame = function(id) {
   $(`#${id},.${id}-backdrop`).addClass("hide");
 };
 
-var buildIframe = function(options, callback) {
+var buildIframe = function(options, callback, data) {
   debug("buildFrame");
   setTimeout(function(){
     debug("buildFrame: ", options);
     var iframe = $(`<iframe id="${options.id}" name="${options.id}" class="gs-frame hide"></iframe>`);
+
     var backdrop = $(`<div class="${options.id}-backdrop gs-backdrop hide"></div>`);
     backdrop.on('click', function() {
       closeFrame(options.id);
@@ -547,6 +1958,7 @@ var buildIframe = function(options, callback) {
     }
 
     iframe.one('load',function(){
+      var iframeDoc = $(this).contents();
       debug('init iframe content');
       if (options.frameTemplate) {
         iframe.contents().find('head')
@@ -557,28 +1969,56 @@ var buildIframe = function(options, callback) {
         .addClass('frame-'+options.id)
         .append(options.contents);
       }
-      var cb = function() {
-        jQuery.event.trigger(`${options.id}-frame-created`, [iframe]);
-        if (callback) callback();
+      var scripts = [];
+
+      var loop = function(index, cb) {
+        if (index < scripts.length) {
+          var script = scripts[index];
+          script.onload = function () {
+            console.log("Script caricato:", this.src);
+            loop(index+1, cb);
+          };
+          iframeDoc[0].body.appendChild(script);
+        } else {
+          cb();
+        }
       };
-      debug("buildFrame: ", options);
-      if (options.builder) {
-        options.builder(iframe, cb);
-      } else {
-        cb();
-      }
+
+      iframeDoc.find("script").each(function () {
+          var script = document.createElement("script");
+          script.type = "text/javascript";
+
+          if (this.src) {
+              script.src = this.src; // Per script esterni
+          } else {
+              script.textContent = this.text || this.innerText; // Per script inline
+          }
+
+          scripts.push(script);
+      });
+      loop(0, function() {
+        var cb = function() {
+          jQuery.event.trigger(`${options.id}-frame-created`, [iframe]);
+          if (callback) callback();
+        };
+        debug("buildFrame: ", options);
+        if (options.builder) {
+          options.builder(iframe, cb);
+        } else {
+          cb();
+        }
+      });
     });
     $('body').prepend(backdrop).prepend(iframe);
-
+    if (data) {
+      $(`#${options.id}`).data(data);
+    }
   }, 100);
 };
 
 var addIframe = function(options, callback) {
   debug($(options.trigger), "iframe trigger");
-  $(options.trigger).on( "click", function() {
-    debug(`opening frame ${options.id}`);
-    openFrame(options.id);
-  });
+  if (options.trigger) addIframeTrigger(options.trigger, options.id);
   if (getSetting("loadImmediately")) {
     buildIframe(options, callback);
   } else {
@@ -587,17 +2027,28 @@ var addIframe = function(options, callback) {
   }
 };
 
+var addIframeTrigger = function(trigger, id) {
+  if (!$(trigger).data('opens-'+id)) {
+    $(trigger).on( "click", function() {
+      var _this = $(this);
+      debug(`opening frame ${id}`);
+      openFrame(id, _this);
+    });
+    $(trigger).data('opens-'+id, true);
+  }
+};
+
 var insertOnParagraph = function(iframe, element, paragraph, prefix, elType, parent) {
   var before = null;
   if (paragraph) {
-    before = iframe.contents().find(prefix+paragraph+' ~ '+elType+':first');
+    before = iframe[0].contentWindow.$(prefix+paragraph+' ~ '+elType+':first');
   } else {
-    before = iframe.contents().find(prefix+'ungrouped ~ '+elType+':first');
+    before = iframe[0].contentWindow.$(prefix+'ungrouped ~ '+elType+':first');
   }
   if (before && before.length) {
     before.before(element);
   } else {
-    iframe.contents().find(parent).append(element);
+    iframe[0].contentWindow.$(parent).append(element);
   }
   return element;
 };
@@ -636,7 +2087,7 @@ var getFormGroup = function(key, set) {
       element = /* html */`
       <div class="form-group ${set.class}">
         <label for="${key}">${set.label}</label>
-        <input type="number" class="ml-2" min="${set.min}" max="${set.max}" id="${key}">
+        <input type="number" class="ms-2" min="${set.min}" max="${set.max}" id="${key}">
         <small id="${key}HelpBlock" class="form-text text-muted">
           ${set.info}
         </small>
@@ -659,8 +2110,8 @@ function evalInContext(js, context) {
 }
 
 var waitFor = function() {
-  var globs, options = {tick: 100, max: -1}, callback, stop = false, error = false;
-  debug(`waitFor arguments:`, arguments);
+  var globs, options = {tick: 100, max: -1, count: 0}, callback, stop = false, error = false;
+  trace(`waitFor arguments:`, arguments);
   if (arguments.length >= 2) {
     globs = arguments[0];
     callback = arguments[1];
@@ -668,8 +2119,9 @@ var waitFor = function() {
       callback = arguments[2];
       options = $.extend({}, options, arguments[1]);
     }
-    debug(`waitFor options:`, options);
+    trace(`waitFor options:`, options);
     try {
+      options.count++;
       if (!options.started) {
         options.started = moment().valueOf();
       } else if (options.max > 0 && moment.duration(moment().diff(options.started)).asMilliseconds() >= options.max) {
@@ -677,11 +2129,11 @@ var waitFor = function() {
         error = new Error("waitFor timeout reached");
       }
     } catch(ex) {
-      debug(`waitFor maxAge check exception: ${ex}`);
+      trace(`waitFor maxAge check exception: ${ex}`);
     }
     try {
       _.each(_.flatten([globs]), function(g) {
-        debug(`eval => ${g}`);
+        trace(`eval => ${g}`);
         if (_.isFunction(g)) {
           g();
         } else if (options.context) {
@@ -692,15 +2144,18 @@ var waitFor = function() {
       });
       stop = true;
     } catch(ex) {
-      debug(`waitFor eval exception: ${ex}`);
+      trace(`waitFor eval exception: ${ex}`);
     }
     if (stop) {
       if (error && options.onFailure) {
+        warn(`waitFor FAILED`);
         options.onFailure(error);
       } else {
+        debug(`waitFor found everything`);
         callback();
       }
     } else {
+      if (options.count % 10 == 0) debug(`waitFor didn't find, retrying next tick`);
       setTimeout(function(){ waitFor(globs, options, callback); }, options.tick);
     }
   }
@@ -791,6 +2246,10 @@ function ModalLoading(title, total, options) {
   _this.title = title;
   _this.total = total;
   _this.done = options.initialDone || 0;
+  _this.stoppable = (options.stoppable != undefined) ? options.stoppable : true;
+  _this.overlayId = options.overlayId || "gs-modal-loading-backdrop";
+  _this.backdropClass = options.backdropClass || "gs-backdrop";
+  _this.styleClass = options.styleClass || "gs-style";
   _this.addDone = function() {
     _this.done++;
     _this.write();
@@ -807,19 +2266,22 @@ function ModalLoading(title, total, options) {
     } else {
       $('#gs-modal-loading-spinner').removeClass("gs-loaded-three-quarters gs-loaded-full gs-loaded-half");
     }
+    // $('.gs-loading-spinner').animate({width: 30}, 'slow');
   };
   _this.start = function() {
-    var overlay = $('#gs-modal-loading-backdrop');
+    var overlay = $(`#${_this.overlayId}`);
     if (overlay.length === 0) {
-      overlay = $('<div id="gs-modal-loading-backdrop" class="gs-backdrop hide"><div id="gs-modal-loading" class="gs-style gs-loading"><div id="gs-modal-loading-title" class="gs-loading-title"></div><div id="gs-modal-loading-spinner" class="gs-loading-spinner"></div><div id="gs-modal-loading-counter" class="gs-loading-counter"></div></div></div>');
-      overlay.on('click',_this.stop);
+      overlay = $(`<div id="${_this.overlayId}" class="${_this.backdropClass} hide"><div id="gs-modal-loading" class="${_this.styleClass} gs-loading"><div id="gs-modal-loading-title" class="gs-loading-title"></div><div id="gs-modal-loading-spinner" class="gs-loading-spinner"></div><div id="gs-modal-loading-counter" class="gs-loading-counter"></div></div></div>`);
+      if (_this.stoppable) {
+        overlay.on('click',_this.stop);
+      }
       $('body').append(overlay);
     }
     _this.write();
     overlay.removeClass("hide");
   }
   _this.stop = function() {
-    $('#gs-modal-loading-backdrop').addClass("hide");
+    $(`#${_this.overlayId}`).addClass("hide");
   }
   if (!options.doNotSort) {
     _this.start();
@@ -845,6 +2307,66 @@ var comparator = function(x, y, fields, nullsNotTrailing) {
     fIndex++;
   }
   return diff;
+}
+
+var cartesianProduct = function(array) {
+  return array.reduce(function(a, b) {
+    return a.map(function (x) {return b.map(function (y) {return x.concat(y)})})
+    .reduce(function(a, b) {return a.concat(b)}, [])
+  }, [[]]);
+};
+
+var toElementId = function(str) {
+  return str.replaceAll(/[\s\.']/gi,"-")
+  .replaceAll(/#/gi,"HASH")
+  .replaceAll(/&/gi,"AMP")
+  .replaceAll(/\|\|\|\|\|/gi,"CRLN")
+  .replaceAll(/%/gi,"PERC");
+}
+
+var isNumber = function isNumber(value) {
+  return typeof value === 'number' && isFinite(value);
+}
+
+var getAttributeValueByType = function(el, attr) {
+  var type = el.getAttribute(attr+"-type") || "";
+  switch (type.toLowerCase()) {
+  case "int":
+      return parseInt(el.getAttribute(attr));
+      break;
+  case "number":
+  case "float":
+      return parseFloat(el.getAttribute(attr));
+      break;
+  default:
+      return el.getAttribute(attr);
+      break;
+  }
+};
+
+var sortMeBy = function(arg, sel, elem, order, jq) {
+  if (!jq) jq = $;
+  trace("sortMeBy: "+sel);
+  var $selector = jq(sel),
+  $element = $selector.children(elem);
+  $element.sort(function(a, b) {
+    var an = getAttributeValueByType(a, arg),
+    bn = getAttributeValueByType(b, arg);
+    trace(`sortMeBy elements: ${an} - ${bn}`);
+    if (order == "asc") {
+      if (an > bn)
+        return 1;
+      if (an < bn)
+        return -1;
+    } else if (order == "desc") {
+      if (an < bn)
+        return 1;
+      if (an > bn)
+        return -1;
+    }
+    return 0;
+  });
+  $element.detach().appendTo($selector);
 }
 
 
@@ -902,12 +2424,12 @@ var isSettingDisabled = function(key) {
 function getSetting(key) {
   // TODO: ensure type, min and max
   if (settings[key] && settings[key].value) {
-    debug(key+" already loaded with value: "+settings[key].value);
+    trace(key+" already loaded with value: "+settings[key].value);
     return settings[key].value;
   } else {
-    debug(`about tp get ${namespace+"."+key} from localStorage`);
+    trace(`about tp get ${namespace+"."+key} from localStorage`);
     var val = localStorage.getItem(namespace+"."+key);
-    debug(`got ${namespace+"."+key} from localStorage: ${val}`);
+    trace(`got ${namespace+"."+key} from localStorage: ${val}`);
     if ((val === undefined || val === null) && settings[key] && settings[key].default) {
       val = settings[key].default;
     }
@@ -926,7 +2448,7 @@ function getSetting(key) {
       settings[key] = {};
     }
     settings[key].value = val;
-    debug(key+" loaded from localStorage: "+settings[key].value);
+    trace(key+" loaded from localStorage: "+settings[key].value);
     return val;
   }
 };
@@ -989,12 +2511,14 @@ var createSettingsFrame = function(iframe, callback) {
   // iframe.on('load',function(){
     debug("createSettingsFrame: loaded");
     var saved = function() {
-      iframe.contents().find('#saved-alert').stop().css({'opacity':1, 'z-index': 1000}).animate({'opacity': 0, 'z-index': 0}, 3000);
+      iframe[0].contentWindow.$('#saved-alert').stop().removeClass('d-none').css({'opacity':1, 'z-index': 1000}).animate({'opacity': 0, 'z-index': 0}, 3000, function () {
+        iframe[0].contentWindow.$('#saved-alert').addClass('d-none');
+      });
     };
-
+    iframe[0].contentWindow.$('body').addClass(((poe2) ? 'poe2' : 'poe1'));
     var setDisabler = function() {
       $.each( settings, function( key, set ) {
-        var setter = iframe.contents().find('#'+key);
+        var setter = iframe[0].contentWindow.$('#'+key);
         setter.prop('disabled', isSettingDisabled(key));
         if (setter.attr('type') == "range") {
           if (isSettingDisabled(key)) {
@@ -1008,25 +2532,25 @@ var createSettingsFrame = function(iframe, callback) {
 
     $.each( paragraphs, function( key, par ) {
       if (par.title) {
-        iframe.contents().find('#settings-form').append(`<hr class="${par.class}">`).append(`<h4 id="sett-${key}" class="${par.class}">${par.title}</h4>`);
+        iframe[0].contentWindow.$('#settings-form').append(`<hr class="${par.class}">`).append(`<h4 id="sett-${key}" class="${par.class}">${par.title}</h4>`);
       }
       if (par.featureTitle) {
-        iframe.contents().find('#features-list').append(`<dt id="feature-${key}" class="${par.class}">${par.featureTitle}</dt>`);
+        iframe[0].contentWindow.$('#features-list').append(`<dt id="feature-${key}" class="${par.class}">${par.featureTitle}</dt>`);
       }
     });
-    iframe.contents().find('#features-list').prepend(`<dt id="feature-ungrouped" class="mt-3 mb-2 border-top border-secondary d-none"></dt>`);
-    iframe.contents().find('#settings-form').prepend(`<h4 id="sett-ungrouped" class=""></h4>`);
+    iframe[0].contentWindow.$('#features-list').prepend(`<dt id="feature-ungrouped" class="mt-3 mb-2 border-top border-secondary d-none"></dt>`);
+    iframe[0].contentWindow.$('#settings-form').prepend(`<h4 id="sett-ungrouped" class=""></h4>`);
 
     $.each( settings, function( key, set ) {
       debug( key + ": " + set );
       if (set.feature) {
         var dd = $(`<dd class="${set.class}">${set.feature}</dd>`);
         if (set.showcase) {
-          var scIcon = $(`<a class="ml-2" title="Showcase this feature"><i class="fas fa-film"></i></a>`);
+          var scIcon = $(`<a class="ms-2" title="Showcase this feature"><i class="fas fa-film"></i></a>`);
           dd.append(scIcon);
           scIcon.on( "click", function(e) {
-            iframe.contents().find('#showcaseModal .modal-body').empty().append(`<img class="img-fluid" alt="${set.feature} Showcase" src="${set.showcase}" />`);
-            iframe.contents().find('#showcaseModal').modal('show');
+            iframe[0].contentWindow.$('#showcaseModal .modal-body').empty().append(`<img class="img-fluid" alt="${set.feature} Showcase" src="${set.showcase}" />`);
+            iframe[0].contentWindow.$('#showcaseModal').modal('show');
           });
         }
         insertOnParagraph(iframe, dd, set.paragraph, '#feature-', 'dt', '#features-list');
@@ -1038,8 +2562,8 @@ var createSettingsFrame = function(iframe, callback) {
     });
 
     $.each( settings, function( key, set ) {
-      var setter = iframe.contents().find('#'+key);
-      var valuer = iframe.contents().find('#'+key+"-val");
+      var setter = iframe[0].contentWindow.$('#'+key);
+      var valuer = iframe[0].contentWindow.$('#'+key+"-val");
       if (setter.length > 0) {
         var val = getSetting(key);
         if (valuer.length) {
@@ -1080,7 +2604,7 @@ var endInit = function() {
 };
 
 
-info("version: 1.4.25");
+info("version: 1.5.7");
 
   ;(function(factory) {
     if(typeof define === 'function' && define.amd) {
@@ -1449,7 +2973,7 @@ var getColorPickerTemplate = function (id) {
   $(document).on(`setting-frame-frame-created`, function(e, iframe) {
     fixTabs(iframe, "#myTab", "#myTabContent");
 
-    iframe.contents().find('#currency-tab').on('click', function (e) {
+    iframe[0].contentWindow.$('#currency-tab').on('click', function (e) {
       initCurrencyTables(iframe);
       fixTabs(iframe, "#myCurrTab", "#myCurrTabContent");
     });
@@ -1508,6 +3032,7 @@ var getColorPickerTemplate = function (id) {
     case "removeCurrentSearch":
     case "setSearchDirty":
     case "clearSearchResults":
+    case "updatePseudoStats":
       info("STATE CHANGE: " + mutation.type, mutation.payload);
       searchChanged(mutation);
       break;
@@ -1590,18 +3115,18 @@ var addResultMessage = function(messageElement, msgClass, builder) {
 }
 
 var fixTabs = function(iframe, nav, container) {
-  debug(iframe.contents().find(nav + ' a.nav-link'));
-  iframe.contents().find(nav + ' a.nav-link').on('click', function(e) {
+  debug(iframe[0].contentWindow.$(nav + ' a.nav-link'));
+  iframe[0].contentWindow.$(nav + ' a.nav-link').on('click', function(e) {
     var id = $(this).attr('id');
     var panel = $(this).attr('href');
-    iframe.contents().find('#'+id).tab("show");
-    iframe.contents().find(container + ' .tab-pane.show').removeClass("show active");
-    iframe.contents().find(panel).addClass("show active");
+    iframe[0].contentWindow.$('#'+id).tab("show");
+    iframe[0].contentWindow.$(container + ' .tab-pane.show').removeClass("show active");
+    iframe[0].contentWindow.$(panel).addClass("show active");
   });
 };
 
 var fixToggler = function(iframe, preSelector, callback) {
-  iframe.contents().find(preSelector + ' .gs-check-toggler .fa-check-square,' + preSelector + ' .gs-check-toggler .fa-square').on('click', function(e) {
+  iframe[0].contentWindow.$(preSelector + ' .gs-check-toggler .fa-check-square,' + preSelector + ' .gs-check-toggler .fa-square').on('click', function(e) {
     $(this).closest('.gs-check-toggler').toggleClass('gs-checked');
     if (callback) {
       callback($(this), e);
@@ -1626,7 +3151,7 @@ var isFullyLoaded = function(localId) {
 var getSearch = function(localId) {
   if (_.isString(localId)) {
     var search = _.find(app.$store.state.transient.searches, function(x) { return (x.localId == localId); });
-    debug("getSearch.search: ", search);
+    trace("getSearch.search: ", search);
     return search;
   } else {
     return localId;
@@ -1636,7 +3161,7 @@ var getSearch = function(localId) {
 //localId: "search_1" || {}, resultId: "result_2"
 var getResults = function(localId, resultId) {
   var results = _.find(getSearch(localId).results, function(x) { return (x.id == resultId); });
-  debug("getResults.results: ", results);
+  trace("getResults.results: ", results);
   return results;
 };
 
@@ -1648,7 +3173,7 @@ var tabSelected = function (tab) {
     waitFor(function () {
       if ($('.filter-title > span:contains(Maps)').length <= 0) throw new Error("Map section not found");
     }, {max: 3000}, function () {
-      initMapSelector();
+      // initMapSelector();
     });
   }
 };
@@ -1677,6 +3202,8 @@ var searchLoaded = $.debounce( 250, function(mutation) {
     debug("DEBOUNCED STATE CHANGE: " + mutation.type, mutation.payload);
     enhanceAllItems(mutation.payload.localId, mutation.payload.resultId);
     if (getSetting('useSaveManager')) initSaveManager();
+    initModSelector();
+    fixTips();
   } else {
     debug("DEBOUNCED STATE CHANGE NEED CURRENCIES: " + mutation.type, mutation.payload);
     getCurrencies(getCurrentLeague(), function(curr) {
@@ -1690,12 +3217,13 @@ var searchChanged = $.debounce( 250, function(mutation) {
   if (currencies && currencies.map) {
     debug("DEBOUNCED STATE CHANGE: " + mutation.type, mutation.payload);
     if (getSetting('useSaveManager')) initSaveManager();
+    initModSelector();
     fixTips();
   } else {
     debug("DEBOUNCED STATE CHANGE NEED CURRENCIES: " + mutation.type, mutation.payload);
     getCurrencies(getCurrentLeague(), function(curr) {
       currencies = curr;
-      searchLoaded(mutation);
+      searchChanged(mutation);
     });
   }
 });
@@ -1744,7 +3272,7 @@ function addMoreFromSameUserToItem(data, allItems) {
     }
   });
   if (_.has(data, "listing.account.name")) {
-    debug("more from "+data.listing.account.name, "searched over "+Object.keys(allItems).length, data.more);
+    trace("more from "+data.listing.account.name, "searched over "+Object.keys(allItems).length, data.more);
   }
   data.buyoutPerItem = data.totalBuyout / (data.more.length + 1);
   data.buyoutGrouped = ((data.totalBuyout > 0) ? (((data.totalBuyout / (data.more.length + 1)) * 10000) - data.more.length) : null);
@@ -1851,9 +3379,9 @@ function addMaxQtCostToItem(data) {
 
 var renderWikiLink = function(item, data, localId, resultId) {
   var name = ((_.get(data, 'item.frameType') == 3) ? _.get(data, 'item.name') : _.get(data, 'item.baseType'));
-  debug("renderWikiLink", item, data, name);
+  trace("renderWikiLink", item, data, name);
   if (name) {
-    item.find(".itemName").last().append(`<a target="_blank" class="wiki-link gs-style gs-wikiLink" href="http://pathofexile.gamepedia.com/${name}">wiki</a>`);
+    item.find(".itemName").last().append(`<a target="_blank" class="wiki-link gs-style gs-wikiLink" href="https://www.poe${poe2 ? '2' : ''}wiki.net/wiki/${name}">wiki</a>`);
   }
 };
 
@@ -1909,11 +3437,19 @@ function addChaosEquivToItem(data) {
 }
 
 var renderChaosEquiv = function(item, data, localId, resultId) {
+  debug("renderChaosEquiv", data);
   if (item.find('.chaosEquiv').length == 0 && data.chaosEquivalent && (data.listing.price || data.listing.offers)) {
     var sortHandle, tip;
     if (data.listing.price && data.listing.price.amount) {
       //TIP: SINGLE ITEM
-      sortHandle = $(`<span class="chaosEquiv"><span class="currency currency-chaos"><b>Chaos Equiv: </b>${(Math.round(data.chaosEquivalent*100)/100)}×</span><span class="currency-text currency-image"><img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos"></span></span>`);
+      sortHandle = $(`<span class="chaosEquiv">
+        <span class="currency currency-chaos"><b>${poe2?'Ex':'Chaos'} Equiv: </b>${(Math.round(data.chaosEquivalent*100)/100)}×</span>
+        <span class="currency-text currency-image">
+          ${ poe2 ?
+            '<img src="https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRNb2RUb1JhcmUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/ad7c366789/CurrencyAddModToRare.png" alt="exalted" title="exalted" />' :
+            '<img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos" />' }
+        </span>
+      </span>`);
       tip = getChaosEquivTip(data.buyout, data.listing.price.currency, (_.has(data, "listing.account.lastCharacterName") ? data.listing.account.lastCharacterName : null));
       item.find('div.price [data-field=price]').last().after(sortHandle);
       sortHandle.wrap(`<div class="gs-wrapper"></div>`);
@@ -1922,8 +3458,14 @@ var renderChaosEquiv = function(item, data, localId, resultId) {
       // }
     } else {
       //TIP: BULK CURRENCY
-      sortHandle = $(`<span class="chaosEquiv"><span>${(Math.round(data.chaosEquivalent*100)/100)}</span><span>&nbsp;×&nbsp;</span><img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos"></span>`);
-      tip = getCurrencyChaosEquivTip(data.chaosEquivalentTotal, data.chaosEquivalent, data.listing.offers[0].item.currency, data.listing.offers[0].exchange.currency);
+      sortHandle = $(`<span class="chaosEquiv">
+        <span>${(Math.round(data.chaosEquivalent*100)/100)}</span><span>&nbsp;×&nbsp;</span>
+        ${ poe2 ?
+          '<img src="https://web.poecdn.com/gen/image/WzI1LDE0LHsiZiI6IjJESXRlbXMvQ3VycmVuY3kvQ3VycmVuY3lBZGRNb2RUb1JhcmUiLCJzY2FsZSI6MSwicmVhbG0iOiJwb2UyIn1d/ad7c366789/CurrencyAddModToRare.png" alt="exalted" title="exalted" />' :
+          '<img src="https://web.poecdn.com/image/Art/2DItems/Currency/CurrencyRerollRare.png?v=c60aa876dd6bab31174df91b1da1b4f9" alt="chaos" title="chaos" />' }
+      </span>`);
+      var bulkOffer = data.listing.offers ? data.listing.offers[0] : data.listing.price;
+      tip = getCurrencyChaosEquivTip(data.chaosEquivalentTotal, data.chaosEquivalent, bulkOffer.item.currency, bulkOffer.exchange.currency);
       item.find('div.price').first().append(sortHandle);
       sortHandle.wrap(`<div class="gs-wrapper"></div>`);
       if (_.has(data, "listing.price.item.amount") && _.has(data, "listing.price.exchange.amount") && _.has(data, "listing.price.item.currency") && _.has(data, "listing.whisper")) {
@@ -1961,7 +3503,7 @@ var renderChaosEquiv = function(item, data, localId, resultId) {
 var enhanceAllItems = function(localId, resultId) {
   var search = getSearch(localId);
   var results = getResults(search, resultId);
-  debug("enhanceAllItems.results: ", results);
+  trace("enhanceAllItems.results: ", results);
   $.each( results.items, function( id, item ) {
     if (item) {
       var clone = enhanceItem(item, _.indexOf(results.result, id), results.items);
@@ -1984,7 +3526,7 @@ var enhanceAllItems = function(localId, resultId) {
 var enhanceItem = function(item, index, allItems) {
   var clone = null;
   if (!(item.origIndex >= 0)) {
-    debug("enhanceAllItems.item to enhance: ", item);
+    trace("enhanceAllItems.item to enhance: ", item);
     if (!clone) clone = $.extend({}, item);
     clone.origIndex = index;
     if (currencies && currencies.map) {
@@ -2010,7 +3552,7 @@ var enhanceItem = function(item, index, allItems) {
 };
 
 var renderEnhancedItem = function(item, data, localId, resultId) {
-  debug("renderEnhancedItem.item to render: ", item, data, localId, resultId);
+  trace("renderEnhancedItem.item to render: ", item, data, localId, resultId);
   if (getSetting('enableChaosEquiv')) renderChaosEquiv(item, data, localId, resultId);
   if (getSetting('enableMaxQtCost')) renderMaxQt(item, data, localId, resultId);
   if (getSetting('enableMaxNormCost')) renderMaxNormalized(item, data, localId, resultId);
@@ -2086,6 +3628,7 @@ var sortItems = function(sortKey, localId, resultId, items, showAutoSortMessage)
 
 //sortKey: "chaosEquivalent", localId: "search_1", resultId: "result_2"
 var sortFullPage = function(sortKey, localId, resultId, message) {
+  debug("sortFullPage");
   if (!fullyLoaded[localId] || !fullyLoaded[localId].loaded) {
     if (!fullyLoaded[localId]) fullyLoaded[localId] = {};
     fullyLoaded[localId].loaded = false;
@@ -2122,7 +3665,7 @@ var sortFullPage = function(sortKey, localId, resultId, message) {
             deferred.reject(error);
           }
         };
-        itemResultsPanel.fetchNext(search.id, ids, (new $.Deferred)
+        itemResultsPanel.fetchNext(search.id, ids, /*(search.type == "exchange"),*/ (new $.Deferred)
         .done(success)
         .fail(failure)
         .always(function() {
@@ -2168,6 +3711,27 @@ var sortFullPage = function(sortKey, localId, resultId, message) {
   }
 };
 
+function duplicateControls() {
+  var dup = $('.top .search-panel .controls:not(.duplicate)').clone();
+  debug("duplicate: ", dup);
+  dup.addClass('duplicate');
+  dup.find('.toggle-search-btn').on('click', function() {
+    $('.top .search-panel .controls:not(.duplicate) .toggle-search-btn').trigger('click');
+  });
+  dup.find('.toggle-search-btn span:last').text("Hide Filters");
+  dup.find('.clear-btn').on('click', function() {
+    $('.top .search-panel .controls:not(.duplicate) .clear-btn').trigger('click');
+  });
+  dup.find('.clear-btn').removeAttr("disabled");
+  dup.find('.search-btn').on('click', function() {
+    $('.top .search-panel .controls:not(.duplicate) .search-btn').trigger('click');
+  });
+  dup.find('.search-btn').removeAttr("disabled");
+  dup.find('.search-btn span:last').text("Search");
+  $('.top .search-panel .search-bar.search-advanced:not(.duplicate)')
+  .prepend(dup);
+};
+
 function getCurrentLeague() {
   debug("current league", app.$store.state.persistent.league);
   return app.$store.state.persistent.league;
@@ -2178,12 +3742,11 @@ function getAvailableLeagues() {
 };
 
 function getSaveIcons() {
-  var svicon = $(`<span class="gs-style gs-fixTips gs-save" data-tippy="Save search"><i class="fas fa-save"></i></span>`);
-  var ldicon = $(`<span class="gs-style gs-fixTips gs-load" data-tippy="Load search"><i class="fas fa-folder-open"></i></span>`);
+  var svicon = $(`<span class="gs-style gs-fixTips gs-save gs-trigger" data-tippy="Save search"><i class="fas fa-save"></i></span>`);
+  var ldicon = $(`<span class="gs-style gs-fixTips gs-load gs-trigger" data-tippy="Load search"><i class="fas fa-folder-open"></i></span>`);
   var mticon = $(`<span class="gs-style gs-fixTips gs-multi hide" data-tippy="Multi live search"><i class="fas fa-satellite-dish"></i></span>`);
   if ($('.top .controls .controls-right').length > 0) {
     $('.top .controls .controls-right')
-    .prepend(mticon.clone())
     .prepend(ldicon.clone())
     .prepend(svicon.clone());
     $('.top .controls').addClass("saveManager");
@@ -2191,10 +3754,10 @@ function getSaveIcons() {
     warn("save manager buttons not added to DOM");
   }
   return [svicon, ldicon, mticon];
-}
+};
 
 var getSearchKey = function() {
-  return searchesKey + ((app.$store.state.persistent.tab == 'exchange') ? '-exchange' : '-items');
+  return searchesKey + (poe2 ? '2' : '') + ((app.$store.state.persistent.tab == 'exchange') ? '-exchange' : '-items');
 };
 
 var saveSearch = function() {
@@ -2205,13 +3768,14 @@ var saveSearch = function() {
       searches[name] = {
         type: app.state.tab,
         league: app.state.league,
+        realm: app.state.realm,
         query: app.query.query
       };
       putSearches(searches);
       close();
     } catch(ex) {
       saveFrame.contents().find('div.row').first().append(/*html*/`
-        <dic class="col-md-12 py-2">
+        <div class="col-md-12 py-2">
           <div class="alert alert-danger" role="alert">
             <h4 class="alert-heading">Error</h4>
             <p>An error prevented PTE from saving the current search in your browser local storage.</p>
@@ -2258,6 +3822,7 @@ var openSearch = function(search, newTab, target, quickFilters) {
   var st = $.extend({}, app.$store.state, {
     persistent: {
       league: search.league,
+      realm: search.realm,
       tab: search.type,
       exchange: {
         fulfillable: true,
@@ -2282,13 +3847,15 @@ var openSearch = function(search, newTab, target, quickFilters) {
       type: search.type,
       league: search.league,
       query: search.query,
+      collapse: null,
+      realm: search.realm,
       sort: {
           price: "asc"
       }
   });
-  app.$store.commit("setSearchActive", {
-      localId: uid
-  });
+  // app.$store.commit("setSearchActive", {
+  //     localId: uid
+  // });
   close();
 };
 
@@ -2296,7 +3863,7 @@ var addQuickFiltersMessage = function(quickFilters, remove) {
   $('.results .gs-forced-filters-message').remove();
   if (!_.isEmpty(quickFilters["force-league"]) || !_.isEmpty(quickFilters["force-cost"])) {
     var league = quickFilters["force-league"], cost = quickFilters["force-cost"];
-    var message = `On this search you forced ${(league ? ("league to "+league+ ((cost) ? " and" : "")) : "")} ${(cost ? ("maximum price of "+cost+" chaos") : "")}`;
+    var message = `On this search you forced ${(league ? ("league to "+league+ ((cost) ? " and" : "")) : "")} ${(cost ? ("maximum price of "+cost+" "+((poe2)?"exalted":"chaos")) : "")}`;
     addResultMessage($(`<span><i class="fas fa-exclamation-triangle"></i> ${message} </span>`), 'gs-forced-filters-message', function(div) {
       div.addClass("gs-warning");
       if (remove) {
@@ -2521,7 +4088,29 @@ var startSocket = function(index, res) {
   }
 };
 
-  var leagues = [], currencies, isCurr, ASC = true, DESC = false;
+  var leagues = [], currencies, isCurr, ASC = true, DESC = false, DEFERRED_RESOURCES = {};
+
+var getDeferred = function(url, options) {
+  var deferred = $.Deferred();
+  if (DEFERRED_RESOURCES[url]) {
+    deferred.resolve(DEFERRED_RESOURCES[url]);
+  } else {
+    var params = $.extend({}, options, {
+      method: "GET",
+      url: url,
+      onload: function (response) {
+        DEFERRED_RESOURCES[url] = response;
+        deferred.resolve(response);
+      },
+      onerror: function (error) {
+        deferred.fail(error);
+        debug(error);
+      }
+    });
+    GM_xmlhttpRequest(params);
+  }
+  return deferred;
+};
 
 var _initPageOrig = initPage;
 initPage = function(loc) {
@@ -2544,20 +4133,24 @@ function isCurrencySearch(url) {
 function isPoeOfficialItemSearch(url) {
    return /^[^\.]*www\.pathofexile\.com\/trade\/search\/?.*/.test(url);
 }
+function isPoe2(url) {
+   return /^[^\.]*www\.pathofexile\.com\/trade2.*/.test(url);
+}
+
 
 function resetCurrency(league) {
   if (league) {
     var curr = JSON.parse(localStorage.getItem(namespace+".currencies"));
     delete curr[league];
-    localStorage.setItem(namespace+".currencies", JSON.stringify(curr));
+    localStorage.setItem(namespace+".currencies"+((poe2)?"2":""), JSON.stringify(curr));
   } else {
-    localStorage.setItem(namespace+".fixedCurrenciesChanges", JSON.stringify({}));
+    localStorage.setItem(namespace+".fixedCurrenciesChanges"+((poe2)?"2":""), JSON.stringify({}));
   }
 };
 
 function setCurrencyValue(league, key, value) {
   if (league) {
-    var curr = JSON.parse(localStorage.getItem(namespace+".currencies"));
+    var curr = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
     if (!curr[league].map[key].originalChaosEquiv) {
       curr[league].map[key].originalChaosEquiv = curr[league].map[key].chaosEquivalent;
     }
@@ -2565,21 +4158,21 @@ function setCurrencyValue(league, key, value) {
     if (curr[league].map[key].originalChaosEquiv === curr[league].map[key].chaosEquivalent) {
       delete curr[league].map[key].originalChaosEquiv;
     }
-    localStorage.setItem(namespace+".currencies", JSON.stringify(curr));
+    localStorage.setItem(namespace+".currencies"+((poe2)?"2":""), JSON.stringify(curr));
   } else {
-    var changes = JSON.parse(localStorage.getItem(namespace+".fixedCurrenciesChanges")) || {};
+    var changes = JSON.parse(localStorage.getItem(namespace+".fixedCurrenciesChanges"+((poe2)?"2":""))) || {};
     changes[key] = value;
     if (changes[key] == FIXED_CURRENCY_VALUES.map[key].chaosEquivalent) {
       delete changes[key];
     }
-    localStorage.setItem(namespace+".fixedCurrenciesChanges", JSON.stringify(changes));
+    localStorage.setItem(namespace+".fixedCurrenciesChanges"+((poe2)?"2":""), JSON.stringify(changes));
   }
 };
 
 function getCurrencies(league, cb) {
   var doLoadCurrencies = getSetting('enableCurrencyLoad');
   if (doLoadCurrencies) {
-    var updated, leaguesToRemove = [], curr = JSON.parse(localStorage.getItem(namespace+".currencies"));
+    var updated, leaguesToRemove = [], curr = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
     if (leagues) {
       $.each( curr, function( ll, value ) {
         if (!leagues.find(function(x) {
@@ -2592,7 +4185,7 @@ function getCurrencies(league, cb) {
         $.each( leaguesToRemove, function( i, ll ) {
           delete curr[ll];
         });
-        localStorage.setItem(namespace+".currencies", JSON.stringify(curr));
+        localStorage.setItem(namespace+".currencies"+((poe2)?"2":""), JSON.stringify(curr));
       }
     }
     debug(curr, "curr from localstorage");
@@ -2600,115 +4193,174 @@ function getCurrencies(league, cb) {
     debug(curr, "curr of ["+league+"] from localstorage");
     if (curr && curr.updated) updated = moment(curr.updated);
     var maxAge = getSetting('currencyMaxAge');
-    if (!curr || !updated || (maxAge > 0 && moment.duration(moment().diff(updated)).asHours() >= maxAge)) {
+    if (!currFailed && (!curr || !updated || (maxAge > 0 && moment.duration(moment().diff(updated)).asHours() >= maxAge))) {
       debug('currencies from poe.ninja not found in session or older then '+maxAge+' hours');
-      var getDeferred = function(url) {
-        var deferred = $.Deferred();
-        GM_xmlhttpRequest({
-          method: "GET",
-          url: url,
-          onload: function (response) {
-            deferred.resolve(response);
-          },
-          onerror: function (error) {
-            deferred.fail(error);
-            debug(error);
-          }
-        });
-        return deferred;
-      };
-      $.when(
-        getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Currency&date="+moment().format("YYYY-MM-DD")),
-        getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Fragment&date="+moment().format("YYYY-MM-DD")),
-        getDeferred("https://poe.ninja/api/data/itemoverview?league="+league+"&type=Scarab&date="+moment().format("YYYY-MM-DD"))
-      ).then(function () {
-        curr = {map: {}, lines: [], currencyDetails: []};
-        $.each( arguments, function( i, response ) {
-          debug("GM_xmlhttpRequest response", response);
-          if (response.responseText) {
-            var c = JSON.parse(response.responseText);
-            curr.updated = moment().valueOf();
-            if (c.currencyDetails) {
-              curr.currencyDetails = _.uniqBy(curr.currencyDetails.concat(c.currencyDetails), 'id');
+      if (poe2) {
+        $.when(
+          getDeferred("https://orbwatch.trade/api/currency/market-data?mode=buy&realm="+league, {headers: {Referer: "https://orbwatch.trade/"}})
+        ).then(function () {
+          curr = {map: {}, lines: [], currencyDetails: []};
+          $.each( arguments, function( i, response ) {
+            debug("GM_xmlhttpRequest response", response);
+            if (response.responseText) {
+              var c = JSON.parse(response.responseText);
+              curr.updated = moment().valueOf();
+              debug("orbwatch", c);
+              curr.currencyDetails = [];
+              curr.lines = [];
+              curr.map = {};
+              if (c.data && c.data.currencies) {
+                var ex = c.data.currencies.find(function (x) { return x.id == "exalted"; });
+                debug("orbwatch", ex);
+                $.each(c.data.currencies, function( ii, c ) {
+                  curr.currencyDetails.push({
+                    icon: c.icon,
+                    id: ii,
+                    name: c.name,
+                    tradeId: c.id
+                  });
+                  curr.lines.push({
+                    chaosEquivalent: 1 / c.median_price,
+                    exEquivalent: (1 / c.median_price) * ex.median_price,
+                    currencyTypeName: c.name,
+                    detailsId: _.kebabCase(c.name)
+                  });
+                  curr.map[_.kebabCase(c.name)] = {
+                    chaosEquivalent: 1 / c.median_price,
+                    exEquivalent: (1 / c.median_price) * ex.median_price,
+                    currencyTypeName: c.name,
+                    detailsId: _.kebabCase(c.name)
+                  };
+                });
+              }
+            } else {
+              console.log("unable to load orbwatch.trade values for league: "+league);
+              debug(response);
             }
-            if (c.lines) {
-              curr.lines = _.uniqBy(curr.lines.concat(_.map(c.lines, function(x) {
-                if (!x.currencyTypeName) {
-                  x.currencyTypeName = x.name;
-                }
-                if (!x.chaosEquivalent) {
-                  x.chaosEquivalent = x.chaosValue;
-                }
-                return x;
-              })), 'currencyTypeName');
-            }
+          });
+          if (curr.lines.length > 0) {
+            curr.lines = curr.lines.sort(function(a, b) {
+              return b.chaosEquivalent - a.chaosEquivalent;
+            });
+            debug(curr, "currencies from orbwatch.trade");
+            var ccc = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
+            if (!ccc) ccc = {};
+            ccc[league] = curr;
+            var toDelete = [];
+            $.each( ccc, function( k, v ) {
+              if ( !v.updated || (maxAge > 0 && moment.duration(moment().diff(v.updated)).asHours() >= maxAge) ) {
+                toDelete.push(k);
+              }
+            });
+            $.each( toDelete, function( i, k ) {
+              delete ccc[k];
+            });
+            localStorage.setItem(namespace+".currencies"+((poe2)?"2":""), JSON.stringify(ccc));
+            cb(curr);
           } else {
-            console.log("unable to load Poe.Ninja values for league: "+league);
-            debug(response);
+            currFailed = true;
+            cb(null);
           }
-        });
-        if (curr.lines.length > 0) {
-          $.each(curr.lines, function( index, val ) {
-            curr.map[_.kebabCase(val.currencyTypeName)] = val;
-            if (val.currencyTypeName == "Timeless Eternal Emblem") {
-              var clone = $.extend({}, val);
-              clone.currencyTypeName == "Timeless Eternal Empire Emblem"
-              curr.map[_.kebabCase(clone.currencyTypeName)] = clone;
-            }
-          });
-          var sets = [
-            {set:"Shaper Set", fragments:["fragment-of-the-chimera","fragment-of-the-hydra","fragment-of-the-minotaur","fragment-of-the-phoenix"]},
-            {set:"Pale Court Set", fragments:["volkuurs-key","yriels-key","inyas-key","ebers-key"]},
-            {set:"Mortal Set", fragments:["mortal-grief","mortal-hope","mortal-ignorance","mortal-rage"]},
-            {set:"Sacrifice Set", fragments:["sacrifice-at-dawn","sacrifice-at-dusk","sacrifice-at-midnight","sacrifice-at-noon"]}
-          ];
-          $.each( sets, function( i, set ) {
-            if (set.fragments.length == set.fragments.filter(function(x) {return curr.map[x];}).length) {
-              var sum = 0;
-              $.each( set.fragments, function( j, fragment ) {
-                sum += curr.map[fragment].chaosEquivalent;
-              });
-              var setObject = {
-                currencyTypeName: set.set,
-                chaosEquivalent: (Math.round(sum*100)/100)
-              };
-              curr.map[_.kebabCase(set.set)] = setObject;
-              curr.lines.push(setObject);
-            }
-          });
-          curr.lines = curr.lines.sort(function(a, b) {
-            return b.chaosEquivalent - a.chaosEquivalent;
-          });
-          debug(curr, "currencies from poe.ninja");
-          var ccc = JSON.parse(localStorage.getItem(namespace+".currencies"));
-          if (!ccc) ccc = {};
-          ccc[league] = curr;
-          var toDelete = [];
-          $.each( ccc, function( k, v ) {
-            if ( !v.updated || (maxAge > 0 && moment.duration(moment().diff(v.updated)).asHours() >= maxAge) ) {
-              toDelete.push(k);
-            }
-          });
-          $.each( toDelete, function( i, k ) {
-            delete ccc[k];
-          });
-          localStorage.setItem(namespace+".currencies", JSON.stringify(ccc));
-          cb(curr);
-        } else {
+        },function () {
+          console.log("unable to load orbwatch.trade values");
+          debug("GM_xmlhttpRequest errors", arguments);
+          currFailed = true;
           cb(null);
-        }
-      },function () {
-        console.log("unable to load Poe.Ninja values");
-        debug("GM_xmlhttpRequest errors", arguments);
-        cb(null);
-      });
+        });
+      } else {
+        $.when(
+          getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Currency&date="+moment().format("YYYY-MM-DD")),
+          getDeferred("https://poe.ninja/api/data/currencyoverview?league="+league+"&type=Fragment&date="+moment().format("YYYY-MM-DD")),
+          getDeferred("https://poe.ninja/api/data/itemoverview?league="+league+"&type=Scarab&date="+moment().format("YYYY-MM-DD"))
+        ).then(function () {
+          curr = {map: {}, lines: [], currencyDetails: []};
+          $.each( arguments, function( i, response ) {
+            debug("GM_xmlhttpRequest response", response);
+            if (response.responseText) {
+              var c = JSON.parse(response.responseText);
+              curr.updated = moment().valueOf();
+              if (c.currencyDetails) {
+                curr.currencyDetails = _.uniqBy(curr.currencyDetails.concat(c.currencyDetails), 'id');
+              }
+              if (c.lines) {
+                curr.lines = _.uniqBy(curr.lines.concat(_.map(c.lines, function(x) {
+                  if (!x.currencyTypeName) {
+                    x.currencyTypeName = x.name;
+                  }
+                  if (!x.chaosEquivalent) {
+                    x.chaosEquivalent = x.chaosValue;
+                  }
+                  return x;
+                })), 'currencyTypeName');
+              }
+            } else {
+              console.log("unable to load Poe.Ninja values for league: "+league);
+              debug(response);
+            }
+          });
+          if (curr.lines.length > 0) {
+            $.each(curr.lines, function( index, val ) {
+              curr.map[_.kebabCase(val.currencyTypeName)] = val;
+              if (val.currencyTypeName == "Timeless Eternal Emblem") {
+                var clone = $.extend({}, val);
+                clone.currencyTypeName == "Timeless Eternal Empire Emblem"
+                curr.map[_.kebabCase(clone.currencyTypeName)] = clone;
+              }
+            });
+            var sets = [
+              {set:"Shaper Set", fragments:["fragment-of-the-chimera","fragment-of-the-hydra","fragment-of-the-minotaur","fragment-of-the-phoenix"]},
+              {set:"Pale Court Set", fragments:["volkuurs-key","yriels-key","inyas-key","ebers-key"]},
+              {set:"Mortal Set", fragments:["mortal-grief","mortal-hope","mortal-ignorance","mortal-rage"]},
+              {set:"Sacrifice Set", fragments:["sacrifice-at-dawn","sacrifice-at-dusk","sacrifice-at-midnight","sacrifice-at-noon"]}
+            ];
+            $.each( sets, function( i, set ) {
+              if (set.fragments.length == set.fragments.filter(function(x) {return curr.map[x];}).length) {
+                var sum = 0;
+                $.each( set.fragments, function( j, fragment ) {
+                  sum += curr.map[fragment].chaosEquivalent;
+                });
+                var setObject = {
+                  currencyTypeName: set.set,
+                  chaosEquivalent: (Math.round(sum*100)/100)
+                };
+                curr.map[_.kebabCase(set.set)] = setObject;
+                curr.lines.push(setObject);
+              }
+            });
+            curr.lines = curr.lines.sort(function(a, b) {
+              return b.chaosEquivalent - a.chaosEquivalent;
+            });
+            debug(curr, "currencies from poe.ninja");
+            var ccc = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
+            if (!ccc) ccc = {};
+            ccc[league] = curr;
+            var toDelete = [];
+            $.each( ccc, function( k, v ) {
+              if ( !v.updated || (maxAge > 0 && moment.duration(moment().diff(v.updated)).asHours() >= maxAge) ) {
+                toDelete.push(k);
+              }
+            });
+            $.each( toDelete, function( i, k ) {
+              delete ccc[k];
+            });
+            localStorage.setItem(namespace+".currencies"+((poe2)?"2":""), JSON.stringify(ccc));
+            cb(curr);
+          } else {
+            cb(null);
+          }
+        },function () {
+          console.log("unable to load Poe.Ninja values");
+          debug("GM_xmlhttpRequest errors", arguments);
+          cb(null);
+        });
+      }
     } else {
       debug(curr, "currencies taken from browser session");
       cb(curr);
     }
   } else {
-    var changes = JSON.parse(localStorage.getItem(namespace+".fixedCurrenciesChanges")) || {};
-    var curr = $.extend( true, {}, FIXED_CURRENCY_VALUES );
+    var changes = JSON.parse(localStorage.getItem(namespace+".fixedCurrenciesChanges"+((poe2)?"2":""))) || {};
+    var curr = $.extend( true, {}, poe2 ? FIXED_CURRENCY_VALUES2 : FIXED_CURRENCY_VALUES );
     $.each( changes, function( key, value ) {
       curr.map[key].originalChaosEquiv = curr.map[key].chaosEquivalent;
       curr.map[key].chaosEquivalent = value;
@@ -2723,14 +4375,15 @@ function initCurrencyTables(iframe) {
       <thead>
         <tr>
           <th scope="col">Currency</th>
-          <th scope="col">Chaos equivalent</th>
+          <th scope="col">${poe2 ? 'Exalted' : 'Chaos'} equivalent</th>
         </tr>
       </thead>
       <tbody>
       </tbody>
     </table>`);
-    iframe.contents().find(`#${lid}-pane`).empty().append(tbl);
-    var tbody = iframe.contents().find(`#curr-table-${lid} tbody`);
+
+    iframe[0].contentWindow.$(`#${lid}-pane`).empty().append(tbl);
+    var tbody = iframe[0].contentWindow.$(`#curr-table-${lid} tbody`);
     getCurrencies(l, function(curr) {
       if (curr && curr.map && curr.lines) {
         $.each( curr.lines, function( i, value ) {
@@ -2748,9 +4401,9 @@ function initCurrencyTables(iframe) {
           });
         });
         if (l) {
-          iframe.contents().find(`#${lid}-pane`).prepend(`<p>Last update at ${moment(curr.updated).format("HH:mm")} - ${(getSetting('currencyMaxAge')>0) ? "Values will be refreshed after "+moment(curr.updated).add(getSetting('currencyMaxAge'), 'h').format("HH:mm") : "Max age set to 0, can only be refreshed manually"} - </p>`);
+          iframe[0].contentWindow.$(`#${lid}-pane`).prepend(`<p>Last update at ${moment(curr.updated).format("HH:mm")} - ${(getSetting('currencyMaxAge')>0) ? "Values will be refreshed after "+moment(curr.updated).add(getSetting('currencyMaxAge'), 'h').format("HH:mm") : "Max age set to 0, can only be refreshed manually"} - </p>`);
         } else {
-          iframe.contents().find(`#${lid}-pane`).prepend(`<p></p>`);
+          iframe[0].contentWindow.$(`#${lid}-pane`).prepend(`<p></p>`);
         }
         var refreshButton = $(`<a href="#" onclick="return false;">${((l) ? 'refresh now' : 'reset all values')}</a>`);
         refreshButton.on('click', function(e) {
@@ -2758,50 +4411,50 @@ function initCurrencyTables(iframe) {
           resetCurrency(l);
           generateCurrencyTable(l, lid);
         });
-        iframe.contents().find(`#${lid}-pane p:first`).append(refreshButton);
+        iframe[0].contentWindow.$(`#${lid}-pane p:first`).append(refreshButton);
       } else {
-        iframe.contents().find(`#${lid}-pane`).empty().append(`<div class="alert alert-warning" role="alert">Unable to load currency values from poe.ninja for league ${l}</div>`);
+        iframe[0].contentWindow.$(`#${lid}-pane`).empty().append(`<div class="alert alert-warning" role="alert">Unable to load currency values from ${poe2 ? 'orbwatch.trade' : 'poe.ninja'} for league ${l}</div>`);
       }
     });
   };
 
   if (getSetting('enableCurrencyLoad')) {
-    iframe.contents().find('#preloaded-tab').addClass('disabled');
-    iframe.contents().find('#leagues-tab,.preloaded-info').addClass('d-none');
-    iframe.contents().find('.loaded-info').removeClass('d-none');
-    iframe.contents().find('#preloaded-pane').removeClass('show active');
+    iframe[0].contentWindow.$('#preloaded-tab').addClass('disabled');
+    iframe[0].contentWindow.$('#leagues-tab,.preloaded-info').addClass('d-none');
+    iframe[0].contentWindow.$('.loaded-info').removeClass('d-none');
+    iframe[0].contentWindow.$('#preloaded-pane').removeClass('show active');
     $.each( leagues, function( i, l ) {
       var lid = _.kebabCase(l);
-      if (iframe.contents().find(`#${lid}-tab`).length === 0) {
-        iframe.contents().find('#myCurrTab').append(`<li class="nav-item">
+      if (iframe[0].contentWindow.$(`#${lid}-tab`).length === 0) {
+        iframe[0].contentWindow.$('#myCurrTab').append(`<li class="nav-item">
           <a class="nav-link" id="${lid}-tab" data-toggle="tab" href="#${lid}-pane" onclick="return false;" role="tab" aria-controls="${lid}-pane" aria-selected="false">${l}</a>
         </li>`);
-        iframe.contents().find('#myCurrTabContent').append(`<div class="tab-pane fade" id="${lid}-pane" role="tabpanel" aria-labelledby="${lid}-tab">
+        iframe[0].contentWindow.$('#myCurrTabContent').append(`<div class="tab-pane fade" id="${lid}-pane" role="tabpanel" aria-labelledby="${lid}-tab">
           ${l} Tab
         </div>`);
       }
-      iframe.contents().find(`#${lid}-tab`).on('click', function() {
+      iframe[0].contentWindow.$(`#${lid}-tab`).on('click', function() {
         generateCurrencyTable(l, lid);
       });
     });
-    iframe.contents().find(`#currency .tab-pane,#currency .nav-link`).removeClass('show active');
-    iframe.contents().find(`#${_.kebabCase(getCurrentLeague())}-tab`).addClass('active').click();
-    iframe.contents().find(`#${_.kebabCase(getCurrentLeague())}-pane`).addClass('show active');
+    iframe[0].contentWindow.$(`#currency .tab-pane,#currency .nav-link`).removeClass('show active');
+    iframe[0].contentWindow.$(`#${_.kebabCase(getCurrentLeague())}-tab`).addClass('active').click();
+    iframe[0].contentWindow.$(`#${_.kebabCase(getCurrentLeague())}-pane`).addClass('show active');
   } else {
-    iframe.contents().find('#preloaded-tab').removeClass('disabled');
-    iframe.contents().find('#leagues-tab,.preloaded-info').removeClass('d-none');
-    iframe.contents().find('.loaded-info').addClass('d-none');
-    iframe.contents().find('#preloaded-pane').addClass('show active');
-    iframe.contents().find('#currency .tab-pane:not(#leagues-pane):not(#preloaded-pane)').remove();
-    iframe.contents().find('#currency .nav-link:not(#leagues-tab):not(#preloaded-tab)').remove();
-    iframe.contents().find(`#currency .tab-pane,#currency .nav-link`).removeClass('show active');
-    iframe.contents().find(`#preloaded-tab`).on('click', function() {
+    iframe[0].contentWindow.$('#preloaded-tab').removeClass('disabled');
+    iframe[0].contentWindow.$('#leagues-tab,.preloaded-info').removeClass('d-none');
+    iframe[0].contentWindow.$('.loaded-info').addClass('d-none');
+    iframe[0].contentWindow.$('#preloaded-pane').addClass('show active');
+    iframe[0].contentWindow.$('#currency .tab-pane:not(#leagues-pane):not(#preloaded-pane)').remove();
+    iframe[0].contentWindow.$('#currency .nav-link:not(#leagues-tab):not(#preloaded-tab)').remove();
+    iframe[0].contentWindow.$(`#currency .tab-pane,#currency .nav-link`).removeClass('show active');
+    iframe[0].contentWindow.$(`#preloaded-tab`).on('click', function() {
       generateCurrencyTable(null, "preloaded");
     });
-    iframe.contents().find(`#preloaded-tab`).addClass('active').click();
-    iframe.contents().find(`#preloaded-pane`).addClass('show active');
+    iframe[0].contentWindow.$(`#preloaded-tab`).addClass('active').click();
+    iframe[0].contentWindow.$(`#preloaded-pane`).addClass('show active');
   }
-  var c = JSON.parse(localStorage.getItem(namespace+".currencies"));
+  var c = JSON.parse(localStorage.getItem(namespace+".currencies"+((poe2)?"2":"")));
 };
 
 //function override
@@ -2857,7 +4510,11 @@ function initCurrencyTables(iframe) {
       case "alteration":
       return "Orb of Alteration";
       break;
+      case "transmute":
+      return "Orb of Transmutation";
+      break;
       case "augmentation":
+      case "aug":
       return "Orb of Augmentation";
       break;
       case "jew":
@@ -2945,7 +4602,7 @@ function initCurrencyTables(iframe) {
       if (currencies.map[_.kebabCase(curr)]) {
         return _.startCase(curr);
       } else {
-        debug("WARNING: Can't find currency '"+curr+"'", currencies);
+        warn("WARNING: Can't find currency '"+curr+"'", currencies);
         return null;
       }
       break;
@@ -3014,13 +4671,13 @@ function initCurrencyTables(iframe) {
         var quantity = ((forceQuantity) ? forceQuantity : b[0]);
         if (!curr) {
           return 0;
-        } else if (curr == "Chaos Orb") {
+        } else if ((!poe2 && curr == "Chaos Orb") || (poe2 && curr == "Exalted Orb")) {
           return Number(quantity);
         } else {
           if (!currencies.map[_.kebabCase(curr)]) {
-            throw new Error("Can't find '"+curr+"' in poe.ninja's values");
+            throw new Error(`Can't find '${curr}' in ${ poe2 ? 'orbswatch' : 'poe.ninja'}'s values`);
           }
-          return Number(quantity) * currencies.map[_.kebabCase(curr)].chaosEquivalent;
+          return Number(quantity) * (poe2 ? currencies.map[_.kebabCase(curr)].exEquivalent : currencies.map[_.kebabCase(curr)].chaosEquivalent);
         }
       } catch( ex ) {
         console.log(ex);
@@ -3040,13 +4697,13 @@ function initCurrencyTables(iframe) {
         var quantity = b[0];
         if (!curr) {
           return null;
-        } else if (curr == "Chaos Orb") {
+        } else if ((!poe2 && curr == "Chaos Orb") || (poe2 && curr == "Exalted Orb")) {
           return null;
         } else {
           if (!currencies.map[_.kebabCase(curr)]) {
-            throw new Error("Can't find '"+curr+"' in poe.ninja's values");
+            throw new Error(`Can't find '${curr}' in ${ poe2 ? 'orbswatch' : 'poe.ninja'}'s values`);
           }
-          var cEq = currencies.map[_.kebabCase(curr)].chaosEquivalent;
+          var cEq = (poe2 ? currencies.map[_.kebabCase(curr)].exEquivalent : currencies.map[_.kebabCase(curr)].chaosEquivalent);
           var rest = ((cEq > 1) ? quantity % 1 : 0);
           if (rest > 0) {
             var result = {integ: Math.floor(quantity), rest: rest, curr: curr, chaosEquivalent: cEq};
@@ -3114,12 +4771,24 @@ function initCurrencyTables(iframe) {
   function getChaosEquivTip(buyout, currency, lastCharacterName) {
     var sellOneValue = convertBuyout(buyout, 1);
     var withRest = convertBuyoutWithRest(buyout);
-    var tip = $(`<div>
-      <small class="${currency == 'Chaos Orb' ? 'hide' : ''}">1 ${currency} = ${(Math.round(sellOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/sellOneValue)*10000)/10000)} ${currency}</small>
-      <br class="${currency == 'Chaos Orb' ? 'hide' : ''}" />
-      <small class="${withRest === null ? 'hide' : 'bold'}">${((withRest) ? withRest.integ : "")} ${currency} + ${((withRest) ? (Math.round((withRest.rest*withRest.chaosEquivalent)*100)/100) : "")} chaos</small>
-      <br class="${withRest === null ? 'hide' : ''}" />
-      click to sort for current poe.ninja values</div>`);
+    var tip;
+
+    if (poe2) {
+      tip = $(`<div>
+        <small class="${currency == 'exalted' ? 'hide' : ''}">1 ${currency} = ${(Math.round(sellOneValue*100)/100)} exalted / 1 exalted = ${(Math.round((1/sellOneValue)*10000)/10000)} ${currency}</small>
+        <br class="${currency == 'exalted' ? 'hide' : ''}" />
+        <small class="${withRest === null ? 'hide' : 'bold'}">${((withRest) ? withRest.integ : "")} ${currency} + ${((withRest) ? (Math.round((withRest.rest*withRest.chaosEquivalent)*100)/100) : "")} exalted</small>
+        <br class="${withRest === null ? 'hide' : ''}" />
+        click to sort for current orbwatch.trade values</div>`);
+    } else {
+      tip = $(`<div>
+        <small class="${currency == 'chaos' ? 'hide' : ''}">1 ${currency} = ${(Math.round(sellOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/sellOneValue)*10000)/10000)} ${currency}</small>
+        <br class="${currency == 'chaos' ? 'hide' : ''}" />
+        <small class="${withRest === null ? 'hide' : 'bold'}">${((withRest) ? withRest.integ : "")} ${currency} + ${((withRest) ? (Math.round((withRest.rest*withRest.chaosEquivalent)*100)/100) : "")} chaos</small>
+        <br class="${withRest === null ? 'hide' : ''}" />
+        click to sort for current poe.ninja values</div>`);
+    }
+
     if (withRest && withRest.buyWithRest && lastCharacterName) {
       var spn = $('<a href="#" class="nowrap">ask to buy with rest</a>');
       tip.find("br").last()
@@ -3140,12 +4809,24 @@ function initCurrencyTables(iframe) {
     var buyOneValue = convertBuyout("1 "+buycurrency);
     var translated = translateCurrencySafe(sellcurrency);
     var buycurrTranslated = translateCurrencySafe(buycurrency);
-    var tip = $(`<div>1 ${translated} for ${(Math.round(cada*100000)/100000)} chaos
-      <br />total trade value ${(Math.round(tot*100)/100)} chaos
-      <br /><small>calculated using current poe.ninja values:</small>
-      <br class="${translated == 'Chaos Orb' ? 'hide' : ''}" /><small class="${translated == 'Chaos Orb' ? 'hide' : ''}">1 ${translated} = ${(Math.round(sellOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/sellOneValue)*10000)/10000)} ${translated}</small>
-      <br class="${buycurrTranslated == 'Chaos Orb' ? 'hide' : ''}" /><small class="${buycurrTranslated == 'Chaos Orb' ? 'hide' : ''}">1 ${buycurrTranslated} = ${(Math.round(buyOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/buyOneValue)*10000)/10000)} ${buycurrTranslated}</small>
-      <br />click to sort for current poe.ninja values</div>`);
+    var tip;
+
+    if (poe2) {
+      tip = $(`<div>1 ${translated} for ${(Math.round(cada*100000)/100000)} exalted
+        <br />total trade value ${(Math.round(tot*100)/100)} exalted
+        <br /><small>calculated using current orbwatch.trade values:</small>
+        <br class="${translated == 'exalted' ? 'hide' : ''}" /><small class="${translated == 'exalted' ? 'hide' : ''}">1 ${translated} = ${(Math.round(sellOneValue*100)/100)} exalted / 1 exalted = ${(Math.round((1/sellOneValue)*10000)/10000)} ${translated}</small>
+        <br class="${buycurrTranslated == 'exalted' ? 'hide' : ''}" /><small class="${buycurrTranslated == 'exalted' ? 'hide' : ''}">1 ${buycurrTranslated} = ${(Math.round(buyOneValue*100)/100)} exalted / 1 exalted = ${(Math.round((1/buyOneValue)*10000)/10000)} ${buycurrTranslated}</small>
+        <br />click to sort for current orbwatch.trade values</div>`);
+    } else {
+      tip = $(`<div>1 ${translated} for ${(Math.round(cada*100000)/100000)} chaos
+        <br />total trade value ${(Math.round(tot*100)/100)} chaos
+        <br /><small>calculated using current poe.ninja values:</small>
+        <br class="${translated == 'Chaos Orb' ? 'hide' : ''}" /><small class="${translated == 'Chaos Orb' ? 'hide' : ''}">1 ${translated} = ${(Math.round(sellOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/sellOneValue)*10000)/10000)} ${translated}</small>
+        <br class="${buycurrTranslated == 'Chaos Orb' ? 'hide' : ''}" /><small class="${buycurrTranslated == 'Chaos Orb' ? 'hide' : ''}">1 ${buycurrTranslated} = ${(Math.round(buyOneValue*100)/100)} chaos / 1 chaos = ${(Math.round((1/buyOneValue)*10000)/10000)} ${buycurrTranslated}</small>
+        <br />click to sort for current poe.ninja values</div>`);
+    }
+
     return tip;
   }
 
@@ -3300,7 +4981,7 @@ var importSearch = function(text, overwrite) {
   } catch(ex) {
     console.log(ex.message);
     loadFrame.contents().find('div.row').first().append(/*html*/`
-      <dic class="col-md-12 py-2">
+      <div class="col-md-12 py-2">
         <div class="alert alert-danger" role="alert">
           <h4 class="alert-heading">Error</h4>
           <p>An error prevented PTE from importing your searches.</p>
@@ -3320,23 +5001,52 @@ var importSearch = function(text, overwrite) {
 
 var loadTypeaheadSearches = function() {
   debug("typeahead");
-  $("#searchName", saveFrame[0].contentWindow.document).typeahead('destroy');
-  $("#searchName", saveFrame[0].contentWindow.document).typeahead({
+  saveFrame[0].contentWindow.$("#searchName").typeahead('destroy');
+  saveFrame[0].contentWindow.$("#searchName").typeahead({
     source: Object.keys(getSearches()).sort(),
     item: '<li class="dropdown-item"><a class="dropdown-item" href="#" role="option"></a></li>',
     autoSelect: false
   });
+
+  var queries = app.query.query;
+  debug(queries);
+  var explain = saveFrame[0].contentWindow.$(".explain");
+  explain.empty()
+  .append(`<div><strong>${app.state.league}</strong> league</div>`);
+  if (queries.filters) {
+    $.each( queries.filters, function( key, filter ) {
+      explain.append(`<div><strong>${_.startCase(key)}</strong>: ${JSON.stringify(filter)}</div>`);
+    });
+  }
+  if (queries.stats) {
+    $.each( queries.stats, function( i, query ) {
+      explain.append('<hr />').append(`<div>type: ${query.type}${((query.disabled)?' (disabled)':'')}<div>`);
+      $.each( query.filters, function( i, filter ) {
+        explain.append(`<div><strong>${app._data.static_.knownStatsFlat[filter.id].text}</strong>${((filter.disabled)?' (disabled)':'')}: ${JSON.stringify(filter.value)}<div>`);
+      });
+    });
+  }
+  if (queries.have) {
+    explain.append(`<div><strong>Have</strong>: ${JSON.stringify(queries.have)}</div>`);
+  }
+  if (queries.want) {
+    explain.append(`<div><strong>Want</strong>: ${JSON.stringify(queries.want)}</div>`);
+  }
+  if (queries.stock) {
+    explain.append(`<div><strong>Stock</strong>: ${JSON.stringify(queries.stock)}</div>`);
+  }
+
 };
 
 var checkMultiSelected = function () {
-  multiFrame.contents().find('#multi-live').prop('disabled', $("#search-list .form-check-input:checked", multiFrame[0].contentWindow.document).length === 0);
+  multiframe[0].contentWindow.$('#multi-live').prop('disabled', $("#search-list .form-check-input:checked", multiFrame[0].contentWindow.document).length === 0);
 }
 
 var loadMultiSearches = function(retryed) {
   //TODO: text for no results
   //TODO: filter list by other meta data
   //TODO: tooltip significant search params
-  multiFrame.contents().find('#search-list').empty();
+  multiframe[0].contentWindow.$('#search-list').empty();
 
   var searches = getSearches();
   var lastMulti = getSetting("last-multiLive");
@@ -3356,19 +5066,19 @@ var loadMultiSearches = function(retryed) {
     row.append(chk);
     chk.wrap('<td>');
 
-    multiFrame.contents().find('#search-list').append(row);
+    multiframe[0].contentWindow.$('#search-list').append(row);
   });
   if (Object.keys(searches).length <= 0) {
-    multiFrame.contents().find('#no-searches-alert').removeClass("d-none");
+    multiframe[0].contentWindow.$('#no-searches-alert').removeClass("d-none");
   } else {
-    multiFrame.contents().find('#no-searches-alert').addClass("d-none");
+    multiframe[0].contentWindow.$('#no-searches-alert').addClass("d-none");
   }
 
   $("#search-list .form-check-input", multiFrame[0].contentWindow.document).on('change', checkMultiSelected);
   checkMultiSelected();
   setupSearchAdditions(multiFrame);
 
-  if (!retryed && Object.keys(searches).length > 0 && multiFrame.contents().find('#search-list tr').length === 0) {
+  if (!retryed && Object.keys(searches).length > 0 && multiframe[0].contentWindow.$('#search-list tr').length === 0) {
     debug(`Retrying to load saved searches. Search list appear to be empty even if there are searches to show.`);
     loadMultiSearches(true);
   }
@@ -3388,39 +5098,39 @@ var loadSearches = function(retryed) {
 
   $.each( Object.keys(searches).sort(), function( i, k ) {
     debug(`loading search ${i} - ${k}`);
-    var row = $(`<tr></tr>`);
+    var row = loadFrame[0].contentWindow.$(`<tr></tr>`);
     row.data("name", k);
     row.data("params", deserialize(searches[k]));
 
-    var lnk = $(`<a href="#" onclick="return false;">${k}</a>`);
+    var lnk = loadFrame[0].contentWindow.$(`<a href="#" onclick="return false;">${k}</a>`);
     lnk.on( "click", function(e) {
       openSearch(searches[k], e.ctrlKey, null, getSearchAdditions(loadFrame));
     });
     row.append(lnk);
-    lnk.wrap('<td>');
+    lnk.wrap('<td class="col-md-10">');
 
-    var ren = $(`<a href="#" onclick="return false;" title="rename"><i class="fas fa-edit"></i></a>`);
+    var ren = loadFrame[0].contentWindow.$(`<a href="#" onclick="return false;" title="rename"><i class="fas fa-edit"></i></a>`);
     ren.on( "click", function(e) {
-      $("#renameName", loadFrame[0].contentWindow.document).val(k);
-      $("#renameButton", loadFrame[0].contentWindow.document).one('click', function() {
-        renameSearch(k, $("#renameName", loadFrame[0].contentWindow.document).val());
-        $("#renameModal", loadFrame[0].contentWindow.document).modal('hide');
+      loadFrame[0].contentWindow.$("#renameName").val(k);
+      loadFrame[0].contentWindow.$("#renameButton").one('click', function() {
+        renameSearch(k, loadFrame[0].contentWindow.$("#renameName").val());
+        loadFrame[0].contentWindow.$("#renameModal").modal('hide');
       });
-      $("#renameModal", loadFrame[0].contentWindow.document).modal('show');
+      loadFrame[0].contentWindow.$("#renameModal").modal('show');
     });
     row.append(ren);
     ren.wrap('<td>');
 
-    var cpic = $(getColorPickerTemplate());
-    row.append(cpic);
-    cpic.wrap('<td>');
-    cpic.tinycolorpicker({image: colorsImage, color: ((searchProperties[k] && searchProperties[k].color) ? searchProperties[k].color : null)});
-    cpic.on( "change", function(e, colorHex, colorRGB) {
-      debug(arguments);
-      colorSearch(k, colorHex);
-    });
+    // var cpic = $(getColorPickerTemplate());
+    // row.append(cpic);
+    // cpic.wrap('<td>');
+    // cpic.tinycolorpicker({image: colorsImage, color: ((searchProperties[k] && searchProperties[k].color) ? searchProperties[k].color : null)});
+    // cpic.on( "change", function(e, colorHex, colorRGB) {
+    //   debug(arguments);
+    //   colorSearch(k, colorHex);
+    // });
 
-    var del = $(`<a href="#" onclick="return false;" title="delete"><i class="fas fa-trash"></i></a>`);
+    var del = loadFrame[0].contentWindow.$(`<a href="#" onclick="return false;" title="delete"><i class="fas fa-trash"></i></a>`);
     del.on( "click", function(e) {
       deleteSearch(k);
       row.remove();
@@ -3439,20 +5149,18 @@ var loadSearches = function(retryed) {
 };
 
 var multiFrameContent = /* html */ `
-<div class="container fixed-top">
+<div class="container-fluid fixed-top">
   <div class="row">
     <form class="col-md-12 py-2 mb-0">
       <h5>Multi live search</h5>
       <div class="input-group">
         <input type="text" class="form-control border-primary" name="searchName" id="searchName" placeholder="Filter list..." autocomplete="off" />
-        <div class="input-group-append">
-          <span class="input-group-text" id="basic-addon2"><i class="fas fa-filter"></i></span>
-        </div>
+        <span class="input-group-text" id="basic-addon2"><i class="fas fa-filter"></i></span>
       </div>
     </form>
   </div>
 </div>
-<div class="container middle-list">
+<div class="container-fluid middle-list">
   <div class="row">
     <div class="col">
       <button id="check-all" class="btn btn-xs" type="button" name="button" tippy="Select all"><i class="far fa-check-square"></i> all</button>
@@ -3473,7 +5181,7 @@ var multiFrameContent = /* html */ `
     </div>
   </div>
 </div>
-<div class="container fixed-bottom py-2 border-top">
+<div class="container-fluid fixed-bottom py-2 border-top">
   <div class="row justify-content-end">
     <div class="col-4 col-md-3">
       <button id="multi-live" type="button" class="btn btn-primary">
@@ -3481,7 +5189,7 @@ var multiFrameContent = /* html */ `
       </button>
     </div>
     <div class="col-2">
-      <button id="" type="button" class="btn btn-close">
+      <button id="" type="button" class="btn gs-btn-close">
         Close
       </button>
     </div>
@@ -3495,15 +5203,13 @@ var loadFrameContent = /* html */ `
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="exampleModalLabel">Rename search</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <input type="text" class="form-control border-primary" name="renameName" id="renameName" autocomplete="off" />
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" id="renameButton" class="btn btn-primary">Rename</button>
       </div>
     </div>
@@ -3514,9 +5220,7 @@ var loadFrameContent = /* html */ `
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="importModalLabel">Import saved searches</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+        <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form>
@@ -3533,32 +5237,32 @@ var loadFrameContent = /* html */ `
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
         <button type="button" id="doImportButton" class="btn btn-primary">Import</button>
       </div>
     </div>
   </div>
 </div>
-<div class="container fixed-top">
+<div class="container-fluid fixed-top">
   <div class="row">
     <form class="col-md-12 pb-0">
       <h5>Load search</h5>
       <div class="input-group">
         <input type="text" class="form-control border-primary" name="searchName" id="searchName" placeholder="Filter list..." autocomplete="off" />
-        <div class="input-group-append">
-          <span class="input-group-text" id="basic-addon2"><i class="fas fa-filter"></i></span>
-        </div>
+        <span class="input-group-text" id="basic-addon2"><i class="fas fa-filter"></i></span>
       </div>
     </form>
   </div>
 </div>
-<div class="container middle-list">
-  <div class="row px-1">
-    <div class="col" id="search-additions-force-cost">
+<div class="container-fluid middle-list">
+  <form>
+    <div class="row px-1">
+      <div class="col" id="search-additions-force-cost">
+      </div>
+      <div class="col" id="search-additions-force-league">
+      </div>
     </div>
-    <div class="col" id="search-additions-force-league">
-    </div>
-  </div>
+  </form>
   <div class="row pb-5">
     <div class="col-md-12 table-responsive">
       <table class="table table-sm" id="search-list">
@@ -3566,7 +5270,7 @@ var loadFrameContent = /* html */ `
     </div>
   </div>
 </div>
-<div class="container fixed-bottom py-2 border-top">
+<div class="container-fluid fixed-bottom py-2 border-top">
   <div class="row justify-content-end">
     <div class="col">
       <button id="import" type="button" class="btn btn-primary">
@@ -3577,7 +5281,7 @@ var loadFrameContent = /* html */ `
       </button>
     </div>
     <div class="col-2">
-      <button id="" type="button" class="btn btn-close">
+      <button id="" type="button" class="btn gs-btn-close">
         Close
       </button>
     </div>
@@ -3586,26 +5290,28 @@ var loadFrameContent = /* html */ `
 `;
 
 var saveFrameContent = /* html */ `
-<div class="container">
+<div class="container-fluid">
   <div class="row">
     <form class="col-md-12 py-2">
       <h5>Save search</h5>
       <div class="input-group">
         <input type="text" class="form-control typeahead border-primary" name="searchName" id="searchName" placeholder="Search name..." autocomplete="off" />
-        <div class="input-group-append">
-          <button id="saveButton" type="button" class="btn btn-outline-primary">
-            <i class="fas fa-save"></i>
-          </button>
-          <button id="" type="button" class="d-none btn btn-outline-primary btn-close">
-            <i class="fas fa-window-close"></i>
-          </button>
-        </div>
+        <button id="saveButton" type="button" class="btn btn-outline-primary">
+          <i class="fas fa-save"></i>
+        </button>
+        <button id="" type="button" class="d-none btn btn-outline-primary gs-btn-close">
+          <i class="fas fa-window-close"></i>
+        </button>
       </div>
     </form>
   </div>
   <div class="row">
-    <div class="col-md-12">
-      <button id="" type="button" class="btn btn-close float-right">
+    <div class="col-md-12 explain">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 fixed-bottom mb-2">
+      <button id="" type="button" class="btn gs-btn-close gs-pull-right">
         Close
       </button>
     </div>
@@ -3617,12 +5323,12 @@ var filterSearch = function(iframe) {
   $(iframe[0].contentWindow.document).keyup(function(e) {
     if(e.target && e.target.id == "searchName") {
       debug($(e.target).val());
-      $("#search-list tr", iframe[0].contentWindow.document)
+      iframe[0].contentWindow.$("#search-list tr")
       .filter(function() {
-        if ($(e.target).val() == "" || $(this).data('name').toLowerCase().indexOf($(e.target).val().toLowerCase()) >= 0) {
-          $(this).removeClass("d-none");
+        if (iframe[0].contentWindow.$(e.target).val() == "" || iframe[0].contentWindow.$(this).data('name').toLowerCase().indexOf(iframe[0].contentWindow.$(e.target).val().toLowerCase()) >= 0) {
+          iframe[0].contentWindow.$(this).removeClass("d-none");
         } else {
-          $(this).addClass("d-none");
+          iframe[0].contentWindow.$(this).addClass("d-none");
         }
       });
     }
@@ -3630,30 +5336,36 @@ var filterSearch = function(iframe) {
 };
 
 var addSearchAdditions = function(iframe) {
-  var forceLeagueCheckbox = $(/* html */ `<div class="form-group form-check form-control-sm">
+  var forceLeagueCheckbox = iframe[0].contentWindow.$(/* html */ `<div class="form-group form-check form-control-sm">
     <input type="checkbox" class="form-check-input" id="force-league">
     <label class="form-check-label" for="force-league">Force <span class="current-league"></span> league</label>
   </div>`);
-  var forceMaxCostCheckbox = $(/* html */ `<div>
-    <div class="nowrap">
-      <label for="force-cost" class="col-form-label col-form-label-sm">force max chaos cost</label>
-      <input type="number" class="form-control form-control-sm col-3 d-inline" id="force-cost">
+  var forceMaxCostCheckbox = iframe[0].contentWindow.$(/* html */ `<div>
+    <div class="row form-control-sm">
+      <label for="force-cost" class="col-sm-8 col-form-label">force max ${poe2 ? 'exalted':'chaos'} cost</label>
+      <div class="col-sm-4">
+        <input type="number" class="form-control form-control-sm" id="force-cost">
+      </div>
     </div>
-    <div class="form-group form-check form-control-sm">
-      <input type="checkbox" class="form-check-input" id="force-cost-no-override">
-      <label class="form-check-label" for="force-cost-no-override">only if not specified in search</label>
+    <div class="row mb-3 form-control-sm">
+      <div class="">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" id="force-cost-no-override">
+          <label class="form-check-label" for="force-cost-no-override">only if max cost isn't specified in search</label>
+        </div>
+      </div>
     </div>
   </div>`);
-  iframe.contents().find("#search-additions-force-league").empty().append(forceLeagueCheckbox);
-  iframe.contents().find("#search-additions-force-cost").empty().append(forceMaxCostCheckbox);
-  iframe.contents().find("#force-league").on("click change", function () {
-    setSetting(iframe.attr("id")+"-last-force-league", iframe.contents().find("#force-league").is(':checked'));
+  iframe[0].contentWindow.$("#search-additions-force-league").empty().append(forceLeagueCheckbox);
+  iframe[0].contentWindow.$("#search-additions-force-cost").empty().append(forceMaxCostCheckbox);
+  iframe[0].contentWindow.$("#force-league").on("click change", function () {
+    setSetting(iframe.attr("id")+"-last-force-league", iframe[0].contentWindow.$("#force-league").is(':checked'));
   });
-  iframe.contents().find("#force-cost-no-override").on("click change", function () {
-    setSetting(iframe.attr("id")+"-last-force-cost-no-override", iframe.contents().find("#force-cost-no-override").is(':checked'));
+  iframe[0].contentWindow.$("#force-cost-no-override").on("click change", function () {
+    setSetting(iframe.attr("id")+"-last-force-cost-no-override", iframe[0].contentWindow.$("#force-cost-no-override").is(':checked'));
   });
-  iframe.contents().find("#force-cost").on("click change", function () {
-    setSetting(iframe.attr("id")+"-last-force-cost", iframe.contents().find("#force-cost").val());
+  iframe[0].contentWindow.$("#force-cost").on("click change", function () {
+    setSetting(iframe.attr("id")+"-last-force-cost", iframe[0].contentWindow.$("#force-cost").val());
   });
 };
 
@@ -3661,23 +5373,23 @@ var setupSearchAdditions = function(iframe) {
   var lg = getCurrentLeague();
   if (lg) {
     var lastForceLeague = getSetting(iframe.attr("id")+"-last-force-league");
-    iframe.contents().find("#search-additions-force-league .current-league").text(lg);
-    iframe.contents().find("#force-league").prop("checked", ""+lastForceLeague == "true").prop("disabled", false);
+    iframe[0].contentWindow.$("#search-additions-force-league .current-league").text(lg);
+    iframe[0].contentWindow.$("#force-league").prop("checked", ""+lastForceLeague == "true").prop("disabled", false);
   } else {
-    iframe.contents().find("#search-additions-force-league .current-league").text("");
-    iframe.contents().find("#force-league").prop("checked", false).prop("disabled", true);
+    iframe[0].contentWindow.$("#search-additions-force-league .current-league").text("");
+    iframe[0].contentWindow.$("#force-league").prop("checked", false).prop("disabled", true);
   }
   var lastForceCost = getSetting(iframe.attr("id")+"-last-force-cost");
   var lastForceCostNoOverride = getSetting(iframe.attr("id")+"-last-force-cost-no-override");
-  iframe.contents().find("#force-cost-no-override").prop("checked", ""+lastForceCostNoOverride == "true");
-  iframe.contents().find("#force-cost").val(lastForceCost);
+  iframe[0].contentWindow.$("#force-cost-no-override").prop("checked", ""+lastForceCostNoOverride == "true");
+  iframe[0].contentWindow.$("#force-cost").val(lastForceCost);
 };
 
 var getSearchAdditions = function(iframe) {
   var options = {};
-  options["force-cost-no-override"] = iframe.contents().find("#force-cost-no-override").is(':checked');
-  options["force-league"] = (iframe.contents().find("#force-league").is(':checked') ? getCurrentLeague() : false);
-  options["force-cost"] = iframe.contents().find("#force-cost").val();
+  options["force-cost-no-override"] = iframe[0].contentWindow.$("#force-cost-no-override").is(':checked');
+  options["force-league"] = (iframe[0].contentWindow.$("#force-league").is(':checked') ? getCurrentLeague() : false);
+  options["force-cost"] = iframe[0].contentWindow.$("#force-cost").val();
   return options;
 };
 
@@ -3861,11 +5573,11 @@ var updateSocketStatus = function() {
 var createMultiFrame = function(iframe, callback) {
   multiFrame = iframe;
 
-  iframe.contents().find('.btn-close').on('click', function() {
+  iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
     closeFrame("multi-frame")
   });
 
-  iframe.contents().find('#multi-live').on('click', function() {
+  iframe[0].contentWindow.$('#multi-live').on('click', function() {
     var searches = getSearches();
     var multiSearches = [], names = [];
     $("#search-list tr:has(.form-check-input:checked)", iframe[0].contentWindow.document).each(function( index ) {
@@ -3880,11 +5592,11 @@ var createMultiFrame = function(iframe, callback) {
   filterSearch(iframe);
   addSearchAdditions(iframe);
 
-  iframe.contents().find('#check-all').on('click', function() {
+  iframe[0].contentWindow.$('#check-all').on('click', function() {
     $("#search-list .form-check-input:visible", iframe[0].contentWindow.document).prop('checked', true);
     checkMultiSelected();
   });
-  iframe.contents().find('#check-none').on('click', function() {
+  iframe[0].contentWindow.$('#check-none').on('click', function() {
     $("#search-list .form-check-input:visible", iframe[0].contentWindow.document).prop('checked', false);
     checkMultiSelected();
   });
@@ -3897,25 +5609,25 @@ var createLoadFrame = function(iframe, callback) {
   // iframe.on('load',function(){
     loadFrame = iframe;
 
-    iframe.contents().find('.btn-close').on('click', function() {
+    iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
       closeFrame("load-frame")
     });
-    debug("iframe.contents().find('.btn-close')", $(".btn-close", iframe[0].contentWindow.document));
-    iframe.contents().find('#export').on('click', function() {
+    debug("iframe[0].contentWindow.$('.gs-btn-close')", iframe[0].contentWindow.$(".gs-btn-close"));
+    iframe[0].contentWindow.$('#export').on('click', function() {
       download("poetrade-searches.txt", localStorage.getItem(getSearchKey()));
     });
 
-    iframe.contents().find('#import').on('click', function() {
-      $("#doImportButton", iframe[0].contentWindow.document).one('click', function() {
-        importSearch($("#importText", iframe[0].contentWindow.document).val(), $("#importOverwrite", iframe[0].contentWindow.document).is(":checked"));
-        debug($("#importOverwrite", iframe[0].contentWindow.document));
-        $("#importModal", iframe[0].contentWindow.document).modal('hide');
+    iframe[0].contentWindow.$('#import').on('click', function() {
+      iframe[0].contentWindow.$("#doImportButton").one('click', function() {
+        importSearch(iframe[0].contentWindow.$("#importText").val(), iframe[0].contentWindow.$("#importOverwrite").is(":checked"));
+        trace(iframe[0].contentWindow.$("#importOverwrite"));
+        iframe[0].contentWindow.$("#importModal").modal('hide');
       });
-      $("#importModal", iframe[0].contentWindow.document).modal('show');
+      iframe[0].contentWindow.$("#importModal").modal('show');
     });
 
     // $("#renameModal", iframe[0].contentWindow.document).modal({show: false});
-    iframe.contents().find("#renameModal").modal({show: false});
+    iframe[0].contentWindow.$("#renameModal").modal({show: false});
     filterSearch(iframe);
     addSearchAdditions(iframe);
     // $("#searchName", iframe[0].contentWindow.document).on("change", function() {
@@ -3930,16 +5642,16 @@ var createSaveFrame = function(iframe, callback) {
   // iframe.on('load',function(){
     saveFrame = iframe;
 
-    iframe.contents().find('.btn-close').on('click', function() {
+    iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
       closeFrame("save-frame")
     });
-    iframe.contents().find('#saveButton').on('click', saveSearch);
+    iframe[0].contentWindow.$('#saveButton').on('click', saveSearch);
 
     $(iframe[0].contentWindow.document).keydown(function(e) {
       if(e.which == 13 && e.target && e.target.id == "searchName") {
         e.preventDefault();
-        if ($("#searchName + ul.typeahead.dropdown-menu .dropdown-item.active", saveFrame[0].contentWindow.document).length == 0
-          || !$("#searchName + ul.typeahead.dropdown-menu", saveFrame[0].contentWindow.document).first().is(":visible")) {
+        if (saveFrame[0].contentWindow.$("#searchName + ul.typeahead.dropdown-menu .dropdown-item.active").length == 0
+          || !saveFrame[0].contentWindow.$("#searchName + ul.typeahead.dropdown-menu").first().is(":visible")) {
             saveSearch();
         }
       }
@@ -3956,7 +5668,7 @@ var initSaveManager = function() {
 
     addIframe({id:"load-frame", frameTemplate: frameTemplate, contents: loadFrameContent, trigger: ".gs-load", builder: createLoadFrame, onOpen: loadSearches}, function() {});
     addIframe({id:"save-frame", frameTemplate: frameTemplate, contents: saveFrameContent, trigger: ".gs-save", builder: createSaveFrame, onOpen: loadTypeaheadSearches}, function() {});
-    addIframe({id:"multi-frame", frameTemplate: frameTemplate, contents: multiFrameContent, trigger: ".gs-multi", builder: createMultiFrame, onOpen: loadMultiSearches}, function() {});
+    //addIframe({id:"multi-frame", frameTemplate: frameTemplate, contents: multiFrameContent, trigger: ".gs-multi", builder: createMultiFrame, onOpen: loadMultiSearches}, function() {});
 
   }
 };
@@ -4190,469 +5902,880 @@ var initSaveManager = function() {
   debug(itemProps);
   debug(">>>>");
   if (itemProps.baseItem && item.find("td.item-cell h5 .wiki-link").length == 0) {
-    item.find("td.item-cell h5 .found-time-ago").after(`<a target="_blank" class="wiki-link gs-style" href="http://pathofexile.gamepedia.com/${itemProps.baseItem}">[wiki]</a>`);
+    item.find("td.item-cell h5 .found-time-ago").after(`<a target="_blank" class="wiki-link gs-style" href="https://www.poewiki.net/wiki/${itemProps.baseItem}">[wiki]</a>`);
   } else if (itemProps.rarity == "Normal" && item.find("td.item-cell h5 .wiki-link").length == 0) {
-    item.find("td.item-cell h5 .found-time-ago").after(`<a target="_blank" class="wiki-link gs-style" href="http://pathofexile.gamepedia.com/${itemProps.name}">[wiki]</a>`);
+    item.find("td.item-cell h5 .found-time-ago").after(`<a target="_blank" class="wiki-link gs-style" href="https://www.poewiki.net/wiki/${itemProps.name}">[wiki]</a>`);
   }
 }
 
-  var mapSelectorInitialized = false;
-var mapSearches = {}, mapOfMaps = {};
-var defaultMapSearches = {tabs:{}};
+  var modSelectorInitialized = false;
+var modTypesMap = {};
+var saveModsFrame, loadModsFrame;
+var modsHandle;
+var inverted = {
+  // "#% reduced charges per use": "#% increased charges per use",
+  "#% reduced attribute requirements": "#% increased Attribute Requirements",
+  "#% reduced mana regeneration rate": "#% increased mana regeneration rate"
+};
+var translations = {
+  "has # abyssal socket": "has # abyssal sockets",
+  "# charm slots": "# charm slot",
+  "+#% chance to block": "+#% chance to block (shields)",
+  "loads # additional bolts": "loads an additional bolt",
+  "#% less duration|||||immunity to ignite during effect|||||removes burning on use": "#% less duration|||||immunity to ignite during effect\nremoves burning on use",
+  "#% reduced amount recovered|||||effect is not removed when unreserved mana is filled|||||effect does not queue": "#% reduced amount recovered|||||effect is not removed when unreserved mana is filled\neffect does not queue",
+  "trigger a socketed spell on using a skill, with a # second cooldown|||||spells triggered this way have #% more cost|||||#% increased spell damage": "trigger a socketed spell on using a skill, with a # second cooldown\nspells triggered this way have #% more cost|||||#% increased spell damage",
+  "trigger a socketed spell when you use a skill, with a # second cooldown|||||spells triggered this way have #% more cost": "trigger a socketed spell on using a skill, with a # second cooldown\nspells triggered this way have #% more cost",
+  "# metres to melee strike range if you have killed recently": "+# metre to melee strike range if you have killed recently"
+}
 
-var initMapSelector = function() {
-  if (!mapSelectorInitialized && $('.filter-title > span:contains(Maps)').length > 0) {
-    mapSelectorInitialized = true;
-    var mapsIcon = $(`<span class="gs-style gs-fixTips gs-map-selector" data-tippy="Map selector"><i class="fas fa-globe-europe"></i></span>`);
-    if ($('.filter-title > span:contains(Maps)').length > 0) {
-      $('.filter-title > span:contains(Maps)').parent().append(mapsIcon);
-      $('span.filter-title:contains(Items I Have)').parents('.search-advanced-pane').first().find(".gs-map-selector").addClass('gs-offer-map-selector').removeClass('gs-map-selector');
+var initModSelector = function() {
+  if (getSetting('useSaveManager') || getSetting('useModSelector')) {
+    debug("INIT: Mods Selector");
+    var filterGroups = $('.filter-group:has(.btn.edit-btn):not(:has(.gs-mods-selector))');
+    var modsIcon = $(`<span class="gs-style gs-fixTips gs-trigger gs-mods-selector" data-tippy="Filter selector"><i class="fas fa-filter"></i></span>`);
+    var svicon = $(`<span class="gs-style gs-fixTips gs-trigger gs-mods-save" data-tippy="Save filter group"><i class="fas fa-save"></i></span>`);
+    var ldicon = $(`<span class="gs-style gs-fixTips gs-trigger gs-mods-load" data-tippy="Load filter group"><i class="fas fa-folder-open"></i></span>`);
 
-    } else {
-      warn("Map Selector buttons not added to DOM");
+    if (filterGroups.length > 0) {
+      filterGroups.each(function( index ) {
+        var editBtn = $( this ).find('.btn.edit-btn').first();
+        if (getSetting('useSaveManager')) {
+          var icon = svicon.clone();
+          icon.insertBefore(editBtn);
+          addIframeTrigger(icon, "mods-saver-frame");
+          icon = ldicon.clone();
+          icon.insertBefore(editBtn);
+          addIframeTrigger(icon, "mods-loader-frame");
+        }
+        if (getSetting('useModSelector')) {
+          var icon = modsIcon.clone();
+          icon.insertBefore(editBtn);
+          addIframeTrigger(icon, "mods-selector-frame");
+        }
+      });
     }
-    addIframe({id:"map-selector-frame", frameTemplate: frameTemplate, contents: mapSelectorContent, trigger: ".gs-map-selector", builder: createMapSelectorFrame, onOpen: loadMapSearches}, function() {});
-    addIframe({id:"offer-map-selector-frame", frameTemplate: frameTemplate, contents: mapSelectorContent, trigger: ".gs-offer-map-selector", builder: createMapSelectorFrame, onOpen: loadMapSearches}, function() {});
-  } else if (!mapSelectorInitialized) {
-    debug("WARNING: Map Selector not initiated");
+    if (!modSelectorInitialized && filterGroups.length > 0) {
+      modSelectorInitialized = true;
+      if (getSetting('useModSelector')) {
+        addIframe({id:"mods-selector-frame", frameTemplate: frameTemplateSelect, contents: modsSelectorContent, trigger: null, builder: createModsSelectorFrame, onOpen: loadMods}, function() {
+          if (DEBUG) {
+              // openFrame("mods-selector-frame", null, {filterType: 'claw'});
+          }
+          $(document).on(`mods-selector-frame-frame-open`, function() {
+            debug("mods-selector-frame-frame-open!");
+            var iframe = $('#mods-selector-frame');
+            clearFilters(iframe);
+            if (_.has(app.$store.state.persistent, "filters.type_filters.filters.category.option") ) {
+              var selectedType = app.$store.state.persistent.filters.type_filters.filters.category.option;
+              debug("mods-selector-frame-frame-open! -> ", selectedType);
+              switch (selectedType) {
+                case "weapon":
+                  iframe.data('filterType', ((poe2) ? ['claw', 'dagger', 'one-hand-sword', 'spear', 'bow', 'two-hand-sword', 'quarterstaff', 'crossbow', 'wand', 'one-hand-axe', 'one-hand-mace', 'sceptre', 'flail', 'staff', 'two-hand-axe', 'two-hand-mace'] : ['claw', 'dagger', 'one-hand-sword', 'thrusting-one-hand-sword', 'one-hand-axe', 'rune-dagger', 'bow', 'two-hand-sword', 'two-hand-axe', 'wands', 'one-hand-mace', 'sceptre', 'staff', 'two-hand-mace', 'warstaff']));
+                  break;
+                case "weapon.ranged":
+                  iframe.data('filterType', ((poe2) ? ['bow', 'crossbow', 'wand'] : ['bow', 'wands']));
+                  break;
+                case "weapon.one":
+                  iframe.data('filterType', ((poe2) ? ['claw', 'dagger', 'one-hand-sword', 'spear', 'wand', 'one-hand-axe', 'one-hand-mace', 'sceptre', 'flail'] : ['claw', 'dagger', 'one-hand-sword', 'thrusting-one-hand-sword', 'one-hand-axe', 'rune-dagger', 'wands', 'one-hand-mace', 'sceptre']));
+                  break;
+                case "weapon.onemelee":
+                  iframe.data('filterType', ((poe2) ? ['claw', 'dagger', 'one-hand-sword', 'one-hand-axe', 'one-hand-mace', 'spear', 'sceptre', 'flail'] : ['claw', 'dagger', 'one-hand-sword', 'thrusting-one-hand-sword', 'one-hand-axe', 'rune-dagger', 'one-hand-mace', 'sceptre']));
+                  break;
+                case "weapon.twomelee":
+                  iframe.data('filterType', ((poe2) ? ['two-hand-sword', 'quarterstaff', 'two-hand-axe', 'two-hand-mace'] : ['two-hand-sword', 'two-hand-axe', 'staff', 'two-hand-mace', 'warstaff']));
+                  break;
+                case "weapon.twosword":
+                  iframe.data('filterType', ['two-hand-sword']);
+                  break;
+                case "weapon.twoaxe":
+                  iframe.data('filterType', ['two-hand-axe']);
+                  break;
+                case "weapon.twomace":
+                  iframe.data('filterType', ['two-hand-mace']);
+                  break;
+                case "weapon.oneaxe":
+                  iframe.data('filterType', ['one-hand-axe']);
+                  break;
+                case "weapon.onemace":
+                  iframe.data('filterType', ['one-hand-mace']);
+                  break;
+                case "weapon.rod":
+                  iframe.data('filterType', ['fishing-rod']);
+                  break;
+                case "weapon.warstaff":
+                  iframe.data('filterType', ((poe2) ? ['quarterstaff'] : ['warstaff', 'staff']));
+                  break;
+                case "weapon.onesword":
+                  iframe.data('filterType', ((poe2) ? ['one-hand-sword'] : ['one-hand-sword', 'thrusting-one-hand-sword']));
+                  break;
+                case "weapon.caster":
+                  iframe.data('filterType', ((poe2) ? ['wand', 'sceptre', 'staff'] : ['wand', 'sceptre']));
+                  break;
+                case "weapon.basedagger":
+                  iframe.data('filterType', ['dagger']);
+                  break;
+                case "weapon.runedagger":
+                  iframe.data('filterType', ['rune-dagger']);
+                  break;
+                case "weapon.basesword":
+                  iframe.data('filterType', ['one-hand-sword', 'two-hand-sword']);
+                  break;
+                case "weapon.rapier":
+                  iframe.data('filterType', ['thrusting-one-hand-sword']);
+                  break;
+                case "weapon.basemace":
+                  iframe.data('filterType', ['one-hand-mace', 'two-hand-mace']);
+                  break;
+                case "weapon.basestaff":
+                  iframe.data('filterType', ['staff']);
+                  break;
+                case "weapon.warstaff":
+                case "weapon.claw":
+                case "weapon.dagger":
+                case "weapon.spear":
+                case "weapon.bow":
+                case "weapon.crossbow":
+                case "weapon.flail":
+                case "weapon.wand":
+                case "weapon.sceptre":
+                case "weapon.staff":
+                  iframe.data('filterType', [selectedType.replace("weapon.", "")]);
+                  break;
+                case "armour.chest":
+                  iframe.data('filterType', ['body-armour']);
+                  break;
+                case "armour.helmet":
+                case "armour.gloves":
+                case "armour.boots":
+                case "armour.quiver":
+                case "armour.shield":
+                case "armour.focus":
+                  iframe.data('filterType', [selectedType.replace("armour.", "")]);
+                  break;
+                case "armour":
+                  iframe.data('filterType', ['helmet', 'body-armour', 'gloves', 'boots', 'quiver', 'shield', 'focus']);
+                  break;
+                case "armour.buckler":
+                  iframe.data('filterType', ['shield']);
+                  break;
+                case "accessory":
+                  iframe.data('filterType', ((poe2) ? ['amulet', 'belt', 'ring'] : ['amulet', 'belt', 'ring', 'trinket']));
+                  break;
+                case "accessory.amulet":
+                case "accessory.belt":
+                case "accessory.ring":
+                case "accessory.trinket":
+                  iframe.data('filterType', [selectedType.replace("accessory.", "")]);
+                  break;
+                case "jewel":
+                  iframe.data('filterType', ((poe2) ? ['jewel'] : ['jewel', 'abyss-jewel', 'cluster-jewel', 'timeless-jewel']));
+                  break;
+                case "jewel.base":
+                case "jewel.abyss":
+                case "jewel.cluster":
+                  iframe.data('filterType', [selectedType.replace("jewel.", "")+"-jewel"]);
+                  break;
+                case "flask":
+                  iframe.data('filterType', ['life-flask', 'mana-flask', 'hybrid-flask', 'utility-flask']);
+                  break;
+                case "flask.life":
+                case "flask.mana":
+                  iframe.data('filterType', [selectedType.replace("flask.", "")+"-flask"]);
+                  break;
+                case "map":
+                case "map.waystone":
+                  iframe.data('filterType', ['map', 'waystone']);
+                  break;
+                case "gem":
+                case "gem.activegem":
+                case "gem.supportgem":
+                case "gem.metagem":
+                case "map.fragment":
+                case "map.logbook":
+                case "map.breachstone":
+                case "map.barya":
+                case "map.bosskey":
+                case "map.ultimatum":
+                case "map.tablet":
+                case "card":
+                case "sanctum.relic":
+                case "currency":
+                case "currency.omen":
+                case "currency.socketable":
+                case "currency.rune":
+                case "currency.soulcore":
+                case "gem.supportgemplus":
+                case "map.invitation":
+                case "map.scarab":
+                case "leaguestone":
+                case "memoryline":
+                case "monster.beast":
+                case "heistequipment":
+                case "heistequipment.heistweapon":
+                case "heistequipment.heisttool":
+                case "heistequipment.heistutility":
+                case "heistequipment.heistreward":
+                case "heistmission":
+                case "heistmission.contract":
+                case "heistmission.blueprint":
+                case "logbook":
+                case "sanctum.research":
+                case "tincture":
+                case "corpse":
+                case "idol":
+                case "currency.piece":
+                case "currency.resonator":
+                case "currency.fossil":
+                case "currency.incubator":
+                case "currency.heistobjective":
+                case "currency.tattoo":
+                default:
+                  iframe.data('filterType', []);
+                  break;
+              }
+              debug("FILTER TYPE -> ", iframe.data().filterType);
+              iframe[0].contentWindow.$(`#typeFilter`).val(iframe.data().filterType).trigger('change');
+            } else {
+              debug("mods-selector-frame-frame-open! NO TYPE SELECTED");
+            }
+
+          });
+        });
+      }
+      if (getSetting('useSaveManager')) addIframe({id:"mods-saver-frame", frameTemplate: frameTemplate, contents: saveModsFrameContent, trigger: ".gs-mods-save", builder: createSaveModsFrame, onOpen: loadTypeaheadModsSearches}, function() {});
+      if (getSetting('useSaveManager')) addIframe({id:"mods-loader-frame", frameTemplate: frameTemplate, contents: loadModsFrameContent, trigger: ".gs-mods-load", builder: createLoadModsFrame, onOpen: loadModsSearches}, function() {});
+      return true;
+    } else if (!modSelectorInitialized) {
+      warn("WARNING: Mods Selector not initiated");
+    }
+
   }
 };
 
-var createMapSelectorFrame = function(iframe, callback) {
-  fixTabs(iframe, "#myTab", "#myTabContent");
-  fixToggler(iframe, "#myTab", function(elem, event) { recalcMapSelector(iframe); });
-  var regionsPanel = iframe.contents().find('#region').first();
-  iframe.contents().find('.map-selector-control').on('change', function () {
-    recalcMapSelector(iframe);
-  });
-  iframe.contents().find('.btn-reset').on('click', function () {
-    resetMapSearches(iframe);
-  });
-  iframe.contents().find('.btn-ok').on('click', function () {
-    applyMapSearches(iframe);
-  });
-  mapOfMaps = {regions: {}, maps: {}, mapTags: {}, pageMaps: {}, mapsList: []};
-  var radioAll = $(/* html */ `<div class="row">
-    <div class="col-4"><label class="btn"><i>all regions</i></label></div>
-    <div class="col-8">
-      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-link"><input type="radio" name="region-all-none" id="region-all-none" autocomplete="off"> none</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-any" id="region-all-any" autocomplete="off"> any</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-0" id="region-all-0" autocomplete="off"> 0 ws</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-1" id="region-all-1" autocomplete="off"> 1 ws</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-2" id="region-all-2" autocomplete="off"> 2 ws</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-3" id="region-all-3" autocomplete="off"> 3 ws</label>
-        <label class="btn btn-link"><input type="radio" name="region-all-4" id="region-all-4" autocomplete="off"> 4 ws</label>
-    </div>
-  </div>`);
-  regionsPanel.append(radioAll);
-  $.each( REGIONS, function( i, r ) {
-    mapOfMaps.regions[r.regionId] = {name: r.names.filter(function(x) { return x.language && x.language.code == 'en'; })[0].name, maps: []};
-    if (r.regionId >= 0) {
-      var div = $(/* html */ `<div class="row">
-        <div class="col-4"><label class="btn"><b>${mapOfMaps.regions[r.regionId].name}</b></label></div>
-        <div class="col-8">
-          <div class="btn-group btn-group-toggle" data-toggle="buttons">
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-none" id="region-${r.regionId}-none" autocomplete="off"> none</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-any" id="region-${r.regionId}-any" autocomplete="off"> any</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-0" id="region-${r.regionId}-0" autocomplete="off"> 0 ws</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-1" id="region-${r.regionId}-1" autocomplete="off"> 1 ws</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-2" id="region-${r.regionId}-2" autocomplete="off"> 2 ws</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-3" id="region-${r.regionId}-3" autocomplete="off"> 3 ws</label>
-            <label class="btn btn-light"><input type="radio" name="region-${r.regionId}-4" id="region-${r.regionId}-4" autocomplete="off"> 4 ws</label>
-          </div>
-        </div>
-      </div>`);
-      regionsPanel.append(div);
-    }
-  });
-  var div = $(/* html */ `<div class="row">
-    <div class="col-4"><label class="btn"><b>Other</b> (guardians)</label></div>
-    <div class="col-8">
-      <div class="btn-group btn-group-toggle" data-toggle="buttons">
-        <label class="btn btn-light"><input type="radio" name="region-other-none" id="region-other-none" autocomplete="off"> none</label>
-        <label class="btn btn-light"><input type="radio" name="region-other-any" id="region-other-any" autocomplete="off"> any</label>
-      </div>
-    </div>
-  </div>`);
-  regionsPanel.append(div);
-  iframe.contents().find('[name^=region-]').on('click', function () {
-    var el = $(this);
-    iframe.contents().find(`#region-tab`).addClass("gs-checked");
-    var arr = el.attr('id').split('-');
-    $.each( mapOfMaps.regions, function( key, value ) {
-      if (key >= 0) {
-        var thisRegion = (arr[1] == 'all') || (Number(arr[1]) == key);
-        if (thisRegion) {
-          $.each(['none', 'any', '0', '1', '2', '3', '4'], function( i, ws ) {
-            var ctrl = iframe.contents().find(`#region-${key}-${ws}`);
-            ctrl.prop('checked', arr[2] == ws);
-            ctrl.parent().toggleClass('active', arr[2] == ws);
-          });
-        }
-      } else if (arr[1] == 'other' || (arr[1] == 'all' && (arr[2] == 'any' || arr[2] == 'none'))) {
-        $.each(['none', 'any'], function( i, ws ) {
-          var ctrl = iframe.contents().find(`#region-other-${ws}`);
-          ctrl.prop('checked', arr[2] == ws);
-          ctrl.parent().toggleClass('active', arr[2] == ws);
-        });
-      }
+var createModsSelectorFrame = function(iframe, callback) {
+  console.log("pteo-mods-selector: createModsSelectorFrame", iframe);
+  var iframe = $('#mods-selector-frame');
+
+  getMods().then(function(mods) {
+    debug(mods, "NOT FOUND: "+(mods.notFound ? Object.keys(mods.notFound).length : 0));
+    $.each( mods.itemTypes, function( i, type ) {
+      var typeSelector = iframe[0].contentWindow.$(`<option id="${type}-selector" value="${type}">${_.startCase(_.toLower(type))}</option>`);
+      iframe[0].contentWindow.$('#typeFilter').append(typeSelector);
     });
-    debug("region toggler", el, el.attr('id'));
-    recalcMapSelector(iframe);
-  });
-  $.each( MAPS.maps, function( i, m ) {
-    mapOfMaps.maps[m.id] = {name: m.names.filter(function(x) { return x.language && x.language.code == 'en'; })[0].name, tiers: m.tiers, img: m.img, region: m.region};
-    mapOfMaps.mapTags[_.kebabCase(mapOfMaps.maps[m.id].name)] = m.id;
-    mapOfMaps.regions[m.region].maps.push(m.id);
-  });
-  if (mapOfMaps.mapTags['caer-blaidd-wolfpacks-den']) mapOfMaps.mapTags['caer-blaidd'] = mapOfMaps.mapTags['caer-blaidd-wolfpacks-den'];
-
-  $.each( app._data.static_.exchangeData.filter(function(x) { return _.startsWith(x.id, "Maps"); }), function( i, data ) {
-    $.each( data.entries, function( j, entry ) {
-      var arr = entry.id.split('-tier-'), blighted = false, replica = false;
-      var tag = arr[0];
-      if (_.startsWith(tag, "blighted-")) {
-        blighted = true;
-        tag = tag.replace("blighted-", "");
-      }
-      if (_.startsWith(tag, "replica-")) {
-        replica = true;
-        tag = tag.replace("replica-", "");
-      }
-      var tier = Number(arr[1]);
-      if (isNaN(tier)) {
-        tier = 16;
-      }
-      var id = mapOfMaps.mapTags[tag];
-      mapOfMaps.pageMaps[entry.id] = {id: id, tier: tier, tag: tag, pageTag: entry.id, blighted: blighted, unique: data.id == "MapsUnique"};
-      if (_.findIndex(mapOfMaps.mapsList, {id: id}) < 0) {
-        var name = _.get(mapOfMaps, `maps.${id}.name`, tag);
-        mapOfMaps.mapsList.push({tag: tag, id: id, name: name});
-        if (!mapOfMaps.maps[id]) {
-          mapOfMaps.warning = true;
-        }
-      }
+    iframe[0].contentWindow.$('#typeFilter,#filterAffix').on( "change input", function() {
+      filterChanged(iframe);
     });
-  });
-  $(".typeahead", iframe[0].contentWindow.document).typeahead('destroy');
-  $(".typeahead", iframe[0].contentWindow.document).typeahead({
-    source: mapOfMaps.mapsList,
-    item: '<li class="dropdown-item"><a class="dropdown-item" href="#" role="option"></a></li>',
-    autoSelect: false,
-    afterSelect: function(selected) {
-      var el = $(this), input = _.get(el, '0.$element', null), type = input && input.attr('id').replace('-search', '');
-      input.val('');
-      debug('Selection: ', el, input, type, selected);
-      if (iframe.contents().find(`#${type}-${selected.id}`).length == 0) {
-        addLabel(iframe, type, selected);
-        labelChanged(iframe, type);
-      }
-    }
-  });
+    iframe[0].contentWindow.$(`#typeFilter`).val(iframe.data().filterType).trigger('change');
+    iframe[0].contentWindow.$(`#typeFilter`).select2( {
+      theme: "bootstrap-5",
+      width: $( this ).data( 'width' ) ? $( this ).data( 'width' ) : $( this ).hasClass( 'w-100' ) ? '100%' : 'style',
+      placeholder: $( this ).data( 'placeholder' ),
+      closeOnSelect: false,
+      allowClear: true,
+    } );
 
-  debug('mapOfMaps', mapOfMaps);
+    iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
+      closeFrame("mods-selector-frame")
+    });
 
+    $.each( mods.affinities, function( i, affinity ) {
+      if (iframe[0].contentWindow.$(`#${affinity}-section`).length == 0) {
+          iframe[0].contentWindow.$(`.container-fluid.middle-list`).first()
+            .append(/* html */ `<div class="row affinityContainer explicit-section mt-2 hide" id="${affinity}-explicit-section">
+              <div class="col-6 prefix-column affix-column">
+                <h6>${affinity == 'normal' ? 'prefix' : affinity} <span id="${affinity}-prefix-counter" class="affix-counter"></span></h6>
+                <div id="prefix-${affinity}"></div>
+              </div>
+              <div class="col-6 suffix-column affix-column">
+                <h6>${affinity == 'normal' ? 'suffix' : affinity} <span id="${affinity}-suffix-counter" class="affix-counter"></span></h6>
+                <div id="suffix-${affinity}"></div>
+              </div>
+            </div>`);
+        }
+    });
+    $.each( mods.implicitAffinities, function( i, affinity ) {
+      if (iframe[0].contentWindow.$(`#${affinity}-implicit-section`).length == 0) {
+          iframe[0].contentWindow.$(`.container-fluid.middle-list`).first()
+            .append(/* html */ `<div class="row affinityContainer implicit-section mt-2 hide" id="${affinity}-implicit-section">
+              <div class="col-12 implicit-column affix-column">
+                <h6>${affinity == 'normal' ? 'implicit' : affinity} <span id="${affinity}-implicit-counter" class="affix-counter"></span></h6>
+                <div id="implicit-${affinity}"></div>
+              </div>
+            </div>`);
+        }
+    });
+
+    iframe[0].contentWindow.$(`.expandAll`).on( "click", function() {
+      expandAll(iframe, mods);
+    });
+    iframe[0].contentWindow.$(`.collapseAll`).on( "click", function() {
+      collapseAll(iframe);
+    });
+    iframe[0].contentWindow.$(`.clearSelected`).on( "click", function() {
+      clearSelected(iframe, "both");
+    });
+    iframe[0].contentWindow.$(`.selectAll`).on( "click", function() {
+      selectAll(iframe);
+    });
+    iframe[0].contentWindow.$(`.selectTMax`).on( "click", function() {
+      selectTier(iframe, mods, 1);
+    });
+    iframe[0].contentWindow.$(`.selectT2nd`).on( "click", function() {
+      selectTier(iframe, mods, 2);
+    });
+    iframe[0].contentWindow.$(`.selectedCounter`).on( "click", function() {
+      clearSelected(iframe, "visible");
+    });
+    iframe[0].contentWindow.$(`.hiddenSelectedCounter`).on( "click", function() {
+      clearSelected(iframe, "hidden");
+    });
+    iframe[0].contentWindow.$(`.addSelected`).on( "click", function() {
+      addSelected(iframe, mods, true);
+    });
+    iframe[0].contentWindow.$(`.setSelected`).on( "click", function() {
+      addSelected(iframe, mods, false);
+    });
+
+    iframe[0].contentWindow.$(`.cancel`).on( "click", function() {
+      clearFilters(iframe);
+    });
+
+    setAffixRows('explicit', iframe, mods, iframe[0].contentWindow.$(`#typeFilter`).val());
+
+    iframe[0].contentWindow.$(`[name=radioAffixType],#typeFilter`).on( "change input", function() {
+      setAffixRows(iframe[0].contentWindow.$(`[name=radioAffixType]:checked`).val(), iframe, mods, iframe[0].contentWindow.$(`#typeFilter`).val());
+    });
+
+    iframe[0].contentWindow.$('[data-bs-toggle="tooltip"]').each(function( index ) {
+      new iframe[0].contentWindow.bootstrap.Tooltip(iframe[0].contentWindow.$(this));
+    });
+
+  }).fail(function(error) {
+    console.log(error);
+  });
   if (callback) callback();
 };
 
-var addLabel = function (iframe, type, map) {
-  var badge = $(`<span class="badge badge-light marg-r-5 gs-removable" id="${type}-${map.id}">${map.name}</span>`);
-  badge.on('click', function () {
-    var el = $(this);
-    el.remove();
-    labelChanged(iframe, type);
-  });
-  iframe.contents().find(`#${type}d`).append(badge);
+var clearFilters = function (iframe) {
+  iframe[0].contentWindow.$(`#typeFilter`).val([]).trigger('change');
+  iframe[0].contentWindow.$(`#filterAffix`).val('');
+  filterChanged(iframe);
 }
 
-var labelChanged = function (iframe, type) {
-  iframe.contents().find(`#${type}-tab`).addClass("gs-checked");
-  recalcMapSelector(iframe);
-};
+var setAffixRows = function (atype, iframe, mods, types, cb) {
+  types = types || [];
+  trace(`Adding affixes for ${types}`);
+  iframe[0].contentWindow.$('.affinityContainer').addClass('d-none');
+  iframe[0].contentWindow.$(`.${atype}-section`).removeClass('d-none');
 
-var recalcMapSelector = function(iframe) {
-  debug("recalcMapSelector", iframe);
-  $.each( ["region", "exclude", "include"], function( key, value ) {
-    mapSearches.tabs[value] = iframe.contents().find(`#${value}-tab`).hasClass("gs-checked");
-  });
-  $.each( ["minTier", "maxTier"], function( i, value ) {
-    var n = Number(iframe.contents().find(`#${value}`).val());
-    if (isNaN(n) || iframe.contents().find(`#${value}`).val() == '') {
-      iframe.contents().find(`#${value}`).val('');
-      delete mapSearches[value];
-    } else {
-      if (n < 1) {
-        iframe.contents().find(`#${value}`).val(1);
-        n = 1;
-      } else if (n > 16) {
-        iframe.contents().find(`#${value}`).val(16);
-        n = 16;
-      }
-      mapSearches[value] = n;
-    }
-  });
-  mapSearches.unique = iframe.contents().find(`#unique`).is(":checked");
-  mapSearches.blighted = iframe.contents().find(`#blighted`).is(":checked");
-  $.each( ['include', 'exclude'], function( i, type ) {
-    mapSearches[type] = [];
-    iframe.contents().find(`#${type}d .badge`).each(function( index ) {
-      var el = $( this ), id = Number(el.attr('id').replace(type+'-', ''));
-      if (!isNaN(id)) mapSearches[type].push(id);
+  // if (iframe[0].contentWindow.$(`.${atype}-section .affixRow`).length==0) {
+    var affixTypes = ((atype == 'implicit') ? ['implicit'] : ['prefix', 'suffix']);
+    var total = affixTypes.reduce(function(sum, affixType) {
+      return sum + mods.counters[affixType];
+    }, 0);
+    var flatAffixes = [];
+    $.each(affixTypes, function( ii, affixType ) {
+      $.each( mods[affixType], function( modKey, tiers ) {
+        var typesPerAffinity = {};
+        var affinities = tiers.reduce(function(newArray, tier) {
+          $.each( tier.affinities, function( iii, affinity ) {
+            if (!typesPerAffinity[affinity]) {
+              typesPerAffinity[affinity] = [];
+            }
+            typesPerAffinity[affinity] = _.union(typesPerAffinity[affinity], tier.types);
+          });
+          return _.union(newArray, tier.affinities);
+        }, []);
+        $.each( affinities, function( iv, affinity ) {
+          if (!types || types.length == 0 || _.intersection(types, typesPerAffinity[affinity]).length > 0) {
+            var affixObject = {
+              modKey: modKey,
+              affinity: affinity,
+              typesPerAffinity: typesPerAffinity[affinity],
+              affixType: affixType
+            };
+            flatAffixes.push(affixObject);
+          }
+        });
+      });
     });
-  });
-  mapSearches.regions = {};
-  iframe.contents().find('[name^=region-]:checked').each(function( index ) {
-    var el = $( this ), arr = el.attr('id').split('-'), region = Number(arr[1]), ws = arr[2];
-    if (arr[1] == 'other') region = -1;
-    debug("checked region", el, arr);
-    if (ws != 'any' && !isNaN(region) && mapOfMaps.regions[region]) {
-      mapSearches.regions[region] = ws;
+    var gsModalLoading = new ModalLoading(`Loading all possible ${atype}`, flatAffixes.length, {backdropClass: "gs-framed-backdrop", styleClass: "gs-framed-style", stoppable: false});
+    var start = moment();
+    var modifiedLists = [];
+    var chunked = _.chunk(flatAffixes, 75);
+    async.mapLimit(chunked, 1, function(chunk, mcb) {
+      setTimeout(function(){
+        $.each( chunk, function( i, affixObject ) {
+          var modKey = affixObject.modKey;
+          var affinity = affixObject.affinity;
+          var affixType = affixObject.affixType;
+          var typesPerAffinity = affixObject.typesPerAffinity;
+          var modRowKey = toElementId(`${affixType}-${affinity}-${modKey}`);
+          var modRow = iframe[0].contentWindow.$('#'+modRowKey);
+          if (modRow.length == 0) {
+            modRow = $(/* html */ `<div class="affixRow" data-name="${modKey}">
+              <div class="affix container-fluid">
+                <div class="row affixName selectableAffix" id="${modRowKey}">
+                  <div class="col-1"><a href="#" onclick="return false;" class="tier-toggler"><i class="fas fa-caret-right"></i><i class="fas fa-caret-down"></i></a></div>
+                  <div class="col-11 modName">${modKey.replaceAll('|||||','<br />')}</div>
+                </div>
+              </div>
+            </div>`);
+            modRow.data('modKey', modKey);
+            modRow.data('affixType', affixType);
+            modRow.data('affinity', affinity);
+            modRow.data('affixCategory', atype);
+            iframe[0].contentWindow.$(`#${affixType}-${affinity}`).append(modRow);
+            iframe[0].contentWindow.$(`#${affinity}-${atype}-section`).removeClass('hide');
+            modifiedLists.push(`#${affixType}-${affinity}`);
+            if (mods['notFound'] && mods['notFound'][modKey]) {
+              modRow.find('.col-11:last').append('<i class="fas fa-exclamation-triangle text-warning"></i>')
+            }
+            modRow.find('.tier-toggler').on( "click", function(event) {
+              event.stopPropagation();
+              setTiersRows([modRow], atype, iframe, mods, function() {
+                modRow.toggleClass('show-tiers');
+              })
+            });
+            modRow.find(".affixName").on( "click", function() {
+              selectMod(iframe, iframe[0].contentWindow.$(this), modKey, null);
+            });
+          } else {
+            modRow = modRow.parents('.affixRow').first();
+          }
+          $.each( typesPerAffinity, function( iiii, tp ) {
+            modRow.addClass('typed').addClass(tp);
+          });
+
+          gsModalLoading.addDone();
+        });
+        mcb(null, chunk);
+      });
+    }, function(merr, mresults) {
+      if (merr) {
+      } else {
+      }
+      $.each( _.uniq(modifiedLists), function( i, id ) {
+        sortMeBy("data-name", id, "div.affixRow", "asc", iframe[0].contentWindow.$);
+      });
+      sortMeBy("id", ".middle-list", ".affinityContainer:gt(0)", "asc", iframe[0].contentWindow.$);
+
+      filterChanged(iframe);
+      gsModalLoading.stop();
+
+      var passed = moment().diff(start, 'milliseconds');
+      debug("affix creation took", passed);
+      if (cb) cb();
+    });
+
+  // } else {
+  //   if (cb) cb();
+  // }
+}
+
+var setTiersRows = function (modRows, atype, iframe, mods, cb) {
+  var affixTypes = ((atype == 'implicit') ? ['implicit'] : ['prefix', 'suffix']);
+  var flatAffixes = [];
+  $.each( modRows, function( i, modRow ) {
+    if (modRow.find(`.affixTier`).length==0) {
+      var modKey = modRow.data('modKey');
+      $.each(affixTypes, function( ii, affixType ) {
+        var tiers = mods[affixType][modKey];
+        $.each( tiers, function( iii, tier ) {
+          $.each( tier.affinities, function( iv, affinity ) {
+            var affixObject = {
+              modKey: modKey,
+              tier: tier,
+              affinity: affinity,
+              affixType: affixType
+            };
+            flatAffixes.push(affixObject);
+          });
+        });
+      });
     }
   });
-  putMapSearches(iframe);
-  calcMapList(iframe);
-};
 
-var calcMapList = function(iframe) {
-  var warning = false;
-  mapOfMaps.resultsList = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
-  $.each( mapOfMaps.pageMaps, function( key, map ) {
-    var addMap = true, region = _.get(mapOfMaps, `maps.${map.id}.region`, -1);
-    if (map.unique && !mapSearches.unique) addMap = false;
-    if (map.blighted && !mapSearches.blighted) addMap = false;
-    if (mapSearches.minTier && mapSearches.minTier > map.tier) addMap = false;
-    if (mapSearches.maxTier && mapSearches.maxTier < map.tier) addMap = false;
-    if (addMap) {
-      if (mapSearches.tabs && mapSearches.tabs["region"]) {
-        var filterRegion = mapSearches.regions && mapSearches.regions[region]; // -1 none - 0-4 awakening stones - null any
-        if (filterRegion == 'none') addMap = false;
-        if (filterRegion != 'any' && filterRegion != 'none' && !isNaN(Number(filterRegion)) && mapOfMaps.maps[map.id].tiers[Number(filterRegion)] != map.tier) {
-          addMap = false;
-          if (DEBUG && !warning && mapOfMaps.maps[map.id].tiers.indexOf(map.tier) < 0) {
-            debug("map not in ranges", map, mapOfMaps.maps[map.id].tiers);
-            warning = true;
+  if (flatAffixes.length > 0) {
+    var gsModalLoading = new ModalLoading(`Loading all possible tiers`, flatAffixes.length, {backdropClass: "gs-framed-backdrop", styleClass: "gs-framed-style", stoppable: false});
+    var start = moment();
+    var chunked = _.chunk(flatAffixes, 75);
+    async.mapLimit(chunked, 1, function(chunk, mcb) {
+      setTimeout(function(){
+        $.each( chunk, function( i, affixObject ) {
+          var modKey = affixObject.modKey;
+          var tier = affixObject.tier;
+          var affinity = affixObject.affinity;
+          var affixType = affixObject.affixType;
+          var modRowKey = toElementId(`${affixType}-${affinity}-${modKey}`);
+          var modRow = iframe[0].contentWindow.$('#'+modRowKey);
+          modRow = modRow.parents('.affixRow').first();
+
+          var affixTier = $(`
+            <div class="row affixTier selectableAffix">
+              <div class="col-1" data-bs-toggle="tooltip" data-bs-title="Min item level">${tier.level}</div>
+              <div class="col-11">${tier.key.replaceAll('|||||','<br />')}</div>
+            </div>
+          `);
+          affixTier.data('affixValues', tier.values);
+          affixTier.data('slicedValues', tier.sliced);
+          affixTier.on( "click", function() {
+            selectMod(iframe, iframe[0].contentWindow.$(this), modKey, tier);
+          });
+
+          modRow.find('.affix').first().append(affixTier);
+          new iframe[0].contentWindow.bootstrap.Tooltip(affixTier.find('[data-bs-toggle="tooltip"]'));
+          $.each( tier.types, function( iiii, tp ) {
+            affixTier.addClass('typed').addClass(tp);
+          });
+
+          gsModalLoading.addDone();
+        });
+        mcb(null, chunk);
+      });
+    }, function(merr, mresults) {
+      if (merr) {
+      } else {
+      }
+      filterChanged(iframe);
+      gsModalLoading.stop();
+
+      var passed = moment().diff(start, 'milliseconds');
+      debug("tier creation took", passed);
+      if (cb) cb();
+    });
+
+  } else {
+    if (cb) cb();
+  }
+}
+
+var filterChanged = function(iframe) {
+  trace("FILTER TYPE", iframe[0].contentWindow.$(`#typeFilter`).val());
+  var types = iframe[0].contentWindow.$(`#typeFilter`).val();
+  var filter = iframe[0].contentWindow.$(`#filterAffix`).val();
+  if (types) {
+    iframe[0].contentWindow.$(`.filterable .typed`).addClass('hide');
+    $.each( types, function( i, type ) {
+      iframe[0].contentWindow.$(`.filterable .${type}`).removeClass('hide');
+    });
+  } else {
+    iframe[0].contentWindow.$(`.filterable .typed.hide`).removeClass('hide');
+  }
+  if (filter) {
+    iframe[0].contentWindow.$(`.affixRow:not(.hide) .modName`).each(function( index ) {
+      var modNameEl = iframe[0].contentWindow.$(this);
+      if (! modNameEl.text().match(new RegExp(`${filter}`, "gi"))) {
+        modNameEl.parents('.affixRow').first().addClass('hide');
+      }
+    });;
+  }
+  iframe[0].contentWindow.$(`.affinityContainer`).addClass('hide');
+  iframe[0].contentWindow.$(`.affinityContainer:has( .affixRow:not(.hide))`).removeClass('hide');
+
+  iframe[0].contentWindow.$('.affix-column').each(function( index ) {
+    var col = iframe[0].contentWindow.$(this);
+    col.find('.affix-counter').text(col.find('.affixRow:not(.hide)').length);
+  });
+
+
+  checkSelectedState(iframe);
+}
+
+var checkSelectedState = function(iframe) {
+  var selected = iframe[0].contentWindow.$('.affixRow:has(.selectableAffix.bg-info-subtle)');
+  var hiddenSelected = iframe[0].contentWindow.$('.affixRow.hide:has(.selectableAffix.bg-info-subtle), .affinityContainer.d-none .affixRow:has(.selectableAffix.bg-info-subtle)');
+  iframe[0].contentWindow.$('.hasSelected').toggleClass('hide', selected.length == 0);
+  iframe[0].contentWindow.$('.hiddenSelectedCounter').toggleClass('hide', hiddenSelected.length == 0);
+  iframe[0].contentWindow.$('.ifSelected').prop('disabled', selected.length == 0);
+  if (selected.length > 0) {
+    iframe[0].contentWindow.$('.selectedCounter').empty().append(`${selected.length} selected affix`);
+  }
+  if (hiddenSelected.length > 0) {
+    iframe[0].contentWindow.$('.hiddenSelectedCounter').empty().append(`(${hiddenSelected.length} hidden)`);
+  }
+}
+
+var findBestOfficial = function(offMap, best, worst) {
+  if (best) {
+    for (var i = 0; i < best.length; i++) {
+      if (offMap[best[i]]) {
+        return offMap[best[i]];
+      }
+    }
+  }
+  var keys = Object.keys(offMap);
+  if (worst) {
+    for (var i = 0; i < keys.length; i++) {
+      if (!worst.includes(keys[i])) {
+        return offMap[keys[i]];
+      }
+    }
+  }
+  if (keys && keys.length) {
+    return offMap[keys[0]];
+  }
+
+  return null;
+}
+
+var addSelected = function(iframe, mods, append) {
+  debug("ADD TO/SET FILTER");
+  var n = ((modsHandle) ? modsHandle.parents('.filter-group:first').prevAll('.filter-group').length : 0);
+  var filterGroups = app.$refs.search.$children.find(function(el) {
+    return el.$vnode && el.$vnode.elm && el.$vnode.elm.className == "search-advanced-items";
+  }).$children.find(function(el) {
+    return el.$vnode && el.$vnode.elm && el.$vnode.elm.className == "filter-group expanded";
+  });
+
+  var filters = [], added = 0, startFrom = ((append) ? app.$store.state.persistent.stats[n].filters.length : 0);
+  iframe[0].contentWindow.$('.affixRow:has(.bg-info-subtle)').each(function( index ) {
+    var modRow = $( this );
+    var selected = modRow.find('.selectableAffix.bg-info-subtle').last();
+    var modKey = modRow.data('modKey');
+    var affixType = modRow.data('affixType');
+    var affinity = modRow.data('affinity');
+    var affixCategory = modRow.data('affixCategory');
+    var mod = null;
+    if (mods[affixType] && mods[affixType][modKey]) {
+      mod = mods[affixType][modKey];
+    }
+    debug(affixCategory, affixType, affinity, modKey, mod);
+    if (mod && mod[0]) {
+      $.each( mod[0].offModKeys, function( i, offKey ) {
+        var bestOff = null, IMPLICITS = ["implicit", "crucible", "delve", "enchant", "scourge", "rune", "skill"];
+        if (mods.official[offKey]) {
+          if (affixCategory == "implicit") {
+            switch (affinity) {
+              case "delve":
+                bestOff = findBestOfficial(mods.official[offKey], ['delve', 'implicit']);
+                break;
+              case "socketable":
+                bestOff = findBestOfficial(mods.official[offKey], ['rune', 'implicit']);
+                break;
+              case "scourgeup":
+              case "scourgedown":
+                bestOff = findBestOfficial(mods.official[offKey], ['scourge', 'implicit']);
+                break;
+              default:
+                bestOff = findBestOfficial(mods.official[offKey], IMPLICITS);
+                break;
+            }
+          } else {
+            switch (affinity) {
+              case "veiled":
+                bestOff = findBestOfficial(mods.official[offKey], ['veiled', 'explicit']);
+                break;
+              case "master":
+                bestOff = findBestOfficial(mods.official[offKey], ['crafted', 'explicit']);
+                break;
+              default:
+                bestOff = findBestOfficial(mods.official[offKey], ['explicit'], IMPLICITS);
+                break;
+            }
+          }
+          if (bestOff) {
+            var v = {}, vs = selected.data('affixValues'), sliced = selected.data('slicedValues');
+            if (sliced) vs = sliced[i];
+            if (vs && vs.length) {
+              if (Array.isArray(vs[0])) {
+                if (vs[0].length > 1) {
+                  v = {min: vs[0].reduce((a, b) => Number(a) + Number(b)) / vs[0].length};
+                } else if (vs[0].length > 0 && isNumber(Number(vs[0][0]))) {
+                  v = {min: Number(vs[0])};
+                } else if (vs[0].length > 0 && _.has(app._data.static_.knownStatsFlat[bestOff], "option.options")) {
+                  var option = _.find(app._data.static_.knownStatsFlat[bestOff].option.options, function(x) { return (x.text.toLowerCase() == vs[0][0].toLowerCase()); });
+                  if (option) {
+                    v = {option: option.id}
+                  }
+                }
+              } else {
+                warn("VALUE SHOULD BE ALWAYS AN ARRAY", vs, sliced);
+              }
+            }
+            filterGroups.$store.commit("setStatFilter", {
+              group: n,
+              index: startFrom+added,
+              value: {disabled: false, id: bestOff, value: v}
+            });
+            added++;
+          }
+        }
+        debug(selected, selected.data('affixValues'), mod, mods.official[offKey], bestOff);
+      });
+    }
+  });
+
+  if (app.$store.state.persistent.stats[n].filters.length > added && !append) {
+    var max = app.$store.state.persistent.stats[n].filters.length;
+    for (var i = max; i >= added; i--) {
+      filterGroups.$store.commit("removeStatFilter", {
+        group: n,
+        index: i
+      });
+    }
+  }
+
+  closeFrame("mods-selector-frame");
+}
+
+var expandAll = function(iframe, mods) {
+  var modRows = [];
+  iframe[0].contentWindow.$('.affinityContainer:not(.d-none) .affixRow:not(.hide)').each(function( index ) {
+    modRows.push($( this ));
+  });
+  setTiersRows(modRows, iframe[0].contentWindow.$(`[name=radioAffixType]:checked`).val(), iframe, mods, function() {
+    iframe[0].contentWindow.$('.affixRow:not(.hide)').addClass('show-tiers');
+  })
+}
+var collapseAll = function(iframe) {
+  iframe[0].contentWindow.$('.affixRow').removeClass('show-tiers');
+}
+
+var clearSelected = function(iframe, visibility) {
+  if (!visibility) visibility = "both";
+  var selector = ".bg-info-subtle";
+  switch (visibility) {
+  case "visible":
+      selector = ".affinityContainer:not(.d-none) .affixRow:not(.hide) .selectableAffix.bg-info-subtle";
+      break;
+  case "hidden":
+      selector = ".affixRow.hide .selectableAffix.bg-info-subtle, .affinityContainer.d-none .selectableAffix.bg-info-subtle";
+      break;
+  case "both":
+  default:
+      selector = ".bg-info-subtle";
+      break;
+  }
+  iframe[0].contentWindow.$(selector).removeClass('bg-info-subtle');
+  checkSelectedState(iframe);
+}
+
+var selectMod = function(iframe, el, modKey, tier) {
+  debug(el, modKey, tier);
+  var wasSelected = el.hasClass('bg-info-subtle') && el.next('.bg-info-subtle').length == 0;
+  el.parent().find('.bg-info-subtle').removeClass('bg-info-subtle');
+  if (!wasSelected) {
+    el.addClass('bg-info-subtle')
+    .prevUntil('.affix.container-fluid').addClass('bg-info-subtle');
+  }
+  checkSelectedState(iframe);
+}
+
+var selectAll = function(iframe) {
+  iframe[0].contentWindow.$('.affinityContainer:not(.d-none) .affixRow:not(.hide) .affixName').addClass('bg-info-subtle');
+  checkSelectedState(iframe);
+}
+
+var selectTier = function(iframe, mods, tierGrade) {
+  var modRows = [];
+  iframe[0].contentWindow.$('.affinityContainer:not(.d-none) .affixRow:not(.hide)').each(function( index ) {
+    modRows.push($( this ));
+  });
+  setTiersRows(modRows, iframe[0].contentWindow.$(`[name=radioAffixType]:checked`).val(), iframe, mods, function() {
+    iframe[0].contentWindow.$('.affinityContainer:not(.d-none) .affixRow:not(.hide)').addClass('show-tiers');
+    iframe[0].contentWindow.$(`.affinityContainer:not(.d-none) .affixRow:not(.hide) .selectableAffix:nth-last-child(1)`).each(function( index ) {
+      var target = iframe[0].contentWindow.$(this), isRightTarget = false, empties = 0;
+      target.parent().find('.bg-info-subtle').removeClass('bg-info-subtle');
+      while (!isRightTarget) {
+        if (!target.hasClass('hide')) {
+          empties++;
+          if (empties == tierGrade) {
+            isRightTarget = true;
+          }
+        }
+        if (!isRightTarget) {
+          var prev = target, hasPrev = true;
+          while(hasPrev) {
+            if (prev.prev().hasClass('affixName')) {
+              isRightTarget = true;
+              hasPrev = false;
+            } else {
+              prev = prev.prev();
+              if (!prev.hasClass('hide')) {
+                target = prev;
+                hasPrev = false;
+              }
+            }
           }
         }
       }
-      if (mapSearches.tabs && mapSearches.tabs["include"] && mapSearches.include && mapSearches.include.indexOf(map.id) >= 0) addMap = true;
-      if (mapSearches.tabs && mapSearches.tabs["exclude"] && mapSearches.exclude && mapSearches.exclude.indexOf(map.id) >= 0) addMap = false;
-    }
-    if (addMap) {
-      var t = ((map.unique) ? 17 : ((map.blighted) ? 16 : (map.tier - 1)));
-      // debug("calcMapList", t, map);
-      mapOfMaps.resultsList[t].push(map);
-    }
-
-  });
-
-  iframe.contents().find(`#maps-results-qt`).text(_.flatten(mapOfMaps.resultsList).length);
-  iframe.contents().find(`#maps-results`).empty();
-  if (warning) iframe.contents().find(`#maps-results`).append(`<div class="alert alert-warning" role="alert"><b>Regions map lists seem to be outdated!</b> Check for an update of PTE. Until this is fixed filtering by region/awakening stones will not work properly.</div>`);
-  if (mapOfMaps.warning) iframe.contents().find(`#maps-results`).append(`<div class="alert alert-warning" role="alert"><b>Map lists seem to be outdated!</b> Check for an update of PTE. Until this is fixed some map won't be selecable by this tool.</div>`);
-  $.each( mapOfMaps.resultsList, function( t, maps ) {
-    if (maps.length > 0) {
-      var badges = $('<div></div>');
-      $.each( maps, function( i, map ) {
-        var name = _.get(mapOfMaps, `maps.${map.id}.name`, map.tag);
-        var badge = $(`<span class="badge badge-light marg-r-5 gs-badge-with-icon">${name}${((map.unique) ? ' T'+map.tier : '')}</span>`);
-        var deselector = $(`<i class="fas fa-ban gs-clickable text-danger"></i>`);
-        deselector.on( "click", function() {
-          iframe.contents().find(`#exclude-tab`).click();
-          addLabel(iframe, 'exclude', {id: map.id, name: name});
-          labelChanged(iframe, 'exclude');
-        });
-        badge.append(deselector);
-        badges.append(badge);
-
-      });
-      iframe.contents().find(`#maps-results`).append(`<h6>${((t < 16) ? ('TIER ' + (t+1)) : ((t == 16) ? 'BLIGHTED' : ((t == 17) ? 'UNIQUE' : 'OTHER')) ) }</h6>`).append(badges);
-    }
-  });
-
-};
-
-var applyMapSearches = function(iframe) {
-  var type = ((iframe.attr('id').indexOf('offer') === 0) ? 'have' : 'want'), results = _.flatten(mapOfMaps.resultsList);
-  $.each( mapOfMaps.pageMaps, function( key, map ) {
-    if (_.findIndex(results, {pageTag: map.pageTag}) >= 0) {
-      app.$store.commit("setExchangeItem", {
-          type: type, id: map.pageTag
-      });
-    } else {
-      app.$store.commit("removeExchangeItem", {
-          type: type, id: map.pageTag
-      });
-    }
-  });
-  closeFrame(iframe.attr('id'));
-};
-
-var loadMapSearches = function(event) {
-  var type = event.type.replace(/-frame-open$/, "");
-  var iframe = $("#"+type);
-  getMapSearches(iframe);
-  setSearchControls(iframe);
-  calcMapList(iframe);
-};
-
-var setSearchControls = function(iframe) {
-  $.each( ["region", "exclude", "include"], function( key, value ) {
-    iframe.contents().find(`#${value}-tab`).toggleClass("gs-checked", mapSearches.tabs[value] ? true : false);
-  });
-  if (iframe.contents().find(`#myTab .gs-checked`).length > 0) {
-    iframe.contents().find(`#myTab .gs-checked`).first().click();
-  }
-  $.each( ["minTier", "maxTier"], function( key, value ) {
-    iframe.contents().find(`#${value}`).val(((mapSearches[value] != undefined) ? mapSearches[value] : ''));
-  });
-  $.each( ["unique", "blighted"], function( key, value ) {
-    iframe.contents().find(`#${value}`).prop('checked', mapSearches[value]);
-  });
-  $.each( mapOfMaps.regions, function( key, value ) {
-    if (key >= 0) {
-      $.each(['none', 'any', '0', '1', '2', '3', '4'], function( i, ws ) {
-        var isActiveWs = _.get(mapSearches, `regions.${key}`, 'any') == ws;
-        var ctrl = iframe.contents().find(`#region-${key}-${ws}`);
-        ctrl.prop('checked', isActiveWs);
-        ctrl.parent().toggleClass('active', isActiveWs);
-      });
-    } else {
-      $.each(['none', 'any'], function( i, ws ) {
-        var isActiveWs = _.get(mapSearches, `regions.${key}`, 'any') == ws;
-        var ctrl = iframe.contents().find(`#region-other-${ws}`);
-        ctrl.prop('checked', isActiveWs);
-        ctrl.parent().toggleClass('active', isActiveWs);
-      });
-    }
-  });
-  $.each( ["include", "exclude"], function( i, type ) {
-    $.each( mapSearches[type], function( j, id ) {
-      if (iframe.contents().find(`#${type}-${id}`).length == 0) {
-        addLabel(iframe, type, {id: id, name: mapOfMaps.maps[id].name});
-      }
+      target.addClass('bg-info-subtle')
+        .prevUntil('.affix.container-fluid').addClass('bg-info-subtle');
     });
-  });
+    checkSelectedState(iframe);
+  })
+}
 
-  debug("loadMapSearches", event, iframe, mapSearches);
+var loadMods = function(event, handle) {
+  trace("pteo-mods-selector: loadMods", event, handle, arguments);
+  if (handle) modsHandle = handle;
+  var iframe = $('#mods-selector-frame');
+  checkSelectedState(iframe);
 };
 
-var resetMapSearches = function(iframe) {
-  mapSearches = $.extend({}, defaultMapSearches);
-  putMapSearches(iframe);
-  setSearchControls(iframe);
-  calcMapList(iframe);
-};
-
-var getMapSearches = function(iframe) {
-  var searches = localStorage.getItem(iframe.attr('id'));
-  if (!searches) {
-    searches = {};
-  } else {
-    searches = JSON.parse(searches);
-  }
-  debug("getMapSearches", iframe.attr('id'), searches, iframe);
-  mapSearches = $.extend({}, defaultMapSearches, searches);
-};
-
-var putMapSearches = function(iframe) {
-  debug("putMapSearches", iframe.attr('id'), mapSearches);
-  localStorage.setItem(iframe.attr('id'), JSON.stringify(mapSearches));
-};
-
-var mapSelectorContent = /* html */ `
-<div class="container">
-  <div class="row">
-    <div class="col-sm">
-      <h5>Map Selector</h5>
-      <div id="tier-controls">
-
+var modsSelectorContent = /* html */ `
+<div class="filterable">
+  <div class="container-fluid fixed-top mt-2">
+    <form class="form-floating">
+      <div class="row">
+          <div class="col-md-4 pb-0">
+            <select class="form-select form-select-sm form-select-xs custom-select custom-select-sm" multiple="true" size="3" id="typeFilter" data-placeholder="Choose an item type">
+            </select>
+          </div>
+          <div class="form-group col-md-8 pb-0">
+            <label for="filterAffix">Filter possible affixes</label>
+            <div class="input-group">
+              <span class="input-group-text" id="basic-addon3"><i class="fas fa-filter"></i></span>
+              <input type="text" class="form-control border-primary" name="filterAffix" id="filterAffix" placeholder="Filter list..." autocomplete="off" />
+              <button class="btn btn-outline-secondary cancel" type="button"><i class="fas fa-times-circle"></i></button>
+            </div>
+          </div>
       </div>
-      <div id="panels">
-        <ul class="nav nav-tabs" id="myTab" role="tablist">
-          <li class="nav-item">
-            <a class="nav-link active gs-check-toggler gs-checked nowrap" id="region-tab" data-toggle="tab" href="#region" role="tab" aria-controls="region" aria-selected="true" onclick="return false;">
-              <i class="fas fa-check-square"></i><i class="fas fa-square"></i> By Region
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link gs-check-toggler nowrap" id="exclude-tab" data-toggle="tab" href="#exclude" role="tab" aria-controls="exclude" aria-selected="true" onclick="return false;">
-              <i class="fas fa-check-square"></i><i class="fas fa-square"></i> Exclude
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link gs-check-toggler nowrap" id="include-tab" data-toggle="tab" href="#include" role="tab" aria-controls="include" aria-selected="true" onclick="return false;">
-              <i class="fas fa-check-square"></i><i class="fas fa-square"></i> Include
-            </a>
-          </li>
-        </ul>
-
-        <!-- Tab panes -->
-        <div class="tab-content" id="myTabContent">
-          <div class="tab-pane fade show active" id="region" role="tabpanel" aria-labelledby="region-tab">
-          </div>
-          <div class="tab-pane fade" id="include" role="tabpanel" aria-labelledby="include-tab">
-            <div class="container">
-              <div class="row">
-                <div class="col-md-12">
-                  <h5>Type the map name you want to always include</h5>
-                  <input type="text" class="form-control typeahead border-primary" name="include-search" id="include-search" placeholder="map name" autocomplete="off" />
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="gs-finder-results" id ="included">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="tab-pane fade" id="exclude" role="tabpanel" aria-labelledby="exclude-tab">
-            <div class="container">
-              <h5>Type the map names to be excluded from search</h5>
-              <input type="text" class="form-control typeahead border-primary" name="exclude-search" id="exclude-search" placeholder="map name" autocomplete="off" />
-              <div class="gs-finder-results" id ="excluded">
-              </div>
-            </div>
-          </div>
+    </form>
+    <div class="row">
+      <div class="col-8">
+        <a href="#" class="expandAll" onclick="return false;">expand all</a> -
+        <a href="#" class="collapseAll" onclick="return false;">collapse all</a><span class="hasSelected"> - </span>
+        <a href="#" class="clearSelected hasSelected" onclick="return false;">clear selected</a>
+      </div>
+      <div class="col-4">
+        <div class="gs-pull-right custom-control custom-radio custom-control-inline ms-2">
+          <input type="radio" id="radioAffixType2" name="radioAffixType" value="implicit" class="custom-control-input">
+          <label class="custom-control-label" for="radioAffixType2">Implicit</label>
+        </div>
+        <div class="gs-pull-right custom-control custom-radio custom-control-inline">
+          <input type="radio" id="radioAffixType1" name="radioAffixType" value="explicit" class="custom-control-input" checked="true">
+          <label class="custom-control-label" for="radioAffixType1">Explicit</label>
         </div>
       </div>
-      <hr>
-      <div class="container">
-        <div class="row px-1">
-          <div class="col-4" id="">
-            <div class="nowrap">
-              <label for="minTier" class="col-form-label col-form-label-sm">Min tier</label>
-              <input type="number" class="form-control form-control-sm map-selector-control col-6 d-inline" id="minTier" min="1" max="16">
-            </div>
-          </div>
-          <div class="col-4" id="">
-            <div class="nowrap">
-              <label for="maxTier" class="col-form-label col-form-label-sm">Max tier</label>
-              <input type="number" class="form-control form-control-sm map-selector-control col-6 d-inline" id="maxTier" min="1" max="16">
-            </div>
-          </div>
-          <div class="col-2" id="">
-            <div class="form-group form-check form-control-sm">
-              <input type="checkbox" class="form-check-input map-selector-control" id="unique">
-              <label class="form-check-label" for="unique">Unique</label>
-            </div>
-          </div>
-          <div class="col-2" id="">
-            <div class="form-group form-check form-control-sm">
-              <input type="checkbox" class="form-check-input map-selector-control" id="blighted">
-              <label class="form-check-label" for="blighted">Blighted</label>
-            </div>
-          </div>
+    </div>
+  </div>
+  <div class="container-fluid middle-list">
+  </div>
+  <div class="container-fluid fixed-bottom py-2 border-top">
+    <div class="row zjustify-content-end">
+      <div class="col-9">
+        <div class="btn-group" role="group" aria-label="">
+          <button type="button" class="btn btn-secondary selectAll" data-bs-toggle="tooltip" data-bs-title="Select all">
+            <i class="fas fa-check-double"></i>
+          </button>
+          <button type="button" class="btn btn-secondary selectTMax" data-bs-toggle="tooltip" data-bs-title="Select all at maximum tier">TMax</button>
+          <button type="button" class="btn btn-secondary selectT2nd" data-bs-toggle="tooltip" data-bs-title="Select all at second-best tier">T2nd</button>
         </div>
-        <div>
-          <h5>
-            <span class="badge badge-primary"><span id="maps-results-qt" class=""></span> maps filtered</span>
-            <button type="button" class="btn btn-primary btn-ok marg-l-5 gs-pull-right">SELECT</button>
-            <button type="button" class="btn btn-link btn-reset marg-l-5 gs-pull-right">reset</button>
-          </h5>
-        </div>
-        <div id="maps-results">
+        <span class="hasSelected ms-2">
+          <a href="#" class="selectedCounter gs-removable" onclick="return false;"></a>
+          <a href="#" class="hiddenSelectedCounter gs-removable" onclick="return false;"></a>
+        </span>
+      </div>
+      <div class="col-3">
+        <div class="btn-group gs-pull-right" role="group" aria-label="">
+          <button type="button" class="btn btn-primary addSelected ifSelected" data-bs-toggle="tooltip" disabled="disabled" data-bs-title="Append selected modifiers">Add</button>
+          <button type="button" class="btn btn-primary setSelected ifSelected" data-bs-toggle="tooltip" disabled="disabled" data-bs-title="Set filter group to selected modifiers">Set</button>
+          <button type="button" class="btn btn-light gs-btn-close" data-bs-toggle="tooltip" data-bs-title="Close">
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -4661,16 +6784,709 @@ var mapSelectorContent = /* html */ `
 `;
 
 
+var getMods = function() {
+  var deferred = $.Deferred();
+  debug("openModsIframe: isPoe2? "+poe2);
+  getDeferred("https://raw.githubusercontent.com/ghostscript3r/poe-trade-official-site-enhancer/master/json/mods"+((poe2)?"2":"")+"-data.json")
+  .then(function (data) {
+    var mods = JSON.parse(data.responseText);
+    var offMods = app._data.static_.knownStatsFlat, offModsMap = {}, notFound = {}, affinities = ['normal'], implicitAffinities = ['normal'], itemTypes = [], counters = {};
+    $.each( offMods, function( key, value ) {
+      var mapKey = value.text.toLowerCase();
+      if (!offModsMap[mapKey]) offModsMap[mapKey] = {};
+      offModsMap[mapKey][value.type] = value.id;
+    });
+
+    debug(offModsMap, offMods, mods);
+    $.each( mods, function( affixType, modsMap ) {
+      $.each( modsMap, function( modKey, tiers ) {
+        var found = findInOfficialMods(modsMap, modKey, tiers, offModsMap);
+        if (!found) {
+          notFound[modKey] = tiers;
+        }
+        $.each( tiers, function( i, tier ) {
+          if (affixType == 'implicit') {
+            implicitAffinities = _.union(implicitAffinities, tier.affinities);
+          } else {
+            affinities = _.union(affinities, tier.affinities);
+          }
+          itemTypes = _.union(itemTypes, tier.types);
+          if (!counters[affixType]) {
+            counters[affixType] = 0;
+          }
+          if (!tier.affinities) {
+            warn("tier without affinities", tier.affinities);
+          } else {
+            counters[affixType] += tier.affinities.length;
+          }
+        });
+      });
+    });
+    mods['notFound'] = notFound;
+    mods['official'] = offModsMap;
+    mods['affinities'] = affinities;
+    mods['implicitAffinities'] = implicitAffinities;
+    mods['itemTypes'] = itemTypes.sort();
+    mods['counters'] = counters;
+
+    if (DEBUG) {
+      var allOffTypes = [], officialByType = {};
+      $.each( mods.official, function( k, v ) {
+        $.each( v, function( key, value ) {
+          allOffTypes.push(key);
+          if (!officialByType[key]) {
+            officialByType[key] = [];
+          }
+          officialByType[key].push(k);
+        });
+      });
+      debug(_.uniq(allOffTypes), officialByType);
+    }
+
+    deferred.resolve(mods);
+  })
+  .fail(function(error) {
+    deferred.fail(error);
+  });
+  return deferred;
+};
+
+var findInOfficialMods = function(modsMap, modKey, tiers, offModsMap, fullKey) {
+  if (!fullKey) fullKey = modKey;
+  if (translations[modKey.toLowerCase()]) {
+    modKey = translations[modKey.toLowerCase()];
+  }
+  if (modKey.indexOf('|||||') > 0) {
+    
+    var found = true, splitted = [], prevs = 0;
+    $.each( modKey.split('|||||'), function( key, value ) {
+      var slice = {modKey: value, tiers: _.cloneDeep(tiers)}, hashes = (value.split('#').length - 1);
+      if (prevs > 0) {
+        for (var i = 0; i < slice.tiers.length; i++) {
+          slice.tiers[i].values = slice.tiers[i].values.slice(prevs);
+        }
+      }
+      for (var i = 0; i < slice.tiers.length; i++) {
+        if (slice.tiers[i].values.length > hashes) {
+          slice.tiers[i].values.splice(hashes, slice.tiers[i].values.length - hashes);
+        }
+      }
+      prevs += hashes;
+      splitted.push(slice);
+    });
+    $.each( splitted, function( key, slice ) {
+      if (!findInOfficialMods(modsMap, slice.modKey, slice.tiers, offModsMap, modKey)) {
+        found = false;
+      }
+    });
+    if (!found) {
+      found = findInOfficialMods(modsMap, modKey.replaceAll('|||||','\n'), tiers, offModsMap)
+    } else {
+      remapTiersValue(modsMap, splitted, fullKey);
+    }
+    return found;
+  } else {
+    if (offModsMap[modKey.toLowerCase()]) {
+      remapKey(modsMap, modKey, fullKey);
+      return true;
+    } else if (offModsMap[modKey.toLowerCase()+" (local)"]){
+      remapKey(modsMap, modKey+" (local)", fullKey);
+      return true;
+    } else {
+      if (hasInverted(modKey, offModsMap)) {
+        var newKey = hasInverted(modKey, offModsMap);
+        $.each( tiers, function( i, tier ) {
+          $.each( tier.values, function( j, valArray ) {
+            var newVals = [];
+            for (var k=valArray.length-1; k >= 0; k--) {
+              var n = Number(valArray[k]);
+              if (!isNaN(n)) {
+                newVals.push(""+(-n));
+              } else {
+                newVals.push(valArray[k]);
+              }
+            }
+            tier.values[j] = newVals;
+          });
+        });
+        trace("NOT FOUND - INVERTED", newKey, tiers);
+        remapKey(modsMap, newKey, fullKey);
+        return true;
+      } else if (modKey.indexOf("#") >= 0) {
+        
+        var m = modKey.match(/\+?#%?/g);
+        var prev = fullKey.match(new RegExp("(.*#.*)"+modKey, "gi"));
+        var perms = [], possibles = [];
+        $.each( m, function( i, hash ) {
+          while (possibles.length <= i) {
+            possibles.push([]);
+          }
+          possibles[i].push(hash);
+          if (hash.startsWith("+")) {
+            possibles[i].push(hash.replace("+", ""));
+          } else {
+            possibles[i].push("+"+hash);
+          }
+        });
+        var cols = [];
+        $.each( tiers, function( j, tier ) {
+          $.each( tier.values, function( z, value ) {
+            if (!cols[z]) cols.push([]);
+            cols[z].push(value);
+          });
+        });
+        $.each( cols, function( i, col ) {
+          cols[i] = _.uniqWith(col, _.isEqual);
+        });
+        trace("NOT FOUND multival", modKey, cols);
+
+        if (_.find(cols, function(x){return x.length == 1;})) {
+          for (var i = 0; i < m.length; i++) {
+            var hash = m[i];
+            if (cols[i] && cols[i].length <= 2) {
+              while (possibles.length <= i) {
+                possibles.push([]);
+              }
+              for (var ii = 0; ii < cols[i].length; ii++) {
+                if (cols[i][ii].length == 1) {
+                  possibles[i].push((hash+"").replace("#", cols[i][ii]));
+                } else {
+                  possibles[i].push((hash+"").replace("#", "(" + cols[i][ii].join("-")+")"));
+                }
+              }
+            }
+          }
+        }
+        $.each( possibles, function( index, poss ) {
+          possibles[index] = _.uniqWith(poss, _.isEqual);
+        });
+
+        perms = cartesianProduct(possibles);
+
+        trace("NOT FOUND PERMUTATIONS", m, perms, possibles, modKey, tiers);
+        if (perms.length > 0) {
+          var newKey = null;
+          var str = modKey.replaceAll(/\+?#%?/g, "£££");
+          $.each( perms, function( i, perm ) {
+            if (!newKey) {
+              var newStr = str;
+              $.each( perm, function( j, val ) {
+                newStr = newStr.replace("£££", val);
+              });
+              if (offModsMap[newStr.toLowerCase()]) {
+                newKey = newStr;
+                trace("FOUND PERMUTATION! -> ", newStr);
+                
+              } else {
+                trace("NOT FOUND PERMUTATIONS -> ", newStr);
+              }
+            }
+          });
+          if (newKey) {
+            remapKey(modsMap, newKey, fullKey);
+            return true;
+          }
+        }
+      }
+      trace("NOT FOUND", modKey, tiers);
+      return false;
+    }
+  }
+
+};
+
+var remapKey = function(modsMap, newKey, modKey) {
+  if (!modsMap[modKey]) {
+    modKey = modKey.replaceAll('\n', '|||||');
+    if (!modsMap[modKey]) {
+      warn("NOT FOUND KEY MISSING", modKey, modsMap);
+    }
+  }
+  if (modsMap[modKey]) {
+    $.each( modsMap[modKey], function( i, tier ) {
+      if (tier && !tier.offModKeys) {
+        tier.offModKeys = [];
+      }
+      if (tier) tier.offModKeys.push(newKey);
+    });
+  }
+};
+
+var remapTiersValue = function(modsMap, sliced, modKey) {
+  if (!modsMap[modKey]) {
+    modKey = modKey.replaceAll('\n', '|||||');
+    if (!modsMap[modKey]) {
+      warn("NOT FOUND KEY MISSING", modKey, modsMap);
+    }
+  }
+  if (modsMap[modKey]) {
+    $.each( modsMap[modKey], function( i, tier ) {
+      tier.sliced = [];
+      $.each( sliced, function( ii, slice ) {
+        tier.sliced.push(slice.tiers[i].values);
+      });
+    });
+  }
+};
+
+var hasInverted = function(modKey, offModsMap) {
+  if (inverted[modKey.toLowerCase()]) {
+    return inverted[modKey.toLowerCase()];
+  } else if (modKey.match(/\breduced|increased|more|less\b/ig)) {
+    var inverseTerm = {"more":"less", "less":"more", "increased":"reduced", "reduced":"increased"};
+    var newKey = null, found = false;
+    $.each( inverseTerm, function( k, v ) {
+      if (!found) {
+        var re = new RegExp("\\b" + k + "\\b", "gi");
+        newKey = modKey.toLowerCase().replace(re, v);
+        if (offModsMap[newKey] && !found) {
+          found = true;
+        } else if (offModsMap[newKey+" (local)"] && !found) {
+          newKey += " (local)";
+          found = true;
+        }
+      }
+    });
+    if (found) return newKey;
+  }
+  trace("NOT FOUND - INVERTED", modKey);
+  return false;
+}
+
+// LOAD MODS ===========================================================================================================================
+
+var loadModsFrameContent = /* html */ `
+<div class="modal fade" id="renameModsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModModalLabel">Rename search</h5>
+        <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <input type="text" class="form-control border-primary" name="renameModsName" id="renameModsName" autocomplete="off" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="renameModsButton" class="btn btn-primary">Rename</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal fade" id="importModsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="importModsModalLabel">Import saved searches</h5>
+        <button type="button" class="btn-close close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="importModsText">Paste text here</label>
+            <textarea class="form-control" id="importModsText" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="importModsOverwrite" checked>
+              <label class="custom-control-label" for="importModsOverwrite">Remove all current saved searches while importing</label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="doImportModsButton" class="btn btn-primary">Import</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="container-fluid fixed-top">
+  <div class="row">
+    <form class="col-md-12 pb-0">
+      <h5>Load search</h5>
+      <div class="input-group">
+        <input type="text" class="form-control border-primary" name="searchModsName" id="searchModsName" placeholder="Filter list..." autocomplete="off" />
+        <span class="input-group-text" id="basic-addon3"><i class="fas fa-filter"></i></span>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="container-fluid middle-list">
+  <div class="row pb-5">
+    <div class="col-md-12 table-responsive">
+      <table class="table table-sm" id="mods-list">
+      </table>
+    </div>
+  </div>
+</div>
+<div class="container-fluid fixed-bottom py-2 border-top">
+  <div class="row justify-content-end">
+    <div class="col">
+      <button id="importMods" type="button" class="btn btn-primary">
+        Import <i class="fas fa-upload"></i>
+      </button>
+      <button id="exportMods" type="button" class="btn btn-primary">
+        Export <i class="fas fa-download"></i>
+      </button>
+    </div>
+    <div class="col-2">
+      <button type="button" class="btn gs-btn-close">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+var createLoadModsFrame = function(iframe, callback) {
+  // setTimeout(function(){
+  // iframe.on('load',function(){
+    loadModsFrame = iframe;
+
+    iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
+      closeFrame("mods-loader-frame")
+    });
+    debug("iframe[0].contentWindow.$('.gs-btn-close')", $(".gs-btn-close", iframe[0].contentWindow.document));
+    iframe[0].contentWindow.$('#exportMods').on('click', function() {
+      download("poetrade-filters.txt", localStorage.getItem(getModsSearchKey()));
+    });
+
+    iframe[0].contentWindow.$('#importMods').on('click', function() {
+      iframe[0].contentWindow.$("#doImportModsButton").one('click', function() {
+        importModsSearch(iframe[0].contentWindow.$("#importModsText").val(), iframe[0].contentWindow.$("#importModsOverwrite").is(":checked"));
+        debug(iframe[0].contentWindow.$("#importModsOverwrite"));
+        iframe[0].contentWindow.$("#importModsModal").modal('hide');
+      });
+      iframe[0].contentWindow.$("#importModsModal").modal('show');
+    });
+
+    iframe[0].contentWindow.$("#renameModsModal").modal({show: false});
+    filterModsSearch(iframe);
+
+    if (callback) callback();
+  // }, 5000);
+};
+
+var loadModsSearches = function(event, handle) {
+  //TODO: text for no results
+  //TODO: filter list by other meta data
+  //TODO: tooltip significant search params
+  loadModsFrame.contents().find('#mods-list').empty();
+  modsHandle = handle;
+
+  var searches = getModsSearches();
+
+  $.each( Object.keys(searches).sort(), function( i, k ) {
+    debug(`loading search ${i} - ${k}`);
+    var row = $(`<tr></tr>`);
+    row.data("name", k);
+    row.data("params", deserialize(searches[k]));
+
+    var td = $(`<td class="col-md-10"></td>`);
+    row.append(td);
+    var lnk = $(`<a href="#" onclick="return false;" data-bs-toggle="tooltip" data-bs-title="Load to current group">${k}</a>`);
+    lnk.on( "click", function(e) {
+      openModsSearch(searches[k], e.ctrlKey, null);
+    });
+    td.append(lnk);
+    new loadModsFrame[0].contentWindow.bootstrap.Tooltip(lnk);
+    var lnk2 = $(`<a href="#" onclick="return false;" class="ms-2" data-bs-toggle="tooltip" data-bs-title="Append to current group"><i class="fas fa-plus"></i></a>`);
+    lnk2.on( "click", function(e) {
+      openModsSearch(searches[k], e.ctrlKey, null, true);
+    });
+    td.append(lnk2);
+    new loadModsFrame[0].contentWindow.bootstrap.Tooltip(lnk2);
+
+
+    var ren = $(`<a href="#" onclick="return false;" title="rename"><i class="fas fa-edit"></i></a>`);
+    ren.on( "click", function(e) {
+      loadModsFrame[0].contentWindow.$("#renameModsName").val(k);
+      loadModsFrame[0].contentWindow.$("#renameModsButton").one('click', function() {
+        renameModsSearch(k, loadModsFrame[0].contentWindow.$("#renameModsName").val());
+        loadModsFrame[0].contentWindow.$("#renameModsModal").modal('hide');
+      });
+      loadModsFrame[0].contentWindow.$("#renameModsModal").modal('show');
+    });
+    row.append(ren);
+    ren.wrap('<td>');
+
+    var del = $(`<a href="#" onclick="return false;" title="delete"><i class="fas fa-trash"></i></a>`);
+    del.on( "click", function(e) {
+      deleteSearch(k);
+      row.remove();
+    });
+    row.append(del);
+    del.wrap('<td>');
+
+    loadModsFrame.contents().find('#mods-list').append(row);
+  });
+
+  if (!event && Object.keys(searches).length > 0 && loadModsFrame.contents().find('#mods-list tr').length === 0) {
+    debug(`Retrying to load saved searches. Search list appear to be empty even if there are searches to show.`);
+    loadModsSearches(true, handle);
+  }
+
+};
+
+var importModsSearch = function(text, overwrite) {
+  debug(text);
+  debug(overwrite);
+  try {
+    var newSearches = JSON.parse(text);
+    if (typeof newSearches !== "object") {
+      throw new Error("Imported JSON not a JS object");
+    }
+    var searches = overwrite ? {} : getModsSearches();
+    $.each( Object.keys(newSearches), function( i, k ) {
+      searches[k] = newSearches[k];
+    });
+    putModsSearches(searches);
+    loadModsSearches();
+  } catch(ex) {
+    console.log(ex.message);
+    loadFrame.contents().find('div.row').first().append(/*html*/`
+      <dic class="col-md-12 py-2">
+        <div class="alert alert-danger" role="alert">
+          <h4 class="alert-heading">Error</h4>
+          <p>An error prevented PTE from importing your searches.</p>
+        </div>
+      </div>
+    `);
+  }
+  // if (oldName !== newName) {
+  //   var searches = getModsSearches();
+  //   Object.defineProperty(searches, newName, Object.getOwnPropertyDescriptor(searches, oldName));
+  //   delete searches[oldName];
+  //   putSearches(searches);
+  //   loadModsSearches();
+  // }
+
+};
+
+var setSearchGroup = function (search, n, doAppend) {
+  var filterGroups = app.$refs.search.$children.find(function(el) {
+    return el.$vnode && el.$vnode.elm && el.$vnode.elm.className == "search-advanced-items";
+  }).$children.find(function(el) {
+    return el.$vnode && el.$vnode.elm && el.$vnode.elm.className == "filter-group expanded";
+  });
+
+  if (!doAppend) {
+    filterGroups.$store.commit("setStatGroupType", {
+      group: n,
+      type: search.query.type
+    })
+    if (search.query.value) {
+      filterGroups.$store.commit("setStatGroupValue", {
+        group: n,
+        value: search.query.value
+      })
+    }
+    filterGroups.$store.commit("setFilterGroupDisabled", {
+      type: "stats",
+      group: n,
+      disable: search.query.disabled
+    });
+  }
+
+  var shift = ((doAppend) ? app.$store.state.persistent.stats[n].filters.length : 0);
+
+  $.each( search.query.filters, function( i, f ) {
+    filterGroups.$store.commit("setStatFilter", {
+        group: n,
+        index: i + shift,
+        value: f
+    });
+  });
+
+  if (!doAppend && app.$store.state.persistent.stats[n].filters.length > search.query.filters.length) {
+    var max = app.$store.state.persistent.stats[n].filters.length;
+    var min = search.query.filters.length;
+    for (var i = max; i >= min; i--) {
+      filterGroups.$store.commit("removeStatFilter", {
+          group: n,
+          index: i
+      });
+    }
+  }
+
+}
+
+var openModsSearch = function(search, newTab, target, doAppend) {
+  debug("openModsSearch:", search);
+  var filterGroupNumber = modsHandle.parents('.filter-group:first').prevAll('.filter-group').length;
+  debug("filterGroupNumber:", filterGroupNumber, search);
+
+  var st = $.extend({}, app.$store.state);
+  debug(search, app.$store.state, st);
+  //st.persistent.stats[filterGroupNumber] = search.query;
+
+  setSearchGroup(search, filterGroupNumber, doAppend);
+
+  closeFrame("mods-loader-frame");
+};
+
+// SAVE MODS ===========================================================================================================================
+
+var saveModsFrameContent = /* html */ `
+<div class="container-fluid">
+  <div class="row">
+    <form class="col-md-12 py-2">
+      <h5>Save filter group</h5>
+      <div class="input-group">
+        <input type="text" class="form-control typeahead border-primary" name="searchModsName" id="searchModsName" placeholder="filter group name..." autocomplete="off" />
+        <button id="saveModsButton" type="button" class="btn btn-outline-primary">
+          <i class="fas fa-save"></i>
+        </button>
+        <button id="" type="button" class="d-none btn btn-outline-primary gs-btn-close">
+          <i class="fas fa-window-close"></i>
+        </button>
+      </div>
+    </form>
+  </div>
+  <div class="row">
+    <div class="col-md-12 explain">
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12 fixed-bottom mb-2">
+      <button id="" type="button" class="btn gs-btn-close gs-pull-right">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+var createSaveModsFrame = function(iframe, callback) {
+  // setTimeout(function(){
+  // iframe.on('load',function(){
+    saveModsFrame = iframe;
+
+    iframe[0].contentWindow.$('.gs-btn-close').on('click', function() {
+      closeFrame("mods-saver-frame")
+    });
+    iframe[0].contentWindow.$('#saveModsButton').on('click', saveModsSearch);
+
+    $(iframe[0].contentWindow.document).keydown(function(e) {
+      if(e.which == 13 && e.target && e.target.id == "searchModsName") {
+        e.preventDefault();
+        if ($("#searchModsName + ul.typeahead.dropdown-menu .dropdown-item.active", saveModsFrame[0].contentWindow.document).length == 0
+          || !$("#searchModsName + ul.typeahead.dropdown-menu", saveModsFrame[0].contentWindow.document).first().is(":visible")) {
+            saveModsSearch();
+        }
+      }
+    });
+
+    if (callback) callback();
+  // }, 100);
+};
+
+var saveModsSearch = function() {
+  var filterGroupNumber = modsHandle.parents('.filter-group:first').prevAll('.filter-group').length;
+
+  var searches = getModsSearches();
+  var name = saveModsFrame.contents().find('#searchModsName').val();
+  var saveForm = function() {
+    try {
+      searches[name] = {
+        query: app.query.query.stats[filterGroupNumber]
+      };
+      putModsSearches(searches);
+      closeFrame('mods-saver-frame');
+    } catch(ex) {
+      saveModsFrame.contents().find('div.row').first().append(/*html*/`
+        <div class="col-md-12 py-2">
+          <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Error</h4>
+            <p>An error prevented PTE from saving the current search in your browser local storage.</p>
+            ${((ex.message.indexOf("exceeded the quota")>0)?'<hr><p>It appears you have exceeded your browser local storage quota. At the moment the only solution is to delete older searches.</p>':'')}
+          </div>
+        </div>
+      `);
+    }
+  }
+  if (!searches[name] || window.confirm(`A filter group named ${name} already exists. Do you want to overwrite it?`)) {
+    saveForm();
+  }
+};
+
+var loadTypeaheadModsSearches = function(event, handle) {
+  debug("typeahead", arguments);
+  modsHandle = handle;
+  saveModsFrame[0].contentWindow.$("#searchModsName").typeahead('destroy');
+  saveModsFrame[0].contentWindow.$("#searchModsName").typeahead({
+    source: Object.keys(getModsSearches()).sort(),
+    item: '<li class="dropdown-item"><a class="dropdown-item" href="#" role="option"></a></li>',
+    autoSelect: false
+  });
+
+  var query = app.query.query.stats[modsHandle.parents('.filter-group:first').prevAll('.filter-group').length];
+  saveModsFrame[0].contentWindow.$(".explain").empty()
+  .append(`<div>type: ${query.type}${((query.value)?' - '+JSON.stringify(query.value):'')}${((query.disabled)?' (disabled)':'')}</div>`);
+  $.each( query.filters, function( i, filter ) {
+    saveModsFrame[0].contentWindow.$(".explain")
+    .append(`<div><strong>${app._data.static_.knownStatsFlat[filter.id].text}</strong>${((filter.disabled)?' (disabled)':'')}: ${JSON.stringify(filter.value)}</div>`);
+  });
+};
+
+var getModsSearches = function() {
+  var searches = localStorage.getItem(getModsSearchKey());
+  if (!searches) {
+    searches = {};
+  } else {
+    searches = JSON.parse(searches);
+  }
+  return searches;
+};
+
+var getModsSearchKey = function() {
+  return searchesKey + (poe2 ? '2' : '') + '-mods';
+};
+
+var putModsSearches = function(searches) {
+  localStorage.setItem(getModsSearchKey(), JSON.stringify(searches));
+};
+
+var renameModsSearch = function(oldName, newName) {
+  if (oldName !== newName) {
+    var searches = getModsSearches();
+    Object.defineProperty(searches, newName, Object.getOwnPropertyDescriptor(searches, oldName));
+    delete searches[oldName];
+    putModsSearches(searches);
+    loadModsSearches();
+  }
+};
+
+var filterModsSearch = function(iframe) {
+  $(iframe[0].contentWindow.document).keyup(function(e) {
+    if(e.target && e.target.id == "searchModsName") {
+      debug($(e.target).val());
+      $("#mods-list tr", iframe[0].contentWindow.document)
+      .filter(function() {
+        if ($(e.target).val() == "" || iframe[0].contentWindow.$(this).data('name').toLowerCase().indexOf($(e.target).val().toLowerCase()) >= 0) {
+          iframe[0].contentWindow.$(this).removeClass("d-none");
+        } else {
+          iframe[0].contentWindow.$(this).addClass("d-none");
+        }
+      });
+    }
+  });
+};
+
+
   var enhanceItemSearch = function(loc) {
     debug("ITEM SEARCH!");
     initPage(loc, function(){
       debug(app);
       var league = getCurrentLeague();
-
+      
       getCurrencies(league, function(curr) {
+        if (getSetting('doDuplicateControls')) duplicateControls();
         if (getSetting('useSaveManager')) initSaveManager();
-        initMapSelector();
+        if (getSetting('useSaveManager') || getSetting('useModSelector')) initModSelector();
         currencies = curr;
+        fixTips();
         if (currencies && currencies.map) {
           if (_.has(app.$store.state.transient, "search.active.localId") && app.$store.state.transient.search.active.results.length > 0 && app.$store.state.transient.search.active.results[0].id && app.$store.state.transient.search.active.results[0].id && app.$store.state.transient.search.active.results[0].result.length > 0 && !itemsLoading[app.$store.state.transient.search.active.localId+'-'+app.$store.state.transient.search.active.results[0].id]) {
             warn(`app committed to changes when results for ${app.$store.state.transient.search.active.localId+'-'+app.$store.state.transient.search.active.results[0].id} where already loaded`);
@@ -4699,9 +7515,8 @@ var mapSelectorContent = /* html */ `
     { matcher: /^[^\.]*www\.pathofexile\.com\/trade.*$/, callback: enhanceItemSearch } // Item search
   ]
 
-  waitFor([`if (!app.$data.loaded) { throw "app not loaded yet"; }`, "jQuery", "$('.loader:not(:visible)')[0].attributes", "$('.row.exchange')[0].attributes"], function() {
+  waitFor([`if (!app.$data.loaded) { throw "app not loaded yet"; }`, "jQuery", "$('.loader:not(:visible)')[0].attributes"], function() {
     jQuery( document ).ready(function() {
-      console.log("Page loaded")
       debug("doc ready!");
       $.each( matchers, function( i, m ) {
         if (m.matcher.test(window.location)) {
@@ -4709,7 +7524,6 @@ var mapSelectorContent = /* html */ `
             debug(`delay: ${DELAY}`)
             setTimeout(function(){ m.callback(window.location); }, DELAY);
           } else {
-            console.log("Making callback")
             m.callback(window.location);
           }
         }
